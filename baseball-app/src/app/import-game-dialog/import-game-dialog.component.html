@@ -1,0 +1,46 @@
+<h2 mat-dialog-title>
+    Import Game from iScore Baseball
+</h2>
+<mat-dialog-content>
+    <p>
+        Upload files emailed from iScore Baseball and enter the following details:
+    </p>
+    <div class="details">
+        <mat-form-field>
+            <ul *ngIf="filesUploaded">
+                <li *ngFor="let fileName of fileNames">
+                    {{fileName}}
+                </li>
+            </ul>
+            <span *ngIf="!filesUploaded"></span>
+            <input type="file" class="file-input" (change)="onFileSelected($event)" #zipFileUpload multiple>
+            <input matInput>
+            <button mat-button (click)="zipFileUpload.click()">Upload</button>
+        </mat-form-field>
+        <mat-form-field>
+            <mat-label>Scheduled Start</mat-label>
+            <mtx-datetimepicker #scheduledPicker type="datetime">
+            </mtx-datetimepicker>
+            <input [mtxDatetimepicker]="scheduledPicker" [formControl]="scheduledDateTime" matInput>
+            <mtx-datetimepicker-toggle [for]="scheduledPicker" matSuffix></mtx-datetimepicker-toggle>
+        </mat-form-field>
+        <mat-form-field>
+            <mat-label>Actual Start</mat-label>
+            <mtx-datetimepicker #startPicker type="datetime">
+            </mtx-datetimepicker>
+            <input [mtxDatetimepicker]="startPicker" [formControl]="startDateTime" matInput>
+            <mtx-datetimepicker-toggle [for]="startPicker" matSuffix></mtx-datetimepicker-toggle>
+        </mat-form-field>
+        <mat-form-field>
+            <mat-label>End</mat-label>
+            <mtx-datetimepicker #endPicker type="datetime">
+            </mtx-datetimepicker>
+            <input [mtxDatetimepicker]="endPicker" [formControl]="endDateTime" matInput>
+            <mtx-datetimepicker-toggle [for]="endPicker" matSuffix></mtx-datetimepicker-toggle>
+        </mat-form-field>
+    </div>
+</mat-dialog-content>
+<mat-dialog-actions>
+    <button mat-button>Import</button>
+    <button mat-button mat-dialog-close>Close</button>
+</mat-dialog-actions>
