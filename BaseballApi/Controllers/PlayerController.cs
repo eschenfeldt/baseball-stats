@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BaseballApi;
 using BaseballApi.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace BaseballApi.Controllers
 {
@@ -45,6 +46,7 @@ namespace BaseballApi.Controllers
         // PUT: api/Player/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
+        [Authorize]
         public async Task<IActionResult> PutPlayer(long id, Player player)
         {
             if (id != player.Id)
@@ -76,6 +78,7 @@ namespace BaseballApi.Controllers
         // POST: api/Player
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
+        [Authorize]
         public async Task<ActionResult<Player>> PostPlayer(Player player)
         {
             _context.Players.Add(player);
@@ -86,6 +89,7 @@ namespace BaseballApi.Controllers
 
         // DELETE: api/Player/5
         [HttpDelete("{id}")]
+        [Authorize]
         public async Task<IActionResult> DeletePlayer(long id)
         {
             var player = await _context.Players.FindAsync(id);

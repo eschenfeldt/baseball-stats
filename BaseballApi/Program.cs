@@ -36,6 +36,7 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
-app.MapIdentityApi<IdentityUser>();
+app.MapGroup("/api/Admin").MapIdentityApi<IdentityUser>()
+    .RequireAuthorization();
 
 app.Run();

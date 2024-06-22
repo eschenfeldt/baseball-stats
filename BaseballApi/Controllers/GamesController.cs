@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BaseballApi.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace BaseballApi.Controllers
 {
@@ -44,6 +45,7 @@ namespace BaseballApi.Controllers
         // PUT: api/Games/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
+        [Authorize]
         public async Task<IActionResult> PutGame(long id, Game game)
         {
             if (id != game.Id)
@@ -75,6 +77,7 @@ namespace BaseballApi.Controllers
         // POST: api/Games
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
+        [Authorize]
         public async Task<ActionResult<Game>> PostGame(Game game)
         {
             _context.Games.Add(game);
@@ -85,6 +88,7 @@ namespace BaseballApi.Controllers
 
         // DELETE: api/Games/5
         [HttpDelete("{id}")]
+        [Authorize]
         public async Task<IActionResult> DeleteGame(long id)
         {
             var game = await _context.Games.FindAsync(id);
