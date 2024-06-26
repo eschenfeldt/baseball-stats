@@ -3,6 +3,8 @@ using BaseballApi.Models;
 using BaseballApi;
 using Microsoft.AspNetCore.Identity;
 
+var corsLocal = "_corsLocalPolicy";
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -22,21 +24,33 @@ builder.Services.AddDbContext<AppIdentityDbContext>(opt => opt.UseNpgsql(identit
 builder.Services.AddIdentityApiEndpoints<IdentityUser>()
     .AddEntityFrameworkStores<AppIdentityDbContext>();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: corsLocal,
+                      policy =>
+                      {
+                          policy.SetIsOriginAllowed(origin => new Uri(origin).IsLoopback)
+                            .AllowAnyHeader()
+                            .AllowCredentials();
+                      });
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
+    // Allow user setup endpoints only in development
+    app.MapGroup("/api/Admin/Dev").MapIdentityApi<IdentityUser>();
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
 
+app.UseCors(corsLocal);
 app.UseAuthorization();
 
 app.MapControllers();
-app.MapGroup("/api/Admin").MapIdentityApi<IdentityUser>()
-    .RequireAuthorization();
 
 app.Run();

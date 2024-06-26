@@ -1,3 +1,23 @@
-<p>admin works!</p>
+@if (isLoggedIn) {
+<p>
+    Admin is logged in!
+</p>
 <button mat-button color="accent" (click)="openImportDialog()">Import Game
 </button>
+}
+@else {
+<p>
+    Please log in
+</p>
+<form [formGroup]="loginInfo" (ngSubmit)="login()">
+    <mat-form-field>
+        <mat-label>Email</mat-label>
+        <input matInput formControlName="email">
+    </mat-form-field>
+    <mat-form-field>
+        <mat-label>Password</mat-label>
+        <input type="password" matInput formControlName="password">
+    </mat-form-field>
+    <button mat-button type="submit" [disabled]="!loginInfo.valid">Login</button>
+</form>
+}

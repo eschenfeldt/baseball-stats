@@ -1,0 +1,13 @@
+<h2 mat-dialog-title>
+    Error
+</h2>
+<mat-dialog-content>
+    @if (errorText) {
+    <p>
+        {{errorText}}
+    </p>
+    }
+    @if (error) {
+    {{error.message}}
+    }
+</mat-dialog-content>
