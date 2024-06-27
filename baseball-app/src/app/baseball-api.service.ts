@@ -41,7 +41,7 @@ export class BaseballApiService {
         }).subscribe(() => this.checkLoginStatus());
     }
 
-    private makeApiPost<T>(serviceUri: string, body: any, handleErrors: boolean = true): Observable<T> {
+    public makeApiPost<T>(serviceUri: string, body: any, handleErrors: boolean = true): Observable<T> {
         const uri = BaseballApiService.apiBaseUrl + serviceUri;
         let req = this.http.post<{ d: T }>(uri, body, { responseType: 'json', withCredentials: true })
             .pipe(map((response: { d: T }) => {
@@ -63,7 +63,7 @@ export class BaseballApiService {
         return this.http.post(uri, body, { responseType: 'blob' });
     }
 
-    private makeApiGet<T>(serviceUri: string, handleErrors: boolean = true, withCredentials: boolean = false): Observable<T> {
+    public makeApiGet<T>(serviceUri: string, handleErrors: boolean = true, withCredentials: boolean = false): Observable<T> {
         const uri = BaseballApiService.apiBaseUrl + serviceUri;
         let req = this.http.get<T>(uri, { responseType: 'json', withCredentials: withCredentials });
 

@@ -18,6 +18,22 @@
             <button mat-button (click)="zipFileUpload.click()">Upload</button>
         </mat-form-field>
         <mat-form-field>
+            <mat-label>Away Team</mat-label>
+            <mat-select [formControl]="awayTeam">
+                @for (team of teams; track team.Id) {
+                <mat-option [value]="team">{{team.Name}}</mat-option>
+                }
+            </mat-select>
+        </mat-form-field>
+        <mat-form-field>
+            <mat-label>Home Team</mat-label>
+            <mat-select [formControl]="homeTeam">
+                @for (team of teams; track team.Id) {
+                <mat-option [value]="team">{{team.Name}}</mat-option>
+                }
+            </mat-select>
+        </mat-form-field>
+        <mat-form-field>
             <mat-label>Scheduled Start</mat-label>
             <mtx-datetimepicker #scheduledPicker type="datetime">
             </mtx-datetimepicker>
@@ -41,6 +57,6 @@
     </div>
 </mat-dialog-content>
 <mat-dialog-actions>
-    <button mat-button>Import</button>
+    <button mat-button [disabled]="!filesUploaded" (click)="import()">Import</button>
     <button mat-button mat-dialog-close>Close</button>
 </mat-dialog-actions>

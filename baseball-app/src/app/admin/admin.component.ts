@@ -6,6 +6,7 @@ import { BaseballApiService } from '../baseball-api.service';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { EditTeamDialogComponent } from '../edit-team-dialog/edit-team-dialog.component';
 
 @Component({
     selector: 'app-admin',
@@ -44,12 +45,15 @@ export class AdminViewComponent implements OnInit {
     }
 
     openImportDialog() {
-        this.importDialog.open(ImportGameDialogComponent)
+        this.importDialog.open(ImportGameDialogComponent);
+    }
+
+    openTeamDialog() {
+        this.importDialog.open(EditTeamDialogComponent);
     }
 
     login() {
         if (this.loginInfo.valid) {
-            console.log(`Logging in as ${this.loginInfo.value.email} with password ${this.loginInfo.value.password}`);
             this.api.logIn(this.loginInfo.value.email, this.loginInfo.value.password);
         }
     }

@@ -42,6 +42,25 @@ namespace BaseballApi.Controllers
             return game;
         }
 
+        [HttpPost("import")]
+        [Authorize]
+        public async Task<IActionResult> ImportGame(List<IFormFile> files, GameMetadata metadata)
+        {
+            long size = files.Sum(f => f.Length);
+
+            foreach (var formFile in files)
+            {
+                var filePath = Path.GetTempFileName();
+                Console.WriteLine(filePath);
+                using (var stream = System.IO.File.Create(filePath))
+                {
+                    await formFile.CopyToAsync(stream);
+                }
+            }
+
+            return Ok(new { count = files.Count, size });
+        }
+
         // PUT: api/Games/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
