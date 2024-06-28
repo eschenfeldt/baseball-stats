@@ -1,0 +1,497 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 60;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		FD4913222C2E405B00753056 /* SQLKit in Frameworks */ = {isa = PBXBuildFile; productRef = FD4913212C2E405B00753056 /* SQLKit */; };
+		FDDC9ED02C2E44BF001C0262 /* PostgresKit in Frameworks */ = {isa = PBXBuildFile; productRef = FDDC9ECF2C2E44BF001C0262 /* PostgresKit */; };
+		FDDC9ED32C2E44EE001C0262 /* SQLiteKit in Frameworks */ = {isa = PBXBuildFile; productRef = FDDC9ED22C2E44EE001C0262 /* SQLiteKit */; };
+		FDDC9EDB2C2E4530001C0262 /* Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDDC9EDA2C2E4530001C0262 /* Tests.swift */; };
+		FDDC9EE02C2E454B001C0262 /* SQLiteConnector.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDDC9EDF2C2E454B001C0262 /* SQLiteConnector.swift */; };
+		FDDC9EE12C2E454B001C0262 /* SQLiteConnector.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDDC9EDF2C2E454B001C0262 /* SQLiteConnector.swift */; };
+		FDDC9EE32C2E46F0001C0262 /* DbConnector.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDDC9EE22C2E46F0001C0262 /* DbConnector.swift */; };
+		FDDC9EE42C2E46F0001C0262 /* DbConnector.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDDC9EE22C2E46F0001C0262 /* DbConnector.swift */; };
+		FDDC9EE72C2E4CE2001C0262 /* Test_iScore_baseball.sqlite in Resources */ = {isa = PBXBuildFile; fileRef = FDDC9EE62C2E4CE2001C0262 /* Test_iScore_baseball.sqlite */; };
+		FDDC9EEA2C2E4E26001C0262 /* SQLKit in Frameworks */ = {isa = PBXBuildFile; productRef = FDDC9EE92C2E4E26001C0262 /* SQLKit */; };
+		FDDC9EEC2C2E4E26001C0262 /* SQLiteKit in Frameworks */ = {isa = PBXBuildFile; productRef = FDDC9EEB2C2E4E26001C0262 /* SQLiteKit */; };
+		FDDC9EF12C2E58CE001C0262 /* iScoreImport.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDDC9EF02C2E58CE001C0262 /* iScoreImport.swift */; };
+		FDDC9EF22C2E58CE001C0262 /* iScoreImport.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDDC9EF02C2E58CE001C0262 /* iScoreImport.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		FD4913142C2E404500753056 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		FD4913162C2E404500753056 /* iScoreImport */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = iScoreImport; sourceTree = BUILT_PRODUCTS_DIR; };
+		FDDC9ED82C2E4530001C0262 /* Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		FDDC9EDA2C2E4530001C0262 /* Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tests.swift; sourceTree = "<group>"; };
+		FDDC9EDF2C2E454B001C0262 /* SQLiteConnector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLiteConnector.swift; sourceTree = "<group>"; };
+		FDDC9EE22C2E46F0001C0262 /* DbConnector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DbConnector.swift; sourceTree = "<group>"; };
+		FDDC9EE62C2E4CE2001C0262 /* Test_iScore_baseball.sqlite */ = {isa = PBXFileReference; lastKnownFileType = file; path = Test_iScore_baseball.sqlite; sourceTree = "<group>"; };
+		FDDC9EF02C2E58CE001C0262 /* iScoreImport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iScoreImport.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		FD4913132C2E404500753056 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FDDC9ED32C2E44EE001C0262 /* SQLiteKit in Frameworks */,
+				FDDC9ED02C2E44BF001C0262 /* PostgresKit in Frameworks */,
+				FD4913222C2E405B00753056 /* SQLKit in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FDDC9ED52C2E4530001C0262 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FDDC9EEA2C2E4E26001C0262 /* SQLKit in Frameworks */,
+				FDDC9EEC2C2E4E26001C0262 /* SQLiteKit in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		FD49130D2C2E404500753056 = {
+			isa = PBXGroup;
+			children = (
+				FD4913182C2E404500753056 /* iScoreImport */,
+				FDDC9ED92C2E4530001C0262 /* Tests */,
+				FD4913172C2E404500753056 /* Products */,
+				FDDC9EE82C2E4E26001C0262 /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		FD4913172C2E404500753056 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				FD4913162C2E404500753056 /* iScoreImport */,
+				FDDC9ED82C2E4530001C0262 /* Tests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		FD4913182C2E404500753056 /* iScoreImport */ = {
+			isa = PBXGroup;
+			children = (
+				FDDC9EDF2C2E454B001C0262 /* SQLiteConnector.swift */,
+				FDDC9EE22C2E46F0001C0262 /* DbConnector.swift */,
+				FDDC9EF02C2E58CE001C0262 /* iScoreImport.swift */,
+			);
+			path = iScoreImport;
+			sourceTree = "<group>";
+		};
+		FDDC9ED92C2E4530001C0262 /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				FDDC9EDA2C2E4530001C0262 /* Tests.swift */,
+				FDDC9EE62C2E4CE2001C0262 /* Test_iScore_baseball.sqlite */,
+			);
+			path = Tests;
+			sourceTree = "<group>";
+		};
+		FDDC9EE82C2E4E26001C0262 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		FD4913152C2E404500753056 /* iScoreImport */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FD49131D2C2E404500753056 /* Build configuration list for PBXNativeTarget "iScoreImport" */;
+			buildPhases = (
+				FD4913122C2E404500753056 /* Sources */,
+				FD4913132C2E404500753056 /* Frameworks */,
+				FD4913142C2E404500753056 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = iScoreImport;
+			packageProductDependencies = (
+				FD4913212C2E405B00753056 /* SQLKit */,
+				FDDC9ECF2C2E44BF001C0262 /* PostgresKit */,
+				FDDC9ED22C2E44EE001C0262 /* SQLiteKit */,
+			);
+			productName = iScoreImport;
+			productReference = FD4913162C2E404500753056 /* iScoreImport */;
+			productType = "com.apple.product-type.tool";
+		};
+		FDDC9ED72C2E4530001C0262 /* Tests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FDDC9EDC2C2E4530001C0262 /* Build configuration list for PBXNativeTarget "Tests" */;
+			buildPhases = (
+				FDDC9ED42C2E4530001C0262 /* Sources */,
+				FDDC9ED52C2E4530001C0262 /* Frameworks */,
+				FDDC9ED62C2E4530001C0262 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Tests;
+			packageProductDependencies = (
+				FDDC9EE92C2E4E26001C0262 /* SQLKit */,
+				FDDC9EEB2C2E4E26001C0262 /* SQLiteKit */,
+			);
+			productName = Tests;
+			productReference = FDDC9ED82C2E4530001C0262 /* Tests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		FD49130E2C2E404500753056 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1600;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					FD4913152C2E404500753056 = {
+						CreatedOnToolsVersion = 16.0;
+					};
+					FDDC9ED72C2E4530001C0262 = {
+						CreatedOnToolsVersion = 16.0;
+					};
+				};
+			};
+			buildConfigurationList = FD4913112C2E404500753056 /* Build configuration list for PBXProject "iScoreImport" */;
+			compatibilityVersion = "Xcode 15.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = FD49130D2C2E404500753056;
+			packageReferences = (
+				FD4913202C2E405B00753056 /* XCRemoteSwiftPackageReference "sql-kit" */,
+				FDDC9ECE2C2E44BF001C0262 /* XCRemoteSwiftPackageReference "postgres-kit" */,
+				FDDC9ED12C2E44EE001C0262 /* XCRemoteSwiftPackageReference "sqlite-kit" */,
+			);
+			productRefGroup = FD4913172C2E404500753056 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				FD4913152C2E404500753056 /* iScoreImport */,
+				FDDC9ED72C2E4530001C0262 /* Tests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		FDDC9ED62C2E4530001C0262 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FDDC9EE72C2E4CE2001C0262 /* Test_iScore_baseball.sqlite in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		FD4913122C2E404500753056 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FDDC9EE32C2E46F0001C0262 /* DbConnector.swift in Sources */,
+				FDDC9EF22C2E58CE001C0262 /* iScoreImport.swift in Sources */,
+				FDDC9EE02C2E454B001C0262 /* SQLiteConnector.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FDDC9ED42C2E4530001C0262 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FDDC9EE42C2E46F0001C0262 /* DbConnector.swift in Sources */,
+				FDDC9EF12C2E58CE001C0262 /* iScoreImport.swift in Sources */,
+				FDDC9EDB2C2E4530001C0262 /* Tests.swift in Sources */,
+				FDDC9EE12C2E454B001C0262 /* SQLiteConnector.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		FD49131B2C2E404500753056 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.5;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		FD49131C2C2E404500753056 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.5;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		FD49131E2C2E404500753056 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 3X5SCZHL84;
+				ENABLE_HARDENED_RUNTIME = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		FD49131F2C2E404500753056 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 3X5SCZHL84;
+				ENABLE_HARDENED_RUNTIME = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		FDDC9EDD2C2E4530001C0262 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 3X5SCZHL84;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.eschenfeldt.Tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		FDDC9EDE2C2E4530001C0262 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 3X5SCZHL84;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.eschenfeldt.Tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		FD4913112C2E404500753056 /* Build configuration list for PBXProject "iScoreImport" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FD49131B2C2E404500753056 /* Debug */,
+				FD49131C2C2E404500753056 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		FD49131D2C2E404500753056 /* Build configuration list for PBXNativeTarget "iScoreImport" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FD49131E2C2E404500753056 /* Debug */,
+				FD49131F2C2E404500753056 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		FDDC9EDC2C2E4530001C0262 /* Build configuration list for PBXNativeTarget "Tests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FDDC9EDD2C2E4530001C0262 /* Debug */,
+				FDDC9EDE2C2E4530001C0262 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		FD4913202C2E405B00753056 /* XCRemoteSwiftPackageReference "sql-kit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/vapor/sql-kit.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.31.1;
+			};
+		};
+		FDDC9ECE2C2E44BF001C0262 /* XCRemoteSwiftPackageReference "postgres-kit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/vapor/postgres-kit.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.13.5;
+			};
+		};
+		FDDC9ED12C2E44EE001C0262 /* XCRemoteSwiftPackageReference "sqlite-kit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/vapor/sqlite-kit.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.5.2;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		FD4913212C2E405B00753056 /* SQLKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FD4913202C2E405B00753056 /* XCRemoteSwiftPackageReference "sql-kit" */;
+			productName = SQLKit;
+		};
+		FDDC9ECF2C2E44BF001C0262 /* PostgresKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FDDC9ECE2C2E44BF001C0262 /* XCRemoteSwiftPackageReference "postgres-kit" */;
+			productName = PostgresKit;
+		};
+		FDDC9ED22C2E44EE001C0262 /* SQLiteKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FDDC9ED12C2E44EE001C0262 /* XCRemoteSwiftPackageReference "sqlite-kit" */;
+			productName = SQLiteKit;
+		};
+		FDDC9EE92C2E4E26001C0262 /* SQLKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FD4913202C2E405B00753056 /* XCRemoteSwiftPackageReference "sql-kit" */;
+			productName = SQLKit;
+		};
+		FDDC9EEB2C2E4E26001C0262 /* SQLiteKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FDDC9ED12C2E44EE001C0262 /* XCRemoteSwiftPackageReference "sqlite-kit" */;
+			productName = SQLiteKit;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = FD49130E2C2E404500753056 /* Project object */;
+}
