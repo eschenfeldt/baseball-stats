@@ -15,6 +15,24 @@ struct SQLiteConnector: DbConnector {
     var connection: SQLiteConnection?
     var db: SQLDatabase?
     
+    func getTeams() async throws -> [Team] {
+        guard let db else {
+            throw ConnectorError.connectionRequired
+        }
+        return try await db.select()
+            .column("guid", as: "ExternalId")
+            .column("team_nm", as: "CombinedName")
+            .from("team")
+            .all(decoding: Team.self)
+            .map() {
+                Team.withParsedName(team: $0)
+            }
+    }
+    
+    mutating func connect() async throws {
+        _ = try await getDb()
+    }
+    
     mutating func getDb() async throws -> SQLDatabase {
         guard let connection else {
             let newConnection = try await SQLiteConnection.open(
@@ -22,7 +40,9 @@ struct SQLiteConnector: DbConnector {
                 logger: logger
             );
             connection = newConnection
-            return newConnection.sql()
+            let newDb = newConnection.sql()
+            db = newDb
+            return newDb
         }
         guard let db else {
             let newDb = connection.sql()

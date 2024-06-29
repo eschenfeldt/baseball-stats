@@ -1,10 +1,12 @@
 using System.ComponentModel.DataAnnotations;
+using System.Security.Permissions;
 
 namespace BaseballApi.Models;
 
 public class Game
 {
     public long Id { get; set; }
+    public Guid ExternalId { get; set; }
     public required string Name { get; set; }
     public DateOnly Date { get; set; }
     public GameType GameType { get; set; }

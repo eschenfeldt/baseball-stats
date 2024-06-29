@@ -3,14 +3,14 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 60;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
 		FD4913222C2E405B00753056 /* SQLKit in Frameworks */ = {isa = PBXBuildFile; productRef = FD4913212C2E405B00753056 /* SQLKit */; };
 		FDDC9ED02C2E44BF001C0262 /* PostgresKit in Frameworks */ = {isa = PBXBuildFile; productRef = FDDC9ECF2C2E44BF001C0262 /* PostgresKit */; };
 		FDDC9ED32C2E44EE001C0262 /* SQLiteKit in Frameworks */ = {isa = PBXBuildFile; productRef = FDDC9ED22C2E44EE001C0262 /* SQLiteKit */; };
-		FDDC9EDB2C2E4530001C0262 /* Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDDC9EDA2C2E4530001C0262 /* Tests.swift */; };
+		FDDC9EDB2C2E4530001C0262 /* SQLiteTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDDC9EDA2C2E4530001C0262 /* SQLiteTests.swift */; };
 		FDDC9EE02C2E454B001C0262 /* SQLiteConnector.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDDC9EDF2C2E454B001C0262 /* SQLiteConnector.swift */; };
 		FDDC9EE12C2E454B001C0262 /* SQLiteConnector.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDDC9EDF2C2E454B001C0262 /* SQLiteConnector.swift */; };
 		FDDC9EE32C2E46F0001C0262 /* DbConnector.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDDC9EE22C2E46F0001C0262 /* DbConnector.swift */; };
@@ -20,6 +20,11 @@
 		FDDC9EEC2C2E4E26001C0262 /* SQLiteKit in Frameworks */ = {isa = PBXBuildFile; productRef = FDDC9EEB2C2E4E26001C0262 /* SQLiteKit */; };
 		FDDC9EF12C2E58CE001C0262 /* iScoreImport.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDDC9EF02C2E58CE001C0262 /* iScoreImport.swift */; };
 		FDDC9EF22C2E58CE001C0262 /* iScoreImport.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDDC9EF02C2E58CE001C0262 /* iScoreImport.swift */; };
+		FDDC9EF42C2F7985001C0262 /* PostgresConnector.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDDC9EF32C2F7985001C0262 /* PostgresConnector.swift */; };
+		FDDC9EF52C2F7985001C0262 /* PostgresConnector.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDDC9EF32C2F7985001C0262 /* PostgresConnector.swift */; };
+		FDDC9EF72C2F8499001C0262 /* PostgresTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDDC9EF62C2F8499001C0262 /* PostgresTests.swift */; };
+		FDDC9EF92C2F84E2001C0262 /* test.postgres_config in Resources */ = {isa = PBXBuildFile; fileRef = FDDC9EF82C2F84E2001C0262 /* test.postgres_config */; };
+		FDDC9EFD2C2F8585001C0262 /* PostgresKit in Frameworks */ = {isa = PBXBuildFile; productRef = FDDC9EFC2C2F8585001C0262 /* PostgresKit */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -37,12 +42,44 @@
 /* Begin PBXFileReference section */
 		FD4913162C2E404500753056 /* iScoreImport */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = iScoreImport; sourceTree = BUILT_PRODUCTS_DIR; };
 		FDDC9ED82C2E4530001C0262 /* Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		FDDC9EDA2C2E4530001C0262 /* Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tests.swift; sourceTree = "<group>"; };
+		FDDC9EDA2C2E4530001C0262 /* SQLiteTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLiteTests.swift; sourceTree = "<group>"; };
 		FDDC9EDF2C2E454B001C0262 /* SQLiteConnector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLiteConnector.swift; sourceTree = "<group>"; };
 		FDDC9EE22C2E46F0001C0262 /* DbConnector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DbConnector.swift; sourceTree = "<group>"; };
 		FDDC9EE62C2E4CE2001C0262 /* Test_iScore_baseball.sqlite */ = {isa = PBXFileReference; lastKnownFileType = file; path = Test_iScore_baseball.sqlite; sourceTree = "<group>"; };
 		FDDC9EF02C2E58CE001C0262 /* iScoreImport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iScoreImport.swift; sourceTree = "<group>"; };
+		FDDC9EF32C2F7985001C0262 /* PostgresConnector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostgresConnector.swift; sourceTree = "<group>"; };
+		FDDC9EF62C2F8499001C0262 /* PostgresTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostgresTests.swift; sourceTree = "<group>"; };
+		FDDC9EF82C2F84E2001C0262 /* test.postgres_config */ = {isa = PBXFileReference; lastKnownFileType = text; path = test.postgres_config; sourceTree = "<group>"; };
+		FDDC9EFA2C2F84EF001C0262 /* prod.postgres_config */ = {isa = PBXFileReference; lastKnownFileType = text; path = prod.postgres_config; sourceTree = "<group>"; };
+		FDDC9EFB2C2F84EF001C0262 /* template.postgres_config */ = {isa = PBXFileReference; lastKnownFileType = text; path = template.postgres_config; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		FDDC9F022C2FBF58001C0262 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Game.swift,
+				Park.swift,
+				Player.swift,
+				Team.swift,
+			);
+			target = FD4913152C2E404500753056 /* iScoreImport */;
+		};
+		FDDC9F032C2FBF58001C0262 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Game.swift,
+				Park.swift,
+				Player.swift,
+				Team.swift,
+			);
+			target = FDDC9ED72C2E4530001C0262 /* Tests */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		FDDC9EFE2C2FBF44001C0262 /* Models */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (FDDC9F022C2FBF58001C0262 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, FDDC9F032C2FBF58001C0262 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = Models; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		FD4913132C2E404500753056 /* Frameworks */ = {
@@ -60,6 +97,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				FDDC9EEA2C2E4E26001C0262 /* SQLKit in Frameworks */,
+				FDDC9EFD2C2F8585001C0262 /* PostgresKit in Frameworks */,
 				FDDC9EEC2C2E4E26001C0262 /* SQLiteKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -89,9 +127,13 @@
 		FD4913182C2E404500753056 /* iScoreImport */ = {
 			isa = PBXGroup;
 			children = (
+				FDDC9EFE2C2FBF44001C0262 /* Models */,
+				FDDC9EFA2C2F84EF001C0262 /* prod.postgres_config */,
+				FDDC9EFB2C2F84EF001C0262 /* template.postgres_config */,
 				FDDC9EDF2C2E454B001C0262 /* SQLiteConnector.swift */,
 				FDDC9EE22C2E46F0001C0262 /* DbConnector.swift */,
 				FDDC9EF02C2E58CE001C0262 /* iScoreImport.swift */,
+				FDDC9EF32C2F7985001C0262 /* PostgresConnector.swift */,
 			);
 			path = iScoreImport;
 			sourceTree = "<group>";
@@ -99,8 +141,10 @@
 		FDDC9ED92C2E4530001C0262 /* Tests */ = {
 			isa = PBXGroup;
 			children = (
-				FDDC9EDA2C2E4530001C0262 /* Tests.swift */,
+				FDDC9EF82C2F84E2001C0262 /* test.postgres_config */,
+				FDDC9EDA2C2E4530001C0262 /* SQLiteTests.swift */,
 				FDDC9EE62C2E4CE2001C0262 /* Test_iScore_baseball.sqlite */,
+				FDDC9EF62C2F8499001C0262 /* PostgresTests.swift */,
 			);
 			path = Tests;
 			sourceTree = "<group>";
@@ -153,6 +197,7 @@
 			packageProductDependencies = (
 				FDDC9EE92C2E4E26001C0262 /* SQLKit */,
 				FDDC9EEB2C2E4E26001C0262 /* SQLiteKit */,
+				FDDC9EFC2C2F8585001C0262 /* PostgresKit */,
 			);
 			productName = Tests;
 			productReference = FDDC9ED82C2E4530001C0262 /* Tests.xctest */;
@@ -205,6 +250,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FDDC9EF92C2F84E2001C0262 /* test.postgres_config in Resources */,
 				FDDC9EE72C2E4CE2001C0262 /* Test_iScore_baseball.sqlite in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -216,6 +262,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FDDC9EF52C2F7985001C0262 /* PostgresConnector.swift in Sources */,
 				FDDC9EE32C2E46F0001C0262 /* DbConnector.swift in Sources */,
 				FDDC9EF22C2E58CE001C0262 /* iScoreImport.swift in Sources */,
 				FDDC9EE02C2E454B001C0262 /* SQLiteConnector.swift in Sources */,
@@ -228,8 +275,10 @@
 			files = (
 				FDDC9EE42C2E46F0001C0262 /* DbConnector.swift in Sources */,
 				FDDC9EF12C2E58CE001C0262 /* iScoreImport.swift in Sources */,
-				FDDC9EDB2C2E4530001C0262 /* Tests.swift in Sources */,
+				FDDC9EDB2C2E4530001C0262 /* SQLiteTests.swift in Sources */,
 				FDDC9EE12C2E454B001C0262 /* SQLiteConnector.swift in Sources */,
+				FDDC9EF72C2F8499001C0262 /* PostgresTests.swift in Sources */,
+				FDDC9EF42C2F7985001C0262 /* PostgresConnector.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -490,6 +539,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = FDDC9ED12C2E44EE001C0262 /* XCRemoteSwiftPackageReference "sqlite-kit" */;
 			productName = SQLiteKit;
+		};
+		FDDC9EFC2C2F8585001C0262 /* PostgresKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FDDC9ECE2C2E44BF001C0262 /* XCRemoteSwiftPackageReference "postgres-kit" */;
+			productName = PostgresKit;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

@@ -5,6 +5,7 @@ namespace BaseballApi;
 public class Player
 {
     public long Id { get; set; }
+    public Guid ExternalId { get; set; }
     public required string Name { get; set; }
     public DateOnly? DateOfBirth { get; set; }
     public string? FirstName { get; set; }
