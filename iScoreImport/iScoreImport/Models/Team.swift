@@ -8,11 +8,19 @@
 import Foundation
 
 struct Team : Codable {
-    let ExternalId: UUID
+    let ExternalId: UUID?
     var City: String?
     var Name: String?
     let CombinedName: String?
     let HomePark: Park?
+    
+    init(ExternalId: UUID? = nil, City: String? = nil, Name: String? = nil, CombinedName: String? = nil, HomePark: Park? = nil) {
+        self.ExternalId = ExternalId
+        self.City = City
+        self.Name = Name
+        self.CombinedName = CombinedName
+        self.HomePark = HomePark
+    }
     
     static let compoundCityStarts = Set<String>([
         "Los", "Las", "San", "St.", "Great", "New", "Quad"

@@ -25,6 +25,7 @@
 		FDDC9EF72C2F8499001C0262 /* PostgresTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDDC9EF62C2F8499001C0262 /* PostgresTests.swift */; };
 		FDDC9EF92C2F84E2001C0262 /* test.postgres_config in Resources */ = {isa = PBXBuildFile; fileRef = FDDC9EF82C2F84E2001C0262 /* test.postgres_config */; };
 		FDDC9EFD2C2F8585001C0262 /* PostgresKit in Frameworks */ = {isa = PBXBuildFile; productRef = FDDC9EFC2C2F8585001C0262 /* PostgresKit */; };
+		FDDC9F122C31F633001C0262 /* IntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDDC9F112C31F633001C0262 /* IntegrationTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -52,6 +53,7 @@
 		FDDC9EF82C2F84E2001C0262 /* test.postgres_config */ = {isa = PBXFileReference; lastKnownFileType = text; path = test.postgres_config; sourceTree = "<group>"; };
 		FDDC9EFA2C2F84EF001C0262 /* prod.postgres_config */ = {isa = PBXFileReference; lastKnownFileType = text; path = prod.postgres_config; sourceTree = "<group>"; };
 		FDDC9EFB2C2F84EF001C0262 /* template.postgres_config */ = {isa = PBXFileReference; lastKnownFileType = text; path = template.postgres_config; sourceTree = "<group>"; };
+		FDDC9F112C31F633001C0262 /* IntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntegrationTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -145,6 +147,7 @@
 				FDDC9EDA2C2E4530001C0262 /* SQLiteTests.swift */,
 				FDDC9EE62C2E4CE2001C0262 /* Test_iScore_baseball.sqlite */,
 				FDDC9EF62C2F8499001C0262 /* PostgresTests.swift */,
+				FDDC9F112C31F633001C0262 /* IntegrationTests.swift */,
 			);
 			path = Tests;
 			sourceTree = "<group>";
@@ -276,6 +279,7 @@
 				FDDC9EE42C2E46F0001C0262 /* DbConnector.swift in Sources */,
 				FDDC9EF12C2E58CE001C0262 /* iScoreImport.swift in Sources */,
 				FDDC9EDB2C2E4530001C0262 /* SQLiteTests.swift in Sources */,
+				FDDC9F122C31F633001C0262 /* IntegrationTests.swift in Sources */,
 				FDDC9EE12C2E454B001C0262 /* SQLiteConnector.swift in Sources */,
 				FDDC9EF72C2F8499001C0262 /* PostgresTests.swift in Sources */,
 				FDDC9EF42C2F7985001C0262 /* PostgresConnector.swift in Sources */,

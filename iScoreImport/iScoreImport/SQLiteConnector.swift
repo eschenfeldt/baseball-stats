@@ -11,9 +11,14 @@ import SQLiteKit
 struct SQLiteConnector: DbConnector {
     
     var filePath: String
-    var logger: Logger = Logger.init(label: "Sqlite")
-    var connection: SQLiteConnection?
-    var db: SQLDatabase?
+    var logger: Logger
+    private var connection: SQLiteConnection?
+    private var db: SQLDatabase?
+    
+    init(filePath: String, logger: Logger = Logger.init(label: "SQLite")) {
+        self.filePath = filePath
+        self.logger = logger
+    }
     
     func getTeams() async throws -> [Team] {
         guard let db else {

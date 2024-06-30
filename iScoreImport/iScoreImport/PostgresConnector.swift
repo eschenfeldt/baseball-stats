@@ -24,10 +24,15 @@ struct PostgresConfig : Codable {
 struct PostgresConnector : DbConnector {
     
     var configFileName: String
-    var config: SQLPostgresConfiguration?
-    var logger = Logger.init(label:"Postgres")
-    var connection: PostgresConnection?
-    var db: SQLDatabase?
+    private var config: SQLPostgresConfiguration?
+    var logger: Logger
+    private var connection: PostgresConnection?
+    private var db: SQLDatabase?
+    
+    init(configFileName: String, logger: Logger = Logger.init(label: "Postgres")) {
+        self.configFileName = configFileName
+        self.logger = logger
+    }
     
     class __ { } // empty class to look up current bundle
     
@@ -98,20 +103,76 @@ struct PostgresConnector : DbConnector {
         self.connection = nil;
     }
     
+    func insertOrUpdateTeam(team: Team) async throws {
+        guard let db else {
+            throw ConnectorError.connectionRequired
+        }
+        var existingTeamId: Int? = nil
+        if let externalId = team.ExternalId {
+            existingTeamId = try await getTeamId(externalId: externalId)
+        }
+        if existingTeamId == nil, let city = team.City, let name = team.Name {
+            existingTeamId = try await getTeamId(city: city, name: name)
+        }
+        if let existingTeamId {
+            try await updateTeam(team: team, id: existingTeamId)
+        } else {
+            try await insertTeam(team: team)
+        }
+    }
     
-    func getTeam(externalId: UUID) async throws -> Team? {
+    private func getTeamId(externalId: UUID) async throws -> Int? {
+        guard let db else {
+            throw ConnectorError.connectionRequired
+        }
+        let result = try await db.select()
+            .column("Id")
+            .from("Teams")
+            .where("ExternalId", .equal, externalId)
+            .first()
+        return try result?.decode(column: "Id", as: Int.self)
+    }
+    
+    func getTeamId(city: String, name: String) async throws -> Int? {
+        guard let db else {
+            throw ConnectorError.connectionRequired
+        }
+        let result = try await db.select()
+            .column("Id")
+            .from("Teams")
+            .where("City", .equal, city)
+            .where("Name", .equal, name)
+            .first()
+        return try result?.decode(column: "Id", as: Int.self)
+    }
+    
+    private func insertTeam(team: Team) async throws {
+        guard let db else {
+            throw ConnectorError.connectionRequired
+        }
+        try await db.insert(into: "Teams")
+            .columns("ExternalId", "City", "Name")
+            .values(team.ExternalId, team.City, team.Name)
+            .run()
+    }
+    
+    private func updateTeam(team: Team, id: Int) async throws {
+        guard let db else {
+            throw ConnectorError.connectionRequired
+        }
+        try await db.update("Teams")
+            .set("ExternalId", to: team.ExternalId)
+            .set("City", to: team.City)
+            .set("Name", to: team.Name)
+            .where("Id", .equal, id)
+            .run()
+    }
+    
+    private func getPlayer(externalId: UUID) async throws -> Player? {
         return nil
     }
     
-    func getTeam(city: String, name: String) async throws -> Team? {
-        return nil
-    }
-    
-    func getPlayer(externalId: UUID) async throws -> Player? {
-        return nil
-    }
-    
-    func getPlayer(firstName: String, lastName: String) async throws -> Player? {
+    private func getPlayer(firstName: String, lastName: String) async throws -> Player? {
         return nil
     }
 }
