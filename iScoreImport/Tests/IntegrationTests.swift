@@ -16,23 +16,31 @@ final class IntegrationTests {
     let filePath: String?
     
     // Postgres
-    let configFilePath = "test"
+    let configFileName = "test"
+    let configFilePath: String?
     
     init() {
         let testBundle = Bundle(for: type(of: self))
         guard let resourceURL = testBundle.url(forResource: fileName, withExtension: "sqlite") else {
             filePath = nil
+            configFilePath = nil
             return
         }
         filePath = resourceURL.absoluteString
+        guard let configUrl = testBundle.url(forResource: configFileName, withExtension: "postgres_config") else {
+            configFilePath = nil
+            return
+        }
+        configFilePath = configUrl.absoluteString
     }
 
     @Test("Import Teams")
     func testImportTeams() async throws {
         #expect(filePath != nil)
-        guard let filePath else { return }
+        #expect(configFilePath != nil)
+        guard let filePath, let configFilePath else { return }
         var reader = SQLiteConnector(filePath: filePath)
-        var writer = PostgresConnector(configFileName: configFilePath)
+        var writer = PostgresConnector(configFilePath: configFilePath, pathIsLocalFile: false)
         do {
             try await reader.connect()
             try await writer.connect()

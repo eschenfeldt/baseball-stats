@@ -9,13 +9,25 @@ import Foundation
 import Testing
 import SQLKit
 
-struct PostgresTests {
+final class PostgresTests {
     
-    let configFilePath = "test"
+    let configFileName = "test"
+    let configFilePath: String?
+    
+    init() {
+        let testBundle = Bundle(for: type(of: self))
+        guard let resourceURL = testBundle.url(forResource: configFileName, withExtension: "postgres_config") else {
+            configFilePath = nil
+            return
+        }
+        configFilePath = resourceURL.absoluteString
+    }
 
     @Test("Connection Test")
     func testConnection() async throws {
-        var connector = PostgresConnector(configFileName: configFilePath)
+        #expect(configFilePath != nil)
+        guard let configFilePath else { return }
+        var connector = PostgresConnector(configFilePath: configFilePath, pathIsLocalFile: false)
         do {
             let db = try await connector.getDb()
             let result = try await db.select()
@@ -35,7 +47,9 @@ struct PostgresTests {
     
     @Test("Get Team ID")
     func testGetTeamId() async throws {
-        var connector = PostgresConnector(configFileName: configFilePath)
+        #expect(configFilePath != nil)
+        guard let configFilePath else { return }
+        var connector = PostgresConnector(configFilePath: configFilePath, pathIsLocalFile: false)
         do {
             try await connector.connect()
             let testTeamId = try await connector.getTeamId(city: "Test City", name: "Test Team")
@@ -49,7 +63,9 @@ struct PostgresTests {
 
     @Test("Team Insert")
     func testTeamInsert() async throws {
-        var connector = PostgresConnector(configFileName: configFilePath)
+        #expect(configFilePath != nil)
+        guard let configFilePath else { return }
+        var connector = PostgresConnector(configFilePath: configFilePath, pathIsLocalFile: false)
         let city = "Test City"
         let name = "Testers \(UUID())"
         let team = Team(City: city, Name: name)
@@ -73,7 +89,9 @@ struct PostgresTests {
     
     @Test("Team Update")
     func testTeamUpdate() async throws {
-        var connector = PostgresConnector(configFileName: configFilePath)
+        #expect(configFilePath != nil)
+        guard let configFilePath else { return }
+        var connector = PostgresConnector(configFilePath: configFilePath, pathIsLocalFile: false)
         let city = "Test City"
         let name = "Testers \(UUID())"
         let externalId = UUID()

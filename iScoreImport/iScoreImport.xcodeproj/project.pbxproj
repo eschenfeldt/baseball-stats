@@ -26,6 +26,8 @@
 		FDDC9EF92C2F84E2001C0262 /* test.postgres_config in Resources */ = {isa = PBXBuildFile; fileRef = FDDC9EF82C2F84E2001C0262 /* test.postgres_config */; };
 		FDDC9EFD2C2F8585001C0262 /* PostgresKit in Frameworks */ = {isa = PBXBuildFile; productRef = FDDC9EFC2C2F8585001C0262 /* PostgresKit */; };
 		FDDC9F122C31F633001C0262 /* IntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDDC9F112C31F633001C0262 /* IntegrationTests.swift */; };
+		FDDC9F152C321D03001C0262 /* ArgumentParser in Frameworks */ = {isa = PBXBuildFile; productRef = FDDC9F142C321D03001C0262 /* ArgumentParser */; };
+		FDDC9F1B2C3229A1001C0262 /* ArgumentParser in Frameworks */ = {isa = PBXBuildFile; productRef = FDDC9F1A2C3229A1001C0262 /* ArgumentParser */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -90,6 +92,7 @@
 			files = (
 				FDDC9ED32C2E44EE001C0262 /* SQLiteKit in Frameworks */,
 				FDDC9ED02C2E44BF001C0262 /* PostgresKit in Frameworks */,
+				FDDC9F152C321D03001C0262 /* ArgumentParser in Frameworks */,
 				FD4913222C2E405B00753056 /* SQLKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -100,6 +103,7 @@
 			files = (
 				FDDC9EEA2C2E4E26001C0262 /* SQLKit in Frameworks */,
 				FDDC9EFD2C2F8585001C0262 /* PostgresKit in Frameworks */,
+				FDDC9F1B2C3229A1001C0262 /* ArgumentParser in Frameworks */,
 				FDDC9EEC2C2E4E26001C0262 /* SQLiteKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -179,6 +183,7 @@
 				FD4913212C2E405B00753056 /* SQLKit */,
 				FDDC9ECF2C2E44BF001C0262 /* PostgresKit */,
 				FDDC9ED22C2E44EE001C0262 /* SQLiteKit */,
+				FDDC9F142C321D03001C0262 /* ArgumentParser */,
 			);
 			productName = iScoreImport;
 			productReference = FD4913162C2E404500753056 /* iScoreImport */;
@@ -201,6 +206,7 @@
 				FDDC9EE92C2E4E26001C0262 /* SQLKit */,
 				FDDC9EEB2C2E4E26001C0262 /* SQLiteKit */,
 				FDDC9EFC2C2F8585001C0262 /* PostgresKit */,
+				FDDC9F1A2C3229A1001C0262 /* ArgumentParser */,
 			);
 			productName = Tests;
 			productReference = FDDC9ED82C2E4530001C0262 /* Tests.xctest */;
@@ -237,6 +243,7 @@
 				FD4913202C2E405B00753056 /* XCRemoteSwiftPackageReference "sql-kit" */,
 				FDDC9ECE2C2E44BF001C0262 /* XCRemoteSwiftPackageReference "postgres-kit" */,
 				FDDC9ED12C2E44EE001C0262 /* XCRemoteSwiftPackageReference "sqlite-kit" */,
+				FDDC9F132C321D03001C0262 /* XCRemoteSwiftPackageReference "swift-argument-parser" */,
 			);
 			productRefGroup = FD4913172C2E404500753056 /* Products */;
 			projectDirPath = "";
@@ -516,6 +523,14 @@
 				minimumVersion = 4.5.2;
 			};
 		};
+		FDDC9F132C321D03001C0262 /* XCRemoteSwiftPackageReference "swift-argument-parser" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-argument-parser.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.4.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -548,6 +563,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = FDDC9ECE2C2E44BF001C0262 /* XCRemoteSwiftPackageReference "postgres-kit" */;
 			productName = PostgresKit;
+		};
+		FDDC9F142C321D03001C0262 /* ArgumentParser */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FDDC9F132C321D03001C0262 /* XCRemoteSwiftPackageReference "swift-argument-parser" */;
+			productName = ArgumentParser;
+		};
+		FDDC9F1A2C3229A1001C0262 /* ArgumentParser */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FDDC9F132C321D03001C0262 /* XCRemoteSwiftPackageReference "swift-argument-parser" */;
+			productName = ArgumentParser;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

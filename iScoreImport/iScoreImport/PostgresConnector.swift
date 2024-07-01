@@ -23,29 +23,43 @@ struct PostgresConfig : Codable {
 
 struct PostgresConnector : DbConnector {
     
-    var configFileName: String
+    var configFilePath: String
+    /// Determines file load behavior
+    let pathIsLocalFile: Bool
     private var config: SQLPostgresConfiguration?
     var logger: Logger
     private var connection: PostgresConnection?
     private var db: SQLDatabase?
     
-    init(configFileName: String, logger: Logger = Logger.init(label: "Postgres")) {
-        self.configFileName = configFileName
+    init(configFilePath: String, logger: Logger = Logger.init(label: "Postgres"), pathIsLocalFile: Bool = true) {
+        self.configFilePath = configFilePath
         self.logger = logger
+        self.pathIsLocalFile = pathIsLocalFile
     }
     
-    class __ { } // empty class to look up current bundle
+    private func getConfigURL() -> URL? {
+        if pathIsLocalFile {
+            return URL(fileURLWithPath: configFilePath)
+        } else {
+            return URL(string: configFilePath)
+        }
+    }
     
     private mutating func getConfig() throws {
-        let bundle = Bundle(for: PostgresConnector.__.self)
-        guard let resourceURL = bundle.url(forResource: configFileName, withExtension: "postgres_config"), let data = try? Data(contentsOf: resourceURL) else {
-            throw PostgresConnectionError.invalidConfigPath(path: configFileName)
+        guard let url = getConfigURL() else {
+            throw PostgresConnectionError.invalidConfigPath(path: configFilePath)
+        }
+        let data: Data
+        do {
+            data = try Data(contentsOf: url)
+        } catch {
+            throw PostgresConnectionError.invalidConfigPath(path: configFilePath)
         }
         
         let decoder = JSONDecoder()
         
         if let decoded = try? decoder.decode(PostgresConfig.self, from: data) {
-            config = SQLPostgresConfiguration(hostname: decoded.hostname, username: decoded.username, password: decoded.password, database: decoded.database, tls: .prefer(try .init(configuration: .clientDefault)))
+            config = SQLPostgresConfiguration(hostname: decoded.hostname, username: decoded.username, password: decoded.password, database: decoded.database, tls: .disable)
         } else {
             throw PostgresConnectionError.invalidConfig(data: data)
         }
@@ -104,7 +118,7 @@ struct PostgresConnector : DbConnector {
     }
     
     func insertOrUpdateTeam(team: Team) async throws {
-        guard let db else {
+        guard db != nil else {
             throw ConnectorError.connectionRequired
         }
         var existingTeamId: Int? = nil
@@ -152,7 +166,7 @@ struct PostgresConnector : DbConnector {
         }
         try await db.insert(into: "Teams")
             .columns("ExternalId", "City", "Name")
-            .values(team.ExternalId, team.City, team.Name)
+            .values(team.ExternalId ?? UUID(uuidString: "00000000-0000-0000-0000-000000000000"), team.City, team.Name)
             .run()
     }
     

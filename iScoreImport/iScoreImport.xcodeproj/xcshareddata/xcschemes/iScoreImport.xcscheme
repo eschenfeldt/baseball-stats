@@ -63,6 +63,20 @@
             ReferencedContainer = "container:iScoreImport.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
+      <CommandLineArguments>
+         <CommandLineArgument
+            argument = "--source-file /Users/peschen/Programming/Scorecards/data/iScore_baseball.sqlite"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--target-config /Users/peschen/Programming/Scorecards/baseball-stats/iScoreImport/iScoreImport/prod.postgres_config"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--included-types Teams"
+            isEnabled = "YES">
+         </CommandLineArgument>
+      </CommandLineArguments>
       <EnvironmentVariables>
          <EnvironmentVariable
             key = ""
