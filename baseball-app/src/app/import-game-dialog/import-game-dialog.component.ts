@@ -101,7 +101,7 @@ export class ImportGameDialogComponent implements OnInit {
 
     loadTeams(): void {
         this.api.makeApiGet<Team[]>('Teams').subscribe(teams => {
-            this.teams = teams;
+            this.teams = teams.sort((a, b) => a.city.localeCompare(b.city));
         })
     }
 }

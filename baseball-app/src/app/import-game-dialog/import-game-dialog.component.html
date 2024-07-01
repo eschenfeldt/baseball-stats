@@ -20,16 +20,16 @@
         <mat-form-field>
             <mat-label>Away Team</mat-label>
             <mat-select [formControl]="awayTeam">
-                @for (team of teams; track team.Id) {
-                <mat-option [value]="team">{{team.Name}}</mat-option>
+                @for (team of teams; track team.id) {
+                <mat-option [value]="team">{{team.city}} {{team.name}}</mat-option>
                 }
             </mat-select>
         </mat-form-field>
         <mat-form-field>
             <mat-label>Home Team</mat-label>
             <mat-select [formControl]="homeTeam">
-                @for (team of teams; track team.Id) {
-                <mat-option [value]="team">{{team.Name}}</mat-option>
+                @for (team of teams; track team.id) {
+                <mat-option [value]="team">{{team.city}} {{team.name}}</mat-option>
                 }
             </mat-select>
         </mat-form-field>
