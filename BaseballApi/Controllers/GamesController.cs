@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BaseballApi.Models;
 using Microsoft.AspNetCore.Authorization;
+using Newtonsoft.Json;
 
 namespace BaseballApi.Controllers
 {
@@ -44,8 +45,9 @@ namespace BaseballApi.Controllers
 
         [HttpPost("import")]
         [Authorize]
-        public async Task<IActionResult> ImportGame(List<IFormFile> files, GameMetadata metadata)
+        public async Task<IActionResult> ImportGame([FromForm] List<IFormFile> files, [FromForm] string serializedMetadata)
         {
+            GameMetadata metadata = JsonConvert.DeserializeObject<GameMetadata>(serializedMetadata);
             long size = files.Sum(f => f.Length);
 
             foreach (var formFile in files)
@@ -58,7 +60,7 @@ namespace BaseballApi.Controllers
                 }
             }
 
-            return Ok(new { count = files.Count, size });
+            return Ok(new { count = files.Count, size, metadata });
         }
 
         // PUT: api/Games/5
