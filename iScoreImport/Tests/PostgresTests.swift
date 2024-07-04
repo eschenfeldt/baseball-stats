@@ -130,4 +130,77 @@ final class PostgresTests {
             .where("Id", .equal, teamId)
             .run()
     }
+    
+    
+    @Test("Player Insert")
+    func testPlayerInsert() async throws {
+        #expect(configFilePath != nil)
+        guard let configFilePath else { return }
+        var connector = PostgresConnector(configFilePath: configFilePath, pathIsLocalFile: false)
+        let firstName = "A.J"
+        let lastName = "Test \(UUID())"
+        let name = "\(firstName) \(lastName)"
+        let player = Player(Name: name, ExternalId: nil, DateOfBirth: nil, FirstName: firstName, MiddleName: nil, LastName: lastName, Suffix: nil)
+        do {
+            try await connector.connect()
+            try await connector.insertOrUpdatePlayer(player: player)
+            let savedPlayerId = try await connector.getPlayerId(name: name)
+            #expect(savedPlayerId != nil)
+            if let savedPlayerId {
+                let db = try await connector.getDb()
+                try await deletePlayer(db: db, playerId: savedPlayerId)
+                let deletedPlayerId = try await connector.getPlayerId(name: name)
+                #expect(deletedPlayerId == nil)
+            }
+        } catch {
+            print(String(reflecting: error))
+            #expect(error == nil)
+        }
+        try await connector.close()
+    }
+    
+    @Test("Player Update")
+    func testPlayerUpdate() async throws {
+        #expect(configFilePath != nil)
+        guard let configFilePath else { return }
+        var connector = PostgresConnector(configFilePath: configFilePath, pathIsLocalFile: false)
+        let firstName = "A.J"
+        let lastName = "Test \(UUID())"
+        let name = "\(firstName) \(lastName)"
+        let externalId = UUID()
+        let player = Player(Name: name, ExternalId: externalId, DateOfBirth: nil, FirstName: firstName, MiddleName: nil, LastName: lastName, Suffix: nil)
+        do {
+            try await connector.connect()
+            try await connector.insertOrUpdatePlayer(player: player)
+            let savedPLayerId = try await connector.getPlayerId(name: name)
+            if let savedPLayerId {
+                let updatedLastName = "New Test \(UUID())"
+                let updatedName = "\(firstName) \(updatedLastName)"
+                let updatedPlayer = Player(Name: updatedName, ExternalId: externalId, DateOfBirth: nil, FirstName: firstName, MiddleName: nil, LastName: updatedLastName, Suffix: nil)
+                try await connector.insertOrUpdatePlayer(player: updatedPlayer)
+                let db = try await connector.getDb()
+                let savedNameRaw = try await db.select()
+                    .column("Name")
+                    .from("Players")
+                    .where("Id", .equal, savedPLayerId)
+                    .first()
+                #expect(savedNameRaw != nil)
+                let savedName = try savedNameRaw?.decode(column: "Name", as: String.self)
+                #expect(savedName == updatedName)
+                try await deletePlayer(db: db, playerId: savedPLayerId)
+                let deletedPlayerId = try await connector.getPlayerId(name: updatedName)
+                #expect(deletedPlayerId == nil)
+            }
+        } catch {
+            print(String(reflecting: error))
+            #expect(error == nil)
+        }
+        try await connector.close()
+    }
+    
+    private func deletePlayer(db: SQLDatabase, playerId: Int) async throws {
+        try await db.delete(from: "Players")
+            .where("Id", .equal, playerId)
+            .run()
+    }
 }

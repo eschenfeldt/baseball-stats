@@ -14,6 +14,7 @@ struct Import: AsyncParsableCommand {
     
     enum DataType: String, ExpressibleByArgument, CaseIterable {
         case Teams = "Teams"
+        case Players = "Players"
     }
     
     @Option(name:.shortAndLong, help:"Update data of these types")
@@ -55,6 +56,10 @@ struct Import: AsyncParsableCommand {
                 print("Updating teams")
                 try await updateTeams(from: reader, to: writer)
             }
+            if typeLookup.contains(.Players) {
+                print("Updating players")
+                try await updatePlayers(from: reader, to: writer)
+            }
         } catch {
             print("Error encountered. Closing connections")
             try? await reader.close()
@@ -75,6 +80,14 @@ struct Import: AsyncParsableCommand {
                 print("Updating team: City: '\(team.City!)' Name: '\(team.Name!)'")
                 try await to.insertOrUpdateTeam(team: team)
             }
+        }
+    }
+    
+    func updatePlayers(from: SQLiteConnector, to: PostgresConnector) async throws {
+        let players = try await from.getPlayers()
+        for player in players {
+            print("Updating player: '\(player.Name)'")
+            try await to.insertOrUpdatePlayer(player: player)
         }
     }
 }

@@ -96,4 +96,66 @@ final class IntegrationTests {
             .where("Id", .equal, teamId)
             .run()
     }
+    
+    @Test("Import Players")
+    func testImportPlayers() async throws {
+        #expect(filePath != nil)
+        #expect(configFilePath != nil)
+        guard let filePath, let configFilePath else { return }
+        var reader = SQLiteConnector(filePath: filePath)
+        var writer = PostgresConnector(configFilePath: configFilePath, pathIsLocalFile: false)
+        do {
+            try await reader.connect()
+            try await writer.connect()
+            let resultDb = try await writer.getDb()
+            let initialCount = try await countPlayers(db: resultDb)
+            #expect(initialCount >= 0)
+            
+            let take = 100
+            let players = try await reader.getPlayers(skip: 100, take: take)
+            #expect(players.count == take)
+            for player in players {
+                try await writer.insertOrUpdatePlayer(player: player)
+            }
+            let playerCount = try await countPlayers(db: resultDb)
+            #expect(playerCount == initialCount + players.count)
+            // update again to be sure the count doesn't change
+            for player in players {
+                try await writer.insertOrUpdatePlayer(player: player)
+            }
+            let updatedPlayerCount = try await countPlayers(db: resultDb)
+            #expect(playerCount == updatedPlayerCount)
+            // delete these teams
+            for player in players {
+                let playerId = try await writer.getPlayerId(name: player.Name)
+                #expect(playerId != nil)
+                if let playerId {
+                    try await deletePlayer(db: resultDb, playerId: playerId)
+                }
+            }
+            let postDeleteCount = try await countPlayers(db: resultDb)
+            #expect(postDeleteCount == initialCount)
+        }
+        catch {
+            print(String(reflecting: error))
+            #expect(error == nil)
+        }
+        try await reader.close()
+        try await writer.close()
+    }
+
+    private func countPlayers(db: SQLDatabase) async throws -> Int {
+        let playerCountRaw = try await db.select()
+            .column(SQLFunction("COUNT", args: SQLLiteral.all), as: "Player Count")
+            .from("Players")
+            .first()
+        #expect(playerCountRaw != nil)
+        return try playerCountRaw!.decode(column: "Player Count", as: Int.self)
+    }
+    
+    private func deletePlayer(db: SQLDatabase, playerId: Int) async throws {
+        try await db.delete(from: "Players")
+            .where("Id", .equal, playerId)
+            .run()
+    }
 }

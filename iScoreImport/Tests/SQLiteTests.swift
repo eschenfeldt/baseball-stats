@@ -54,10 +54,39 @@ final class SQLiteTests {
                 $0.CombinedName == "Quad Cities River Bandits"
             }
             #expect(bandits != nil)
-            guard let bandits else { return }
+            guard let bandits else {
+                try await connector.close()
+                return
+            }
             #expect(bandits.City == "Quad Cities")
             #expect(bandits.Name == "River Bandits")
             #expect(bandits.ExternalId == UUID(uuidString: "6EFA1F3C-2282-4945-8972-28CF51FAC8A1"))
+        } catch {
+            #expect(error == nil)
+        }
+        try await connector.close()
+    }
+    
+    @Test("Player Load")
+    func testLoadingPlayers() async throws {
+        #expect(filePath != nil)
+        guard let filePath else { return }
+        var connector = SQLiteConnector(filePath: filePath)
+        do {
+            try await connector.connect()
+            let players = try await connector.getPlayers(take:20)
+            #expect(players.count == 20)
+            let ankiel = players.first() {
+                $0.Name == "Rick Ankiel"
+            }
+            #expect(ankiel != nil)
+            guard let ankiel else {
+                try await connector.close()
+                return
+            }
+            #expect(ankiel.FirstName == "Rick")
+            #expect(ankiel.LastName == "Ankiel")
+            #expect(ankiel.ExternalId == UUID(uuidString: "019543AF-9B13-4BC0-9C5A-F58804A65BF8"))
         } catch {
             #expect(error == nil)
         }

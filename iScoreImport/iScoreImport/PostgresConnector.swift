@@ -182,11 +182,69 @@ struct PostgresConnector : DbConnector {
             .run()
     }
     
-    private func getPlayer(externalId: UUID) async throws -> Player? {
-        return nil
+    func insertOrUpdatePlayer(player: Player) async throws {
+        guard db != nil else {
+            throw ConnectorError.connectionRequired
+        }
+        var existingPlayerId: Int? = nil
+        if let externalId = player.ExternalId {
+            existingPlayerId = try await getPlayerId(externalId: externalId)
+        }
+        if existingPlayerId == nil {
+            existingPlayerId = try await getPlayerId(name: player.Name)
+        }
+        if let existingPlayerId {
+            try await updatePlayer(player: player, id: existingPlayerId)
+        } else {
+            try await insertPlayer(player: player)
+        }
     }
     
-    private func getPlayer(firstName: String, lastName: String) async throws -> Player? {
-        return nil
+    private func getPlayerId(externalId: UUID) async throws -> Int? {
+        guard let db else {
+            throw ConnectorError.connectionRequired
+        }
+        let result = try await db.select()
+            .column("Id")
+            .from("Players")
+            .where("ExternalId", .equal, externalId)
+            .first()
+        return try result?.decode(column: "Id", as: Int.self)
+    }
+    
+    func getPlayerId(name: String) async throws -> Int? {
+        guard let db else {
+            throw ConnectorError.connectionRequired
+        }
+        let result = try await db.select()
+            .column("Id")
+            .from("Players")
+            .where("Name", .equal, name)
+            .first()
+        return try result?.decode(column: "Id", as: Int.self)
+    }
+    
+    private func insertPlayer(player: Player) async throws {
+        guard let db else {
+            throw ConnectorError.connectionRequired
+        }
+        try await db.insert(into: "Players")
+            .columns("ExternalId", "Name", "FirstName", "LastName")
+            .values(player.ExternalId ?? UUID(uuidString: "00000000-0000-0000-0000-000000000000"),
+                    player.Name, player.FirstName, player.LastName)
+            .run()
+    }
+    
+    private func updatePlayer(player: Player, id: Int) async throws {
+        guard let db else {
+            throw ConnectorError.connectionRequired
+        }
+        try await db.update("Players")
+            .set("ExternalId", to: player.ExternalId)
+            .set("FirstName", to: player.FirstName)
+            .set("LastName", to: player.LastName)
+            .set("Name", to: player.Name)
+            .where("Id", .equal, id)
+            .run()
     }
 }

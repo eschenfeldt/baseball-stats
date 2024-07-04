@@ -34,6 +34,22 @@ struct SQLiteConnector: DbConnector {
             }
     }
     
+    func getPlayers(skip: Int? = nil, take: Int? = nil) async throws -> [Player] {
+        guard let db else {
+            throw ConnectorError.connectionRequired
+        }
+        return try await db.select()
+            .column("guid", as: "ExternalId")
+            .column("first_nm", as: "FirstName")
+            .column("last_nm", as: "LastName")
+            .column(SQLFunction("CONCAT", args: SQLColumn("first_nm"), SQLLiteral.string(" "), SQLColumn("last_nm")), as: "Name")
+            .from("player")
+            .orderBy(SQLLiteral.string("ROWID"))
+            .offset(skip)
+            .limit(take)
+            .all(decoding: Player.self)
+    }
+    
     mutating func connect() async throws {
         _ = try await getDb()
     }
