@@ -50,6 +50,14 @@ struct SQLiteConnector: DbConnector {
             .all(decoding: Player.self)
     }
     
+    func getGames() async throws -> [Game] {
+        guard let db else {
+            throw ConnectorError.connectionRequired
+        }
+        let loader = GameLoader(db: db)
+        return try await loader.loadGames()
+    }
+    
     mutating func connect() async throws {
         _ = try await getDb()
     }

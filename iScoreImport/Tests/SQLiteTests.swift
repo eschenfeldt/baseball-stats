@@ -92,4 +92,80 @@ final class SQLiteTests {
         }
         try await connector.close()
     }
+    
+    @Test("Game Load")
+    func testLoadingGame() async throws {
+        #expect(filePath != nil)
+        guard let filePath else { return }
+        var connector = SQLiteConnector(filePath: filePath)
+        do {
+            try await connector.connect()
+            let games = try await connector.getGames()
+            #expect(games.count == 217) // bare records exist for 216 games; complete record for 1
+            let fullGame = games.first {
+                $0.Name == "8/26/11 Chicago Cubs at Milwaukee Brewers "
+            }
+            #expect(fullGame != nil)
+            guard let fullGame else {
+                try await connector.close()
+                return
+            }
+            #expect(fullGame.ExternalId == UUID(uuidString: "8280516F-8E5F-4BD3-A96F-3620CB19751A"))
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "yyyy-MM-dd"
+            #expect(fullGame.Date == dateFormatter.date(from: "2011-08-26"))
+            let datetimeFormatter = DateFormatter()
+            datetimeFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+            #expect(fullGame.ScheduledTime == nil)
+            #expect(fullGame.StartTime == datetimeFormatter.date(from: "2011-08-26 20:10:40"))
+            #expect(fullGame.EndTime == datetimeFormatter.date(from: "2011-08-26 23:12:00"))
+            #expect(fullGame.AwayScore == 2)
+            #expect(fullGame.AwayTeam.CombinedName == "Chicago Cubs")
+            #expect(fullGame.HomeScore == 5)
+            #expect(fullGame.HomeTeam.CombinedName == "Milwaukee Brewers")
+            #expect(fullGame.Location?.Name == "Miller Park")
+            #expect(fullGame.WinningPitcher?.Name == "Randy Wolf")
+            #expect(fullGame.LosingPitcher?.Name == "Rodrigo Lopez")
+            #expect(fullGame.SavingPitcher?.Name == "John Axford")
+            #expect(fullGame.WinningTeam?.CombinedName == "Milwaukee Brewers")
+            #expect(fullGame.LosingTeam?.CombinedName == "Chicago Cubs")
+            #expect(fullGame.BoxScore != nil)
+            guard let boxScore = fullGame.BoxScore else {
+                try await connector.close()
+                return
+            }
+            #expect(boxScore.batters.count == 28)
+            #expect(boxScore.fielders.count == 25)
+            #expect(boxScore.pitchers.count == 7)
+            #expect(fullGame.LosingPitcher?.ExternalId != nil)
+            let lopezId = fullGame.LosingPitcher?.ExternalId
+            let lopezBat = boxScore.batters.first {
+                $0.PlayerExternalId == lopezId
+            }
+            #expect(lopezBat != nil)
+            let lopezPit = boxScore.pitchers.first {
+                $0.PlayerExternalId == lopezId
+            }
+            #expect(lopezPit != nil)
+            let lopezFld = boxScore.fielders.first {
+                $0.PlayerExternalId == lopezId
+            }
+            #expect(lopezFld != nil)
+            #expect(lopezBat?.Games == 1)
+            #expect(lopezBat?.PlateAppearances == 2)
+            #expect(lopezBat?.StrikeoutsCalled == 1)
+            #expect(lopezBat?.Singles == 0)
+            #expect(lopezPit?.Games == 1)
+            #expect(lopezPit?.ThirdInningsPitched == 18)
+            #expect(lopezPit?.BattersFaced == 27)
+            #expect(lopezPit?.EarnedRuns == 2)
+            #expect(lopezPit?.Runs == 4)
+            #expect(lopezFld?.Games == 1)
+            #expect(lopezFld?.Assists == 0)
+            #expect(lopezFld?.Putouts == 1)
+        } catch {
+            #expect(error == nil)
+        }
+        try await connector.close()
+    }
 }

@@ -28,6 +28,12 @@
 		FDDC9F122C31F633001C0262 /* IntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDDC9F112C31F633001C0262 /* IntegrationTests.swift */; };
 		FDDC9F152C321D03001C0262 /* ArgumentParser in Frameworks */ = {isa = PBXBuildFile; productRef = FDDC9F142C321D03001C0262 /* ArgumentParser */; };
 		FDDC9F1B2C3229A1001C0262 /* ArgumentParser in Frameworks */ = {isa = PBXBuildFile; productRef = FDDC9F1A2C3229A1001C0262 /* ArgumentParser */; };
+		FDF3A56A2C36F68B000E2F57 /* GameImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDF3A5692C36F68B000E2F57 /* GameImporter.swift */; };
+		FDF3A56B2C36F68B000E2F57 /* GameImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDF3A5692C36F68B000E2F57 /* GameImporter.swift */; };
+		FDF3A56D2C36F6C3000E2F57 /* GameLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDF3A56C2C36F6C3000E2F57 /* GameLoader.swift */; };
+		FDF3A56E2C36F6C3000E2F57 /* GameLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDF3A56C2C36F6C3000E2F57 /* GameLoader.swift */; };
+		FDF3A57C2C37212C000E2F57 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDF3A57B2C37212C000E2F57 /* Extensions.swift */; };
+		FDF3A57D2C37212C000E2F57 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDF3A57B2C37212C000E2F57 /* Extensions.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -56,14 +62,21 @@
 		FDDC9EFA2C2F84EF001C0262 /* prod.postgres_config */ = {isa = PBXFileReference; lastKnownFileType = text; path = prod.postgres_config; sourceTree = "<group>"; };
 		FDDC9EFB2C2F84EF001C0262 /* template.postgres_config */ = {isa = PBXFileReference; lastKnownFileType = text; path = template.postgres_config; sourceTree = "<group>"; };
 		FDDC9F112C31F633001C0262 /* IntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntegrationTests.swift; sourceTree = "<group>"; };
+		FDF3A5692C36F68B000E2F57 /* GameImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameImporter.swift; sourceTree = "<group>"; };
+		FDF3A56C2C36F6C3000E2F57 /* GameLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameLoader.swift; sourceTree = "<group>"; };
+		FDF3A57B2C37212C000E2F57 /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
 		FDDC9F022C2FBF58001C0262 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Batter.swift,
+				BoxScore.swift,
+				Fielder.swift,
 				Game.swift,
 				Park.swift,
+				Pitcher.swift,
 				Player.swift,
 				Team.swift,
 			);
@@ -72,8 +85,12 @@
 		FDDC9F032C2FBF58001C0262 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Batter.swift,
+				BoxScore.swift,
+				Fielder.swift,
 				Game.swift,
 				Park.swift,
+				Pitcher.swift,
 				Player.swift,
 				Team.swift,
 			);
@@ -140,6 +157,9 @@
 				FDDC9EE22C2E46F0001C0262 /* DbConnector.swift */,
 				FDDC9EF02C2E58CE001C0262 /* iScoreImport.swift */,
 				FDDC9EF32C2F7985001C0262 /* PostgresConnector.swift */,
+				FDF3A5692C36F68B000E2F57 /* GameImporter.swift */,
+				FDF3A56C2C36F6C3000E2F57 /* GameLoader.swift */,
+				FDF3A57B2C37212C000E2F57 /* Extensions.swift */,
 			);
 			path = iScoreImport;
 			sourceTree = "<group>";
@@ -272,10 +292,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FDF3A56D2C36F6C3000E2F57 /* GameLoader.swift in Sources */,
 				FDDC9EF52C2F7985001C0262 /* PostgresConnector.swift in Sources */,
+				FDF3A57D2C37212C000E2F57 /* Extensions.swift in Sources */,
 				FDDC9EE32C2E46F0001C0262 /* DbConnector.swift in Sources */,
 				FDDC9EF22C2E58CE001C0262 /* iScoreImport.swift in Sources */,
 				FDDC9EE02C2E454B001C0262 /* SQLiteConnector.swift in Sources */,
+				FDF3A56B2C36F68B000E2F57 /* GameImporter.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -283,8 +306,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FDF3A56E2C36F6C3000E2F57 /* GameLoader.swift in Sources */,
+				FDF3A57C2C37212C000E2F57 /* Extensions.swift in Sources */,
 				FDDC9EE42C2E46F0001C0262 /* DbConnector.swift in Sources */,
 				FDDC9EF12C2E58CE001C0262 /* iScoreImport.swift in Sources */,
+				FDF3A56A2C36F68B000E2F57 /* GameImporter.swift in Sources */,
 				FDDC9EDB2C2E4530001C0262 /* SQLiteTests.swift in Sources */,
 				FDDC9F122C31F633001C0262 /* IntegrationTests.swift in Sources */,
 				FDDC9EE12C2E454B001C0262 /* SQLiteConnector.swift in Sources */,

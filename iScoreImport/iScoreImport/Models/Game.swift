@@ -17,11 +17,23 @@ struct Game : Codable {
     let StartTime: Date?
     let EndTime: Date?
     let Location: Park?
-    let HomeScore: Int?
-    let AwayScore: Int?
-    let WinningTeam: Team?
-    let LosingTeam: Team?
+    var HomeScore: Int?
+    var AwayScore: Int?
+    var WinningTeam: Team?
+    var LosingTeam: Team?
     let WinningPitcher: Player?
     let LosingPitcher: Player?
     let SavingPitcher: Player?
+    var BoxScore: BoxScore?
+    
+    mutating func assignWinner() {
+        guard let homeScore = self.HomeScore, let awayScore = self.AwayScore else { return }
+        if homeScore > awayScore {
+            self.WinningTeam = self.HomeTeam
+            self.LosingTeam = self.AwayTeam
+        } else if awayScore > homeScore {
+            self.WinningTeam = self.AwayTeam
+            self.LosingTeam = self.HomeTeam
+        }
+    }
 }

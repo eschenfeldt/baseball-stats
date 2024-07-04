@@ -247,4 +247,12 @@ struct PostgresConnector : DbConnector {
             .where("Id", .equal, id)
             .run()
     }
+    
+    func insertOrUpdateGame(game: Game) async throws {
+        guard let db else {
+            throw ConnectorError.connectionRequired
+        }
+        let importer = GameImporter(db: db)
+        try await importer.insertOrUpdateGame(game: game)
+    }
 }
