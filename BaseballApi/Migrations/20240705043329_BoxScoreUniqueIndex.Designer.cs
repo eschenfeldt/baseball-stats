@@ -3,6 +3,7 @@ using System;
 using BaseballApi.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BaseballApi.Migrations
 {
     [DbContext(typeof(BaseballContext))]
-    partial class BaseballContextModelSnapshot : ModelSnapshot
+    [Migration("20240705043329_BoxScoreUniqueIndex")]
+    partial class BoxScoreUniqueIndex
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -173,9 +176,6 @@ namespace BaseballApi.Migrations
 
                     b.HasIndex("PlayerId");
 
-                    b.HasIndex("BoxScoreId", "PlayerId")
-                        .IsUnique();
-
                     b.ToTable("Batters");
                 });
 
@@ -194,8 +194,6 @@ namespace BaseballApi.Migrations
                         .HasColumnType("bigint");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("GameId");
 
                     b.HasIndex("TeamId");
 
@@ -266,9 +264,6 @@ namespace BaseballApi.Migrations
                     b.HasIndex("BoxScoreId");
 
                     b.HasIndex("PlayerId");
-
-                    b.HasIndex("BoxScoreId", "PlayerId")
-                        .IsUnique();
 
                     b.ToTable("Fielders");
                 });
@@ -486,9 +481,6 @@ namespace BaseballApi.Migrations
                     b.HasIndex("BoxScoreId");
 
                     b.HasIndex("PlayerId");
-
-                    b.HasIndex("BoxScoreId", "PlayerId")
-                        .IsUnique();
 
                     b.ToTable("Pitchers");
                 });

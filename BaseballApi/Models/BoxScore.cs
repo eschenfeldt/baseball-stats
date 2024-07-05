@@ -1,9 +1,12 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using BaseballApi.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace BaseballApi;
 
+[Index(nameof(GameId))]
+[Index(nameof(GameId), nameof(TeamId), IsUnique = true)]
 public class BoxScore
 {
     public long Id { get; set; }

@@ -1,7 +1,10 @@
 ﻿using System.ComponentModel;
+using Microsoft.EntityFrameworkCore;
 
 namespace BaseballApi;
 
+[Index(nameof(BoxScoreId))]
+[Index(nameof(BoxScoreId), nameof(PlayerId), IsUnique = true)]
 public class Pitcher
 {
     public long Id { get; set; }
