@@ -158,4 +158,165 @@ final class IntegrationTests {
             .where("Id", .equal, playerId)
             .run()
     }
+    
+    @Test("Import Game")
+    func testImportGame() async throws {
+        #expect(filePath != nil)
+        #expect(configFilePath != nil)
+        guard let filePath, let configFilePath else { return }
+        var reader = SQLiteConnector(filePath: filePath)
+        var writer = PostgresConnector(configFilePath: configFilePath, pathIsLocalFile: false)
+        do {
+            try await reader.connect()
+            try await writer.connect()
+            
+            // get one player we know is used in this game so we can add them to the writer first
+            let players = try await reader.getPlayers(lastName: "Soriano")
+            #expect(players.count >= 1)
+            let soriano = players.first{
+                $0.Name == "Alfonso Soriano"
+            }
+            #expect(soriano != nil)
+            
+            let resultDb = try await writer.getDb()
+            let games = try await reader.getGames()
+            #expect(games.count == 201) // bare records exist for 201 games; complete record for 1
+            let fullGame = games.first {
+                $0.Name == "8/26/11 Chicago Cubs at Milwaukee Brewers"
+            }
+            #expect(fullGame != nil)
+            guard let fullGame, let soriano else {
+                try? await reader.close()
+                try? await writer.close()
+                return
+            }
+            // insert Soriano
+            let preSorianoPlayerCount = try await countPlayers(db: resultDb)
+            try await writer.insertOrUpdatePlayer(player: soriano)
+            
+            let initialCount = try await countGames(db: resultDb)
+            let initialPlayerCount = try await countPlayers(db: resultDb)
+            #expect(initialCount >= 0)
+            #expect(initialPlayerCount == preSorianoPlayerCount + 1)
+            try await writer.insertOrUpdateGame(game: fullGame)
+            let count = try await countGames(db: resultDb)
+            let playerCount = try await countPlayers(db: resultDb)
+            #expect(initialCount + 1 == count)
+            #expect(playerCount == initialPlayerCount + 27)
+            try await writer.insertOrUpdateGame(game: fullGame)
+            let afterUpdateCount = try await countGames(db: resultDb)
+            #expect(count == afterUpdateCount)
+            let gameId = try await writer.getGameId(name: fullGame.Name)
+            #expect(gameId != nil)
+            if let gameId {
+                try await validateGame(db: resultDb, gameId: gameId)
+                let playersToDelete = try await getPlayersToDelete(db: resultDb, gameId: gameId)
+                let teamsToDelete = try await getTeamsToDelete(db: resultDb, gameId: gameId)
+                try await deleteGame(db: resultDb, gameId: gameId)
+                let postDeleteCount = try await countGames(db: resultDb)
+                #expect(postDeleteCount == initialCount)
+                for toDeleteId in playersToDelete {
+                    try await deletePlayer(db: resultDb, playerId: toDeleteId)
+                }
+                for toDeleteId in teamsToDelete {
+                    try await deleteTeam(db: resultDb, teamId: toDeleteId)
+                }
+                let postDeletePlayerCount = try await countPlayers(db: resultDb)
+                #expect(postDeletePlayerCount == initialPlayerCount)
+            }
+        }
+        catch {
+            print(String(reflecting: error))
+            #expect(error == nil)
+        }
+        try await reader.close()
+        try await writer.close()
+    }
+    
+    private func countGames(db: SQLDatabase) async throws -> Int {
+        let gameCountRaw = try await db.select()
+            .column(SQLFunction("COUNT", args: SQLLiteral.all), as: "Game Count")
+            .from("Games")
+            .first()
+        #expect(gameCountRaw != nil)
+        return try gameCountRaw!.decode(column: "Game Count", as: Int.self)
+    }
+    
+    private struct GameSummary: Codable {
+        let ExternalId: UUID
+        let BatterCount: Int
+        let PitcherCount: Int
+        let FielderCount: Int
+        let BatterRuns: Int
+        let PitcherRuns: Int
+    }
+    
+    private func validateGame(db: SQLDatabase, gameId: Int) async throws {
+        let gameSummaries = try await db.select()
+            .column("ExternalId")
+            .column(SQLFunction("COUNT", args: SQLColumn("Id", table:"Batters")), as: "BatterCount")
+            .column(SQLFunction("COUNT", args: SQLColumn("Id", table:"Pitchers")), as: "PitcherCount")
+            .column(SQLFunction("COUNT", args: SQLColumn("Id", table:"Fielders")), as: "FielderCount")
+            .column(SQLFunction("SUM", args: SQLColumn("Runs", table:"Batters")), as: "BatterRuns")
+            .column(SQLFunction("SUM", args: SQLColumn("Runs", table:"Pitchers")), as: "PitcherRuns")
+            .from("Games")
+            .join("BoxScores", on: SQLColumn("Id", table: "Games"), .equal, SQLColumn("GameId", table: "BoxScores"))
+            .join("Batters", method: SQLJoinMethod.left, on: SQLColumn("Id", table: "BoxScores"), .equal, SQLColumn("BoxScoreId", table: "Batters"))
+            .join("Pitchers", method: SQLJoinMethod.left, on: SQLColumn("Id", table: "BoxScores"), .equal, SQLColumn("BoxScoreId", table: "Pitchers"))
+            .join("Fielders", method: SQLJoinMethod.left, on: SQLColumn("Id", table: "BoxScores"), .equal, SQLColumn("BoxScoreId", table: "Fielders"))
+            .where(SQLColumn("Id", table:"Games"), .equal, SQLLiteral.numeric("\(gameId)"))
+            .groupBy("ExternalId")
+            .all(decoding: GameSummary.self)
+        #expect(gameSummaries.count == 1)
+        let gameSummary = gameSummaries.first
+        #expect(gameSummary?.ExternalId != nil)
+        #expect(gameSummary?.BatterCount == 28)
+        #expect(gameSummary?.FielderCount == 25)
+        #expect(gameSummary?.PitcherCount == 7)
+        #expect(gameSummary?.BatterRuns == 7)
+        #expect(gameSummary?.PitcherCount == 7)
+    }
+    
+    private func getPlayersToDelete(db: SQLDatabase, gameId: Int) async throws -> [Int] {
+        let resultsRaw = try await db.select()
+            .column(SQLColumn("PlayerId", table: "Batters"))
+            .from("BoxScores")
+            .join("Batters", on: SQLColumn("Id", table: "BoxScores"), .equal, SQLColumn("BoxScoreId", table: "Batters"))
+            .join("Players", on: SQLColumn("Id", table: "Players"), .equal, SQLColumn("PlayerId", table: "Batters"))
+            .where("GameId", .equal, SQLLiteral.numeric("\(gameId)"))
+            .all()
+        return try resultsRaw.map {
+            try $0.decode(column: "Id", as: Int.self)
+        }
+    }
+    
+    private func getTeamsToDelete(db: SQLDatabase, gameId: Int) async throws -> [Int] {
+        let homeTeamRaw = try await db.select()
+            .column(SQLColumn("HomeId"))
+            .column("Id")
+            .from("Games")
+            .where("Id", .equal, SQLLiteral.numeric("\(gameId)"))
+            .all()
+        let homeTeam = try homeTeamRaw.map {
+            try $0.decode(column: "Id", as: Int.self)
+        }
+        let awayTeamRaw = try await db.select()
+            .column(SQLColumn("AwayId"))
+            .column("Id")
+            .from("Games")
+            .where("Id", .equal, SQLLiteral.numeric("\(gameId)"))
+            .all()
+        let awayTeam = try awayTeamRaw.map {
+            try $0.decode(column: "Id", as: Int.self)
+        }
+        var teams = homeTeam
+        teams.append(contentsOf: awayTeam)
+        return teams
+    }
+    
+    private func deleteGame(db: SQLDatabase, gameId: Int) async throws {
+        try await db.delete(from: "Games")
+            .where("Id", .equal, gameId)
+            .run()
+    }
 }

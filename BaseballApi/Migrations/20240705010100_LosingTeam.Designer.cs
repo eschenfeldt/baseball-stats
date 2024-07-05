@@ -3,6 +3,7 @@ using System;
 using BaseballApi.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BaseballApi.Migrations
 {
     [DbContext(typeof(BaseballContext))]
-    partial class BaseballContextModelSnapshot : ModelSnapshot
+    [Migration("20240705010100_LosingTeam")]
+    partial class LosingTeam
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -187,14 +190,10 @@ namespace BaseballApi.Migrations
                     b.Property<long>("GameId")
                         .HasColumnType("bigint");
 
-                    b.Property<long>("TeamId")
-                        .HasColumnType("bigint");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("GameId");
-
-                    b.HasIndex("TeamId");
+                    b.HasIndex("GameId")
+                        .IsUnique();
 
                     b.ToTable("BoxScores");
                 });
@@ -272,18 +271,11 @@ namespace BaseballApi.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<long?>("AwayBoxScoreId")
-                        .HasColumnType("bigint");
-
                     b.Property<long>("AwayId")
                         .HasColumnType("bigint");
 
                     b.Property<int?>("AwayScore")
                         .HasColumnType("integer");
-
-                    b.Property<string>("AwayTeamName")
-                        .IsRequired()
-                        .HasColumnType("text");
 
                     b.Property<DateOnly>("Date")
                         .HasColumnType("date");
@@ -294,21 +286,14 @@ namespace BaseballApi.Migrations
                     b.Property<Guid>("ExternalId")
                         .HasColumnType("uuid");
 
-                    b.Property<int?>("GameType")
+                    b.Property<int>("GameType")
                         .HasColumnType("integer");
-
-                    b.Property<long?>("HomeBoxScoreId")
-                        .HasColumnType("bigint");
 
                     b.Property<long>("HomeId")
                         .HasColumnType("bigint");
 
                     b.Property<int?>("HomeScore")
                         .HasColumnType("integer");
-
-                    b.Property<string>("HomeTeamName")
-                        .IsRequired()
-                        .HasColumnType("text");
 
                     b.Property<long?>("LocationId")
                         .HasColumnType("bigint");
@@ -326,7 +311,7 @@ namespace BaseballApi.Migrations
                     b.Property<long?>("SavingPitcherId")
                         .HasColumnType("bigint");
 
-                    b.Property<DateTimeOffset?>("ScheduledTime")
+                    b.Property<DateTimeOffset>("ScheduledTime")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTimeOffset?>("StartTime")
@@ -340,11 +325,7 @@ namespace BaseballApi.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AwayBoxScoreId");
-
                     b.HasIndex("AwayId");
-
-                    b.HasIndex("HomeBoxScoreId");
 
                     b.HasIndex("HomeId");
 
@@ -584,20 +565,12 @@ namespace BaseballApi.Migrations
             modelBuilder.Entity("BaseballApi.BoxScore", b =>
                 {
                     b.HasOne("BaseballApi.Models.Game", "Game")
-                        .WithMany("BoxScores")
-                        .HasForeignKey("GameId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("BaseballApi.Team", "Team")
-                        .WithMany()
-                        .HasForeignKey("TeamId")
+                        .WithOne("BoxScore")
+                        .HasForeignKey("BaseballApi.BoxScore", "GameId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Game");
-
-                    b.Navigation("Team");
                 });
 
             modelBuilder.Entity("BaseballApi.Fielder", b =>
@@ -621,19 +594,11 @@ namespace BaseballApi.Migrations
 
             modelBuilder.Entity("BaseballApi.Models.Game", b =>
                 {
-                    b.HasOne("BaseballApi.BoxScore", "AwayBoxScore")
-                        .WithMany()
-                        .HasForeignKey("AwayBoxScoreId");
-
                     b.HasOne("BaseballApi.Team", "Away")
                         .WithMany()
                         .HasForeignKey("AwayId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("BaseballApi.BoxScore", "HomeBoxScore")
-                        .WithMany()
-                        .HasForeignKey("HomeBoxScoreId");
 
                     b.HasOne("BaseballApi.Team", "Home")
                         .WithMany()
@@ -667,11 +632,7 @@ namespace BaseballApi.Migrations
 
                     b.Navigation("Away");
 
-                    b.Navigation("AwayBoxScore");
-
                     b.Navigation("Home");
-
-                    b.Navigation("HomeBoxScore");
 
                     b.Navigation("Location");
 
@@ -725,7 +686,7 @@ namespace BaseballApi.Migrations
 
             modelBuilder.Entity("BaseballApi.Models.Game", b =>
                 {
-                    b.Navigation("BoxScores");
+                    b.Navigation("BoxScore");
                 });
 
             modelBuilder.Entity("BaseballApi.Park", b =>

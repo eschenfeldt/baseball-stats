@@ -24,7 +24,8 @@ struct Game : Codable {
     let WinningPitcher: Player?
     let LosingPitcher: Player?
     let SavingPitcher: Player?
-    var BoxScore: BoxScore?
+    var HomeBoxScore: BoxScore?
+    var AwayBoxScore: BoxScore?
     
     mutating func assignWinner() {
         guard let homeScore = self.HomeScore, let awayScore = self.AwayScore else { return }

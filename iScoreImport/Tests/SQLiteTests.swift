@@ -101,9 +101,9 @@ final class SQLiteTests {
         do {
             try await connector.connect()
             let games = try await connector.getGames()
-            #expect(games.count == 217) // bare records exist for 216 games; complete record for 1
+            #expect(games.count == 201) // bare records exist for 201 games; complete record for 1
             let fullGame = games.first {
-                $0.Name == "8/26/11 Chicago Cubs at Milwaukee Brewers "
+                $0.Name == "8/26/11 Chicago Cubs at Milwaukee Brewers"
             }
             #expect(fullGame != nil)
             guard let fullGame else {
@@ -129,37 +129,43 @@ final class SQLiteTests {
             #expect(fullGame.SavingPitcher?.Name == "John Axford")
             #expect(fullGame.WinningTeam?.CombinedName == "Milwaukee Brewers")
             #expect(fullGame.LosingTeam?.CombinedName == "Chicago Cubs")
-            #expect(fullGame.BoxScore != nil)
-            guard let boxScore = fullGame.BoxScore else {
+            #expect(fullGame.HomeBoxScore != nil)
+            guard let homeBoxScore = fullGame.HomeBoxScore, let awayBoxScore = fullGame.AwayBoxScore else {
                 try await connector.close()
                 return
             }
-            #expect(boxScore.batters.count == 28)
-            #expect(boxScore.fielders.count == 25)
-            #expect(boxScore.pitchers.count == 7)
+            #expect(homeBoxScore.batters.count == 14)
+            #expect(homeBoxScore.fielders.count == 13)
+            #expect(homeBoxScore.pitchers.count == 4)
+            #expect(awayBoxScore.batters.count == 14)
+            #expect(awayBoxScore.fielders.count == 12)
+            #expect(awayBoxScore.pitchers.count == 3)
             #expect(fullGame.LosingPitcher?.ExternalId != nil)
             let lopezId = fullGame.LosingPitcher?.ExternalId
-            let lopezBat = boxScore.batters.first {
+            let lopezBat = awayBoxScore.batters.first {
                 $0.PlayerExternalId == lopezId
             }
             #expect(lopezBat != nil)
-            let lopezPit = boxScore.pitchers.first {
+            let lopezPit = awayBoxScore.pitchers.first {
                 $0.PlayerExternalId == lopezId
             }
             #expect(lopezPit != nil)
-            let lopezFld = boxScore.fielders.first {
+            let lopezFld = awayBoxScore.fielders.first {
                 $0.PlayerExternalId == lopezId
             }
             #expect(lopezFld != nil)
+            #expect(lopezBat?.PlayerName == "Rodrigo Lopez")
             #expect(lopezBat?.Games == 1)
             #expect(lopezBat?.PlateAppearances == 2)
             #expect(lopezBat?.StrikeoutsCalled == 1)
             #expect(lopezBat?.Singles == 0)
+            #expect(lopezPit?.PlayerName == "Rodrigo Lopez")
             #expect(lopezPit?.Games == 1)
             #expect(lopezPit?.ThirdInningsPitched == 18)
             #expect(lopezPit?.BattersFaced == 27)
             #expect(lopezPit?.EarnedRuns == 2)
             #expect(lopezPit?.Runs == 4)
+            #expect(lopezFld?.PlayerName == "Rodrigo Lopez")
             #expect(lopezFld?.Games == 1)
             #expect(lopezFld?.Assists == 0)
             #expect(lopezFld?.Putouts == 1)

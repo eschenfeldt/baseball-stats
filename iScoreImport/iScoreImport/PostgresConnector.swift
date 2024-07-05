@@ -118,134 +118,43 @@ struct PostgresConnector : DbConnector {
     }
     
     func insertOrUpdateTeam(team: Team) async throws {
-        guard db != nil else {
-            throw ConnectorError.connectionRequired
-        }
-        var existingTeamId: Int? = nil
-        if let externalId = team.ExternalId {
-            existingTeamId = try await getTeamId(externalId: externalId)
-        }
-        if existingTeamId == nil, let city = team.City, let name = team.Name {
-            existingTeamId = try await getTeamId(city: city, name: name)
-        }
-        if let existingTeamId {
-            try await updateTeam(team: team, id: existingTeamId)
-        } else {
-            try await insertTeam(team: team)
-        }
-    }
-    
-    private func getTeamId(externalId: UUID) async throws -> Int? {
         guard let db else {
             throw ConnectorError.connectionRequired
         }
-        let result = try await db.select()
-            .column("Id")
-            .from("Teams")
-            .where("ExternalId", .equal, externalId)
-            .first()
-        return try result?.decode(column: "Id", as: Int.self)
+        let importer = TeamImporter(db: db)
+        try await importer.insertOrUpdateTeam(team: team)
     }
     
     func getTeamId(city: String, name: String) async throws -> Int? {
         guard let db else {
             throw ConnectorError.connectionRequired
         }
-        let result = try await db.select()
-            .column("Id")
-            .from("Teams")
-            .where("City", .equal, city)
-            .where("Name", .equal, name)
-            .first()
-        return try result?.decode(column: "Id", as: Int.self)
-    }
-    
-    private func insertTeam(team: Team) async throws {
-        guard let db else {
-            throw ConnectorError.connectionRequired
-        }
-        try await db.insert(into: "Teams")
-            .columns("ExternalId", "City", "Name")
-            .values(team.ExternalId ?? UUID(uuidString: "00000000-0000-0000-0000-000000000000"), team.City, team.Name)
-            .run()
-    }
-    
-    private func updateTeam(team: Team, id: Int) async throws {
-        guard let db else {
-            throw ConnectorError.connectionRequired
-        }
-        try await db.update("Teams")
-            .set("ExternalId", to: team.ExternalId)
-            .set("City", to: team.City)
-            .set("Name", to: team.Name)
-            .where("Id", .equal, id)
-            .run()
+        let importer = TeamImporter(db: db)
+        return try await importer.getTeamId(city: city, name: name)
     }
     
     func insertOrUpdatePlayer(player: Player) async throws {
-        guard db != nil else {
-            throw ConnectorError.connectionRequired
-        }
-        var existingPlayerId: Int? = nil
-        if let externalId = player.ExternalId {
-            existingPlayerId = try await getPlayerId(externalId: externalId)
-        }
-        if existingPlayerId == nil {
-            existingPlayerId = try await getPlayerId(name: player.Name)
-        }
-        if let existingPlayerId {
-            try await updatePlayer(player: player, id: existingPlayerId)
-        } else {
-            try await insertPlayer(player: player)
-        }
-    }
-    
-    private func getPlayerId(externalId: UUID) async throws -> Int? {
         guard let db else {
             throw ConnectorError.connectionRequired
         }
-        let result = try await db.select()
-            .column("Id")
-            .from("Players")
-            .where("ExternalId", .equal, externalId)
-            .first()
-        return try result?.decode(column: "Id", as: Int.self)
+        let importer = PlayerImporter(db: db)
+        return try await importer.insertOrUpdatePlayer(player: player)
+    }
+    
+    func getPlayerId(externalId: UUID) async throws -> Int? {
+        guard let db else {
+            throw ConnectorError.connectionRequired
+        }
+        let importer = PlayerImporter(db: db)
+        return try await importer.getPlayerId(externalId: externalId)
     }
     
     func getPlayerId(name: String) async throws -> Int? {
         guard let db else {
             throw ConnectorError.connectionRequired
         }
-        let result = try await db.select()
-            .column("Id")
-            .from("Players")
-            .where("Name", .equal, name)
-            .first()
-        return try result?.decode(column: "Id", as: Int.self)
-    }
-    
-    private func insertPlayer(player: Player) async throws {
-        guard let db else {
-            throw ConnectorError.connectionRequired
-        }
-        try await db.insert(into: "Players")
-            .columns("ExternalId", "Name", "FirstName", "LastName")
-            .values(player.ExternalId ?? UUID(uuidString: "00000000-0000-0000-0000-000000000000"),
-                    player.Name, player.FirstName, player.LastName)
-            .run()
-    }
-    
-    private func updatePlayer(player: Player, id: Int) async throws {
-        guard let db else {
-            throw ConnectorError.connectionRequired
-        }
-        try await db.update("Players")
-            .set("ExternalId", to: player.ExternalId)
-            .set("FirstName", to: player.FirstName)
-            .set("LastName", to: player.LastName)
-            .set("Name", to: player.Name)
-            .where("Id", .equal, id)
-            .run()
+        let importer = PlayerImporter(db: db)
+        return try await importer.getPlayerId(name: name)
     }
     
     func insertOrUpdateGame(game: Game) async throws {
@@ -254,5 +163,13 @@ struct PostgresConnector : DbConnector {
         }
         let importer = GameImporter(db: db)
         try await importer.insertOrUpdateGame(game: game)
+    }
+    
+    func getGameId(name: String) async throws -> Int? {
+        guard let db else {
+            throw ConnectorError.connectionRequired
+        }
+        let importer = GameImporter(db: db)
+        return try await importer.getGameId(name: name)
     }
 }

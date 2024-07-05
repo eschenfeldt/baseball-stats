@@ -3,6 +3,7 @@ using System;
 using BaseballApi.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BaseballApi.Migrations
 {
     [DbContext(typeof(BaseballContext))]
-    partial class BaseballContextModelSnapshot : ModelSnapshot
+    [Migration("20240705021337_BoxScoreTeams")]
+    partial class BoxScoreTeams
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -184,15 +187,10 @@ namespace BaseballApi.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<long>("GameId")
-                        .HasColumnType("bigint");
-
                     b.Property<long>("TeamId")
                         .HasColumnType("bigint");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("GameId");
 
                     b.HasIndex("TeamId");
 
@@ -583,19 +581,11 @@ namespace BaseballApi.Migrations
 
             modelBuilder.Entity("BaseballApi.BoxScore", b =>
                 {
-                    b.HasOne("BaseballApi.Models.Game", "Game")
-                        .WithMany("BoxScores")
-                        .HasForeignKey("GameId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("BaseballApi.Team", "Team")
                         .WithMany()
                         .HasForeignKey("TeamId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Game");
 
                     b.Navigation("Team");
                 });
@@ -721,11 +711,6 @@ namespace BaseballApi.Migrations
                     b.Navigation("Fielders");
 
                     b.Navigation("Pitchers");
-                });
-
-            modelBuilder.Entity("BaseballApi.Models.Game", b =>
-                {
-                    b.Navigation("BoxScores");
                 });
 
             modelBuilder.Entity("BaseballApi.Park", b =>
