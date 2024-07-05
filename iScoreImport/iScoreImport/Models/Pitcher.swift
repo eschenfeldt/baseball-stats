@@ -9,7 +9,7 @@ import Foundation
 
 struct Pitcher: Codable {
     let PlayerExternalId: UUID
-    let PlayerName: String
+    var Player: Player?
     let TeamExternalId: UUID
     
     let Number: Int

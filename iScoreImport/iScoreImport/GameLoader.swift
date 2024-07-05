@@ -205,7 +205,7 @@ struct GameLoader {
                 as: kvp.value)
         }
         
-        return try await query.from("game")
+        let batters = try await query.from("game")
             .join("team_game", on: SQLColumn(joinCol, table: "game"), .equal, SQLColumn("guid", table: "team_game"))
             .join("player_game", on: SQLColumn("guid", table: "team_game"), .equal, SQLColumn("team_game_guid", table: "player_game"))
             .join("stat_summary", on: SQLColumn("player_guid", table: "player_game"), .equal, SQLColumn("player_game_guid", table: "stat_summary"))
@@ -213,6 +213,13 @@ struct GameLoader {
             .where(SQLColumn("game_guid", table:"stat_summary"), .equal, SQLColumn("guid", table: "game"))
             .where("bat_games", .greaterThan, 0)
             .all(decoding: Batter.self)
+        
+        var returnBatters: [Batter] = []
+        for var batter in batters {
+            batter.Player = try await getPlayer(externalId: batter.PlayerExternalId)
+            returnBatters.append(batter)
+        }
+        return returnBatters
     }
     
     private static let pitcherColumnMap = [
@@ -256,7 +263,7 @@ struct GameLoader {
                 as: kvp.value)
         }
         
-        return try await query.from("game")
+        let pitchers = try await query.from("game")
             .join("team_game", on: SQLColumn(joinCol, table: "game"), .equal, SQLColumn("guid", table: "team_game"))
             .join("player_game", on: SQLColumn("guid", table: "team_game"), .equal, SQLColumn("team_game_guid", table: "player_game"))
             .join("stat_summary", on: SQLColumn("player_guid", table: "player_game"), .equal, SQLColumn("player_game_guid", table: "stat_summary"))
@@ -264,6 +271,13 @@ struct GameLoader {
             .where(SQLColumn("game_guid", table:"stat_summary"), .equal, SQLColumn("guid", table: "game"))
             .where("pit_games", .greaterThan, 0)
             .all(decoding: Pitcher.self)
+        
+        var returnPitchers: [Pitcher] = []
+        for var pitcher in pitchers {
+            pitcher.Player = try await getPlayer(externalId: pitcher.PlayerExternalId)
+            returnPitchers.append(pitcher)
+        }
+        return returnPitchers
     }
     
     private static let fielderColumnMap = [
@@ -294,7 +308,7 @@ struct GameLoader {
                 as: kvp.value)
         }
         
-        return try await query.from("game")
+        let fielders = try await query.from("game")
             .join("team_game", on: SQLColumn(joinCol, table: "game"), .equal, SQLColumn("guid", table: "team_game"))
             .join("player_game", on: SQLColumn("guid", table: "team_game"), .equal, SQLColumn("team_game_guid", table: "player_game"))
             .join("stat_summary", on: SQLColumn("player_guid", table: "player_game"), .equal, SQLColumn("player_game_guid", table: "stat_summary"))
@@ -302,5 +316,23 @@ struct GameLoader {
             .where(SQLColumn("game_guid", table:"stat_summary"), .equal, SQLColumn("guid", table: "game"))
             .where("fld_games", .greaterThan, 0)
             .all(decoding: Fielder.self)
+        
+        var returnFielders: [Fielder] = []
+        for var fielder in fielders {
+            fielder.Player = try await getPlayer(externalId: fielder.PlayerExternalId)
+            returnFielders.append(fielder)
+        }
+        return returnFielders
+    }
+    
+    private func getPlayer(externalId: UUID) async throws -> Player? {
+        return try await db.select()
+            .column("guid", as: "ExternalId")
+            .column("first_nm", as: "FirstName")
+            .column("last_nm", as: "LastName")
+            .column(SQLFunction("CONCAT", args: SQLColumn("first_nm"), SQLLiteral.string(" "), SQLColumn("last_nm")), as: "Name")
+            .from("player")
+            .where("guid", .equal, externalId)
+            .first(decoding: Player.self)
     }
 }

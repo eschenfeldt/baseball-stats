@@ -13,7 +13,7 @@ enum GameImportError : Error {
     case playerInsertIssue(player: Player)
     case boxScoreInsertIssue(game: Game)
     case gameInsertIssue(game: Game)
-    case unimportedPlayer(externalId: UUID, name: String)
+    case unimportedPlayer(externalId: UUID)
 }
 
 struct GameImporter {
@@ -145,7 +145,7 @@ struct GameImporter {
     
     private func insertOrUpdatePlayerGames(game: Game, boxScoreId: Int, boxScore: BoxScore) async throws {
         for batter in boxScore.batters {
-            let playerId = try await getPlayerId(externalId: batter.PlayerExternalId, name: batter.PlayerName)
+            let playerId = try await getPlayerId(externalId: batter.PlayerExternalId, player: batter.Player)
             let model = BatterInsertModel(boxScoreId: boxScoreId, playerId: playerId, batter: batter)
             if let batterId = try await getPlayerGameId(playerId: playerId, boxScoreId: boxScoreId, baseTable: "Batters") {
                 try await updateBatter(batterId: batterId, model: model)
@@ -155,13 +155,19 @@ struct GameImporter {
         }
     }
     
-    private func getPlayerId(externalId: UUID, name: String) async throws -> Int {
+    private func getPlayerId(externalId: UUID, player: Player?) async throws -> Int {
         if let playerId = try await players.getPlayerId(externalId: externalId) {
             // already stored by external id
             return playerId
-        } else {
-            throw GameImportError.unimportedPlayer(externalId: externalId, name: name)
         }
+        guard let player else {
+            throw GameImportError.unimportedPlayer(externalId: externalId)
+        }
+        try await players.insertOrUpdatePlayer(player: player)
+        guard let playerId = try await players.getPlayerId(externalId: externalId) else {
+            throw GameImportError.playerInsertIssue(player: player)
+        }
+        return playerId
     }
     
     private func insertBatter(model: BatterInsertModel) async throws {
@@ -173,6 +179,7 @@ struct GameImporter {
     private func updateBatter(batterId: Int, model: BatterInsertModel) async throws {
         try await db.update("Batters")
             .set(model: model)
+            .where("Id", .equal, batterId)
             .run()
     }
     
@@ -193,6 +200,7 @@ struct GameImporter {
         try await db.update("Games")
             .set("HomeBoxScoreId", to: homeBoxScoreId)
             .set("AwayBoxScoreId", to: awayBoxScoreId)
+            .where("Id", .equal, gameId)
             .run()
     }
     

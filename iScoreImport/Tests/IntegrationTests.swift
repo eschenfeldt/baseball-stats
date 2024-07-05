@@ -203,11 +203,12 @@ final class IntegrationTests {
             let playerCount = try await countPlayers(db: resultDb)
             #expect(initialCount + 1 == count)
             #expect(playerCount == initialPlayerCount + 27)
+            let gameId = try await writer.getGameId(name: fullGame.Name)
+            #expect(gameId != nil)
+            try await validateGame(db: resultDb, gameId: gameId!)
             try await writer.insertOrUpdateGame(game: fullGame)
             let afterUpdateCount = try await countGames(db: resultDb)
             #expect(count == afterUpdateCount)
-            let gameId = try await writer.getGameId(name: fullGame.Name)
-            #expect(gameId != nil)
             if let gameId {
                 try await validateGame(db: resultDb, gameId: gameId)
                 let playersToDelete = try await getPlayersToDelete(db: resultDb, gameId: gameId)
@@ -222,7 +223,7 @@ final class IntegrationTests {
                     try await deleteTeam(db: resultDb, teamId: toDeleteId)
                 }
                 let postDeletePlayerCount = try await countPlayers(db: resultDb)
-                #expect(postDeletePlayerCount == initialPlayerCount)
+                #expect(postDeletePlayerCount == preSorianoPlayerCount)
             }
         }
         catch {
@@ -258,7 +259,7 @@ final class IntegrationTests {
             .column(SQLFunction("COUNT", args: SQLColumn("Id", table:"Pitchers")), as: "PitcherCount")
             .column(SQLFunction("COUNT", args: SQLColumn("Id", table:"Fielders")), as: "FielderCount")
             .column(SQLFunction("SUM", args: SQLColumn("Runs", table:"Batters")), as: "BatterRuns")
-            .column(SQLFunction("SUM", args: SQLColumn("Runs", table:"Pitchers")), as: "PitcherRuns")
+            .column(SQLFunction("SUM", args: SQLFunction.coalesce(SQLColumn("Runs", table:"Pitchers"), SQLLiteral.numeric("0"))), as: "PitcherRuns")
             .from("Games")
             .join("BoxScores", on: SQLColumn("Id", table: "Games"), .equal, SQLColumn("GameId", table: "BoxScores"))
             .join("Batters", method: SQLJoinMethod.left, on: SQLColumn("Id", table: "BoxScores"), .equal, SQLColumn("BoxScoreId", table: "Batters"))
@@ -274,11 +275,12 @@ final class IntegrationTests {
         #expect(gameSummary?.FielderCount == 25)
         #expect(gameSummary?.PitcherCount == 7)
         #expect(gameSummary?.BatterRuns == 7)
-        #expect(gameSummary?.PitcherCount == 7)
+        #expect(gameSummary?.PitcherRuns == 7)
     }
     
     private func getPlayersToDelete(db: SQLDatabase, gameId: Int) async throws -> [Int] {
         let resultsRaw = try await db.select()
+            .distinct()
             .column(SQLColumn("PlayerId", table: "Batters"))
             .from("BoxScores")
             .join("Batters", on: SQLColumn("Id", table: "BoxScores"), .equal, SQLColumn("BoxScoreId", table: "Batters"))
@@ -286,28 +288,26 @@ final class IntegrationTests {
             .where("GameId", .equal, SQLLiteral.numeric("\(gameId)"))
             .all()
         return try resultsRaw.map {
-            try $0.decode(column: "Id", as: Int.self)
+            try $0.decode(column: "PlayerId", as: Int.self)
         }
     }
     
     private func getTeamsToDelete(db: SQLDatabase, gameId: Int) async throws -> [Int] {
         let homeTeamRaw = try await db.select()
             .column(SQLColumn("HomeId"))
-            .column("Id")
             .from("Games")
             .where("Id", .equal, SQLLiteral.numeric("\(gameId)"))
             .all()
         let homeTeam = try homeTeamRaw.map {
-            try $0.decode(column: "Id", as: Int.self)
+            try $0.decode(column: "HomeId", as: Int.self)
         }
         let awayTeamRaw = try await db.select()
             .column(SQLColumn("AwayId"))
-            .column("Id")
             .from("Games")
             .where("Id", .equal, SQLLiteral.numeric("\(gameId)"))
             .all()
         let awayTeam = try awayTeamRaw.map {
-            try $0.decode(column: "Id", as: Int.self)
+            try $0.decode(column: "AwayId", as: Int.self)
         }
         var teams = homeTeam
         teams.append(contentsOf: awayTeam)
