@@ -30,8 +30,10 @@ struct GameLoader {
         // columns from teams
         query = query.column(SQLColumn("team_guid", table: "home_team_game"), as: "HomeTeamGuid")
             .column(SQLColumn("team_nm", table: "home_team_game"), as: "HomeTeamName")
+            .column(SQLColumn("team_nm", table: "home_team"), as: "CurrentHomeTeamName")
             .column(SQLColumn("team_guid", table: "away_team_game"), as: "AwayTeamGuid")
             .column(SQLColumn("team_nm", table: "away_team_game"), as: "AwayTeamName")
+            .column(SQLColumn("team_nm", table: "away_team"), as: "CurrentAwayTeamName")
         
         // winning pitcher
         query = query.column(SQLColumn("first_nm", table: "win_p"), as: "WinningPitcherFirstName")
@@ -54,7 +56,10 @@ struct GameLoader {
         // game and team joins
         query = query.from("game")
             .join(SQLAlias("team_game", as: "home_team_game"), on: SQLColumn("home_game_guid"), .equal, SQLColumn("guid", table:"home_team_game"))
+            .join(SQLAlias("team", as: "home_team"), on: SQLColumn("team_guid", table: "home_team_game"), .equal, SQLColumn("guid", table: "home_team"))
             .join(SQLAlias("team_game", as: "away_team_game"), on: SQLColumn("visitor_game_guid"), .equal, SQLColumn("guid", table:"away_team_game"))
+            .join(SQLAlias("team", as: "away_team"), on: SQLColumn("team_guid", table: "away_team_game"), .equal, SQLColumn("guid", table: "away_team"))
+
         
         // pitcher joins
         query = query.join(SQLAlias("player_game", as: "win_pg"), method: SQLJoinMethod.left, on: SQLColumn("pitcher_win"), .equal, SQLColumn("guid", table:"win_pg"))
@@ -90,11 +95,11 @@ struct GameLoader {
     func sqlRowToGame(row: SQLRow) throws -> Game {
         let homeTeam = Team(
             ExternalId: try row.decode(column: "HomeTeamGuid", as: UUID.self),
-            CombinedName: try row.decode(column: "HomeTeamName", as: String.self)
+            CombinedName: try row.decode(column: "CurrentHomeTeamName", as: String.self)
         )
         let awayTeam = Team(
             ExternalId: try row.decode(column: "AwayTeamGuid", as: UUID.self),
-            CombinedName: try row.decode(column: "AwayTeamName", as: String.self)
+            CombinedName: try row.decode(column: "CurrentAwayTeamName", as: String.self)
         )
         let location = Park(Name: try row.decode(column: "Location", as: String.self))
         let startTime = try decodeDatetime(row: row, colName: "StartTime")
@@ -111,7 +116,9 @@ struct GameLoader {
             EndTime: try decodeDatetime(row: row, colName: "EndTime"),
             Location: location,
             HomeScore: nil,
-            AwayScore: nil,
+            AwayScore: nil, 
+            HomeTeamName: try row.decode(column: "HomeTeamName", as: String.self),
+            AwayTeamName: try row.decode(column: "AwayTeamName", as: String.self),
             WinningTeam: nil,
             LosingTeam: nil,
             WinningPitcher: try? playerFromRow(row: row, prefix: "WinningPitcher"),

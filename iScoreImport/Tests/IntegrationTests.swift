@@ -317,7 +317,9 @@ final class IntegrationTests {
         #expect(gameSummaries.count == 1)
         let gameSummary = gameSummaries.first
         #expect(gameSummary?.AwayScore == 2)
+        #expect(gameSummary?.AwayTeamName == "Chicago Cubs")
         #expect(gameSummary?.HomeScore == 5)
+        #expect(gameSummary?.HomeTeamName == "Milwaukee Brewers")
         #expect(gameSummary?.WinningPitcherName == "Randy Wolf")
         #expect(gameSummary?.LosingPitcherName == "Rodrigo Lopez")
         #expect(gameSummary?.SavingPitcherName == "John Axford")

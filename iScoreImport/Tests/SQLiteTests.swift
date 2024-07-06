@@ -119,8 +119,10 @@ final class SQLiteTests {
             #expect(fullGame.StartTime == datetimeFormatter.date(from: "2011-08-26 20:10:40"))
             #expect(fullGame.EndTime == datetimeFormatter.date(from: "2011-08-26 23:12:00"))
             #expect(fullGame.AwayScore == 2)
+            #expect(fullGame.AwayTeamName == "Chicago Cubs") // team name at the time of the game, possibly different than current name
             #expect(fullGame.AwayTeam.CombinedName == "Chicago Cubs")
             #expect(fullGame.HomeScore == 5)
+            #expect(fullGame.HomeTeamName == "Milwaukee Brewers")
             #expect(fullGame.HomeTeam.CombinedName == "Milwaukee Brewers")
             #expect(fullGame.Location?.Name == "Miller Park")
             #expect(fullGame.WinningPitcher?.Name == "Randy Wolf")

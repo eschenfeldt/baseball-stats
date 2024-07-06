@@ -19,6 +19,8 @@ struct Game : Codable {
     let Location: Park?
     var HomeScore: Int?
     var AwayScore: Int?
+    let HomeTeamName: String
+    let AwayTeamName: String
     var WinningTeam: Team?
     var LosingTeam: Team?
     let WinningPitcher: Player?
