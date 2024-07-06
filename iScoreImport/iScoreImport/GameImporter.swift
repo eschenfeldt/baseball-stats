@@ -153,6 +153,24 @@ struct GameImporter {
                 try await insertBatter(model: model)
             }
         }
+        for pitcher in boxScore.pitchers {
+            let playerId = try await getPlayerId(externalId: pitcher.PlayerExternalId, player: pitcher.Player)
+            let model = PitcherInsertModel(boxScoreId: boxScoreId, playerId: playerId, pitcher: pitcher)
+            if let pitcherId = try await getPlayerGameId(playerId: playerId, boxScoreId: boxScoreId, baseTable: "Pitchers") {
+                try await updatePitcher(pitcherId: pitcherId, model: model)
+            } else {
+                try await insertPitcher(model: model)
+            }
+        }
+        for fielder in boxScore.fielders {
+            let playerId = try await getPlayerId(externalId: fielder.PlayerExternalId, player: fielder.Player)
+            let model = FielderInsertModel(boxScoreId: boxScoreId, playerId: playerId, fielder: fielder)
+            if let fielderId = try await getPlayerGameId(playerId: playerId, boxScoreId: boxScoreId, baseTable: "Fielders") {
+                try await updateFielder(fielderId: fielderId, model: model)
+            } else {
+                try await insertFielder(model: model)
+            }
+        }
     }
     
     private func getPlayerId(externalId: UUID, player: Player?) async throws -> Int {
@@ -180,6 +198,32 @@ struct GameImporter {
         try await db.update("Batters")
             .set(model: model)
             .where("Id", .equal, batterId)
+            .run()
+    }
+    
+    private func insertPitcher(model: PitcherInsertModel) async throws {
+        try await db.insert(into: "Pitchers")
+            .model(model)
+            .run()
+    }
+    
+    private func updatePitcher(pitcherId: Int, model: PitcherInsertModel) async throws {
+        try await db.update("Pitchers")
+            .set(model: model)
+            .where("Id", .equal, pitcherId)
+            .run()
+    }
+    
+    private func insertFielder(model: FielderInsertModel) async throws {
+        try await db.insert(into: "Fielders")
+            .model(model)
+            .run()
+    }
+    
+    private func updateFielder(fielderId: Int, model: FielderInsertModel) async throws {
+        try await db.update("Fielders")
+            .set(model: model)
+            .where("Id", .equal, fielderId)
             .run()
     }
     
@@ -372,6 +416,110 @@ struct GameImporter {
             self.GroundedIntoTriplePlay = batter.GroundedIntoTriplePlay
             self.AtBatsWithRunnersInScoringPosition = 0
             self.HitsWithRunnersInScoringPosition = 0
+        }
+    }
+    
+    private struct FielderInsertModel : Encodable {
+        let BoxScoreId: Int
+        let PlayerId: Int
+        
+        let Number: Int
+        let Games: Int
+        let Errors: Int
+        let ErrorsThrowing: Int
+        let ErrorsFielding: Int
+        let Putouts: Int
+        let Assists: Int
+        let StolenBaseAttempts: Int
+        let CaughtStealing: Int
+        let DoublePlays: Int
+        let TriplePlays: Int
+        let PassedBalls: Int
+        let PickoffFailed: Int
+        let PickoffSuccess: Int
+        
+        init(boxScoreId: Int, playerId: Int, fielder: Fielder) {
+            self.BoxScoreId = boxScoreId
+            self.PlayerId = playerId
+            
+            self.Number = fielder.Number
+            self.Games = fielder.Games
+            self.Errors = fielder.ErrorsFielding + fielder.ErrorsThrowing
+            self.ErrorsThrowing = fielder.ErrorsThrowing
+            self.ErrorsFielding = fielder.ErrorsFielding
+            self.Putouts = fielder.Putouts
+            self.Assists = fielder.Assists
+            self.StolenBaseAttempts = fielder.StolenBaseAttempts
+            self.CaughtStealing = fielder.CaughtStealing
+            self.DoublePlays = fielder.DoublePlays
+            self.TriplePlays = fielder.TriplePlays
+            self.PassedBalls = fielder.PassedBalls
+            self.PickoffFailed = fielder.PickoffFailed
+            self.PickoffSuccess = fielder.PickoffSuccess
+        }
+    }
+    
+    private struct PitcherInsertModel : Encodable {
+        let BoxScoreId: Int
+        let PlayerId: Int
+        
+        let Number: Int
+        let Games: Int
+        let Wins: Int
+        let Losses: Int
+        let Saves: Int
+        let ThirdInningsPitched: Int
+        let BattersFaced: Int
+        let Balls: Int
+        let Strikes: Int
+        let Pitches: Int
+        let Runs: Int
+        let EarnedRuns: Int
+        let Hits: Int
+        let Walks: Int
+        let IntentionalWalks: Int
+        let Strikeouts: Int
+        let StrikeoutsCalled: Int
+        let StrikeoutsSwinging: Int
+        let HitByPitch: Int
+        let Balks: Int
+        let WildPitches: Int
+        let Homeruns: Int
+        let GroundOuts: Int
+        let AirOuts: Int
+        let FirstPitchStrikes: Int
+        let FirstPitchBalls: Int
+        
+        init(boxScoreId: Int, playerId: Int, pitcher: Pitcher) {
+            self.BoxScoreId = boxScoreId
+            self.PlayerId = playerId
+            
+            self.Number = pitcher.Number
+            self.Games = pitcher.Games
+            self.Wins = pitcher.Wins
+            self.Losses = pitcher.Losses
+            self.Saves = pitcher.Saves
+            self.ThirdInningsPitched = pitcher.ThirdInningsPitched
+            self.BattersFaced = pitcher.BattersFaced
+            self.Balls = pitcher.Balls
+            self.Strikes = pitcher.Strikes
+            self.Pitches = pitcher.Balls + pitcher.Strikes
+            self.Runs = pitcher.Runs
+            self.EarnedRuns = pitcher.EarnedRuns
+            self.Hits = pitcher.Hits
+            self.Walks = pitcher.Walks
+            self.IntentionalWalks = pitcher.IntentionalWalks
+            self.Strikeouts = pitcher.Strikeouts
+            self.StrikeoutsCalled = pitcher.StrikeoutsCalled
+            self.StrikeoutsSwinging = pitcher.StrikeoutsSwinging
+            self.HitByPitch = pitcher.HitByPitch
+            self.Balks = pitcher.Balks
+            self.WildPitches = pitcher.WildPitches
+            self.Homeruns = pitcher.Homeruns
+            self.GroundOuts = pitcher.GroundOuts
+            self.AirOuts = pitcher.AirOuts
+            self.FirstPitchStrikes = pitcher.FirstPitchStrikes
+            self.FirstPitchBalls = pitcher.FirstPitchBalls
         }
     }
 }

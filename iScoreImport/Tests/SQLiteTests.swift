@@ -101,8 +101,7 @@ final class SQLiteTests {
         do {
             try await connector.connect()
             let games = try await connector.getGames()
-            #expect(games.count == 201) // bare records exist for 201 games; complete record for 1
-            let fullGame = games.first {
+            let fullGame = try await games.first {
                 $0.Name == "8/26/11 Chicago Cubs at Milwaukee Brewers"
             }
             #expect(fullGame != nil)

@@ -180,8 +180,7 @@ final class IntegrationTests {
             
             let resultDb = try await writer.getDb()
             let games = try await reader.getGames()
-            #expect(games.count == 201) // bare records exist for 201 games; complete record for 1
-            let fullGame = games.first {
+            let fullGame = try await games.first {
                 $0.Name == "8/26/11 Chicago Cubs at Milwaukee Brewers"
             }
             #expect(fullGame != nil)
@@ -244,38 +243,101 @@ final class IntegrationTests {
     }
     
     private struct GameSummary: Codable {
+        let Name: String
+        let HomeScore: Int
+        let AwayScore: Int
+        let WinningPitcherName: String?
+        let LosingPitcherName: String?
+        let SavingPitcherName: String?
+        let HomeTeamName: String?
+        let AwayTeamName: String?
+    }
+    
+    private struct BatterSummary: Codable {
         let ExternalId: UUID
         let BatterCount: Int
-        let PitcherCount: Int
-        let FielderCount: Int
         let BatterRuns: Int
+    }
+    
+    private struct PitcherSummary: Codable {
+        let ExternalId: UUID
+        let PitcherCount: Int
         let PitcherRuns: Int
+    }
+    
+    private struct FielderSummary: Codable {
+        let ExternalId: UUID
+        let FielderCount: Int
     }
     
     private func validateGame(db: SQLDatabase, gameId: Int) async throws {
         let gameSummaries = try await db.select()
+            .column(SQLColumn("Name", table: "Games"))
+            .column("HomeScore")
+            .column("AwayScore")
+            .column("HomeTeamName")
+            .column("AwayTeamName")
+            .column(SQLColumn("Name", table: "wp"), as: "WinningPitcherName")
+            .column(SQLColumn("Name", table: "lp"), as: "LosingPitcherName")
+            .column(SQLColumn("Name", table: "sp"), as: "SavingPitcherName")
+            .from("Games")
+            .join(SQLAlias("Players", as: "wp"), method: SQLJoinMethod.left, on: SQLColumn("WinningPitcherId"), .equal, SQLColumn("Id", table: "wp"))
+            .join(SQLAlias("Players", as: "lp"), method: SQLJoinMethod.left, on: SQLColumn("LosingPitcherId"), .equal, SQLColumn("Id", table: "lp"))
+            .join(SQLAlias("Players", as: "sp"), method: SQLJoinMethod.left, on: SQLColumn("SavingPitcherId"), .equal, SQLColumn("Id", table: "sp"))
+            .all(decoding: GameSummary.self)
+        let batterSummaries = try await db.select()
             .column("ExternalId")
             .column(SQLFunction("COUNT", args: SQLColumn("Id", table:"Batters")), as: "BatterCount")
-            .column(SQLFunction("COUNT", args: SQLColumn("Id", table:"Pitchers")), as: "PitcherCount")
-            .column(SQLFunction("COUNT", args: SQLColumn("Id", table:"Fielders")), as: "FielderCount")
             .column(SQLFunction("SUM", args: SQLColumn("Runs", table:"Batters")), as: "BatterRuns")
-            .column(SQLFunction("SUM", args: SQLFunction.coalesce(SQLColumn("Runs", table:"Pitchers"), SQLLiteral.numeric("0"))), as: "PitcherRuns")
             .from("Games")
             .join("BoxScores", on: SQLColumn("Id", table: "Games"), .equal, SQLColumn("GameId", table: "BoxScores"))
             .join("Batters", method: SQLJoinMethod.left, on: SQLColumn("Id", table: "BoxScores"), .equal, SQLColumn("BoxScoreId", table: "Batters"))
+            .where(SQLColumn("Id", table:"Games"), .equal, SQLLiteral.numeric("\(gameId)"))
+            .groupBy("ExternalId")
+            .all(decoding: BatterSummary.self)
+        let pitcherSummaries = try await db.select()
+            .column("ExternalId")
+            .column(SQLFunction("COUNT", args: SQLColumn("Id", table:"Pitchers")), as: "PitcherCount")
+            .column(SQLFunction("SUM", args: SQLFunction.coalesce(SQLColumn("Runs", table:"Pitchers"), SQLLiteral.numeric("0"))), as: "PitcherRuns")
+            .from("Games")
+            .join("BoxScores", on: SQLColumn("Id", table: "Games"), .equal, SQLColumn("GameId", table: "BoxScores"))
             .join("Pitchers", method: SQLJoinMethod.left, on: SQLColumn("Id", table: "BoxScores"), .equal, SQLColumn("BoxScoreId", table: "Pitchers"))
+            .where(SQLColumn("Id", table:"Games"), .equal, SQLLiteral.numeric("\(gameId)"))
+            .groupBy("ExternalId")
+            .all(decoding: PitcherSummary.self)
+        let fielderSummaries = try await db.select()
+            .column("ExternalId")
+            .column(SQLFunction("COUNT", args: SQLColumn("Id", table:"Fielders")), as: "FielderCount")
+            .from("Games")
+            .join("BoxScores", on: SQLColumn("Id", table: "Games"), .equal, SQLColumn("GameId", table: "BoxScores"))
             .join("Fielders", method: SQLJoinMethod.left, on: SQLColumn("Id", table: "BoxScores"), .equal, SQLColumn("BoxScoreId", table: "Fielders"))
             .where(SQLColumn("Id", table:"Games"), .equal, SQLLiteral.numeric("\(gameId)"))
             .groupBy("ExternalId")
-            .all(decoding: GameSummary.self)
+            .all(decoding: FielderSummary.self)
         #expect(gameSummaries.count == 1)
         let gameSummary = gameSummaries.first
-        #expect(gameSummary?.ExternalId != nil)
-        #expect(gameSummary?.BatterCount == 28)
-        #expect(gameSummary?.FielderCount == 25)
-        #expect(gameSummary?.PitcherCount == 7)
-        #expect(gameSummary?.BatterRuns == 7)
-        #expect(gameSummary?.PitcherRuns == 7)
+        #expect(gameSummary?.AwayScore == 2)
+        #expect(gameSummary?.HomeScore == 5)
+        #expect(gameSummary?.WinningPitcherName == "Randy Wolf")
+        #expect(gameSummary?.LosingPitcherName == "Rodrigo Lopez")
+        #expect(gameSummary?.SavingPitcherName == "John Axford")
+        
+        #expect(batterSummaries.count == 1)
+        #expect(pitcherSummaries.count == 1)
+        #expect(fielderSummaries.count == 1)
+        let batterSummary = batterSummaries.first
+        let pitcherSummary = pitcherSummaries.first
+        let fielderSummary = fielderSummaries.first
+        #expect(batterSummary?.ExternalId != nil)
+        #expect(pitcherSummary?.ExternalId != nil)
+        #expect(fielderSummary?.ExternalId != nil)
+        #expect(batterSummary?.ExternalId == pitcherSummary?.ExternalId)
+        #expect(pitcherSummary?.ExternalId == fielderSummary?.ExternalId)
+        #expect(batterSummary?.BatterCount == 28)
+        #expect(fielderSummary?.FielderCount == 25)
+        #expect(pitcherSummary?.PitcherCount == 7)
+        #expect(batterSummary?.BatterRuns == 7)
+        #expect(pitcherSummary?.PitcherRuns == 7)
     }
     
     private func getPlayersToDelete(db: SQLDatabase, gameId: Int) async throws -> [Int] {

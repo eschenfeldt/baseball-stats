@@ -8,12 +8,16 @@
 import Foundation
 import SQLKit
 
+enum GameLoadError : Error {
+    case noGameIdentifier
+}
+
 struct GameLoader {
     
     let db: SQLDatabase
     static let zeroTime = Date(timeIntervalSince1970: 0)
     
-    func loadGames() async throws -> [Game] {
+    func loadGames() async throws -> AsyncThrowingStream<Game, Error> {
         // columns from "game"
         var query: SQLSelectBuilder = db.select()
             .column(SQLColumn("guid", table: "game"), as: "ExternalId")
@@ -63,15 +67,24 @@ struct GameLoader {
         // where not deleted
         query = query.where(SQLFunction.coalesce(SQLColumn("is_deleted", table: "game"), SQLLiteral.numeric("0")), .equal, SQLLiteral.numeric("0"))
         
-//        var blah = SQLSerializer(database: db)
-//        query.query.serialize(to: &blah)
-//        let string = blah.sql
+        let rows = try await query.all()
         
-        return try await query.all()
-            .asyncMap {
-                let game = try sqlRowToGame(row: $0)
-                return try await loadBoxScore(game: game)
-            }
+        print("Found \(rows.count) games. Loading details...")
+        
+        var index = 0
+        
+        return AsyncThrowingStream {
+            guard index < rows.count else { return nil}
+            
+            let row = rows[index]
+            index += 1
+            let game = try sqlRowToGame(row: row)
+            print("Found game \(game.Name)")
+            let withBoxScore = try await loadBoxScore(game: game)
+            print("Loaded details for \(game.Name)")
+            return withBoxScore
+        }
+            
     }
                 
     func sqlRowToGame(row: SQLRow) throws -> Game {
@@ -135,12 +148,15 @@ struct GameLoader {
     }
     
     private func loadBoxScore(game: Game) async throws -> Game {
-        let homeBatters = try await getBatters(home: true)
-        let awayBatters = try await getBatters(home: false)
-        let homePitchers = try await getPitchers(home: true)
-        let awayPitchers = try await getPitchers(home: false)
-        let homeFielders = try await getFielders(home: true)
-        let awayFielders = try await getFielders(home: false)
+        guard let gameGuid = game.ExternalId else {
+            throw GameLoadError.noGameIdentifier
+        }
+        let homeBatters = try await getBatters(gameGuid: gameGuid, home: true)
+        let awayBatters = try await getBatters(gameGuid: gameGuid, home: false)
+        let homePitchers = try await getPitchers(gameGuid: gameGuid, home: true)
+        let awayPitchers = try await getPitchers(gameGuid: gameGuid, home: false)
+        let homeFielders = try await getFielders(gameGuid: gameGuid, home: true)
+        let awayFielders = try await getFielders(gameGuid: gameGuid, home: false)
         
         var returnGame = game
         
@@ -192,7 +208,7 @@ struct GameLoader {
         "bat_gitp": "GroundedIntoTriplePlay"
     ]
     
-    private func getBatters(home: Bool) async throws -> [Batter] {
+    private func getBatters(gameGuid: UUID, home: Bool) async throws -> [Batter] {
         let joinCol = home ? "home_game_guid" : "visitor_game_guid"
         var query = db.select()
             .column(SQLColumn("team_guid", table: "team_game"), as: "TeamExternalId")
@@ -212,6 +228,7 @@ struct GameLoader {
             .join("player", on: SQLColumn("player_guid", table: "player_game"), .equal, SQLColumn("guid", table: "player"))
             .where(SQLColumn("game_guid", table:"stat_summary"), .equal, SQLColumn("guid", table: "game"))
             .where("bat_games", .greaterThan, 0)
+            .where(SQLColumn("guid", table: "game"), .equal, SQLLiteral.string("\(gameGuid)"))
             .all(decoding: Batter.self)
         
         var returnBatters: [Batter] = []
@@ -250,7 +267,7 @@ struct GameLoader {
     ]
     
     
-    private func getPitchers(home: Bool) async throws -> [Pitcher] {
+    private func getPitchers(gameGuid: UUID, home: Bool) async throws -> [Pitcher] {
         let joinCol = home ? "home_game_guid" : "visitor_game_guid"
         var query = db.select()
             .column(SQLColumn("team_guid", table: "team_game"), as: "TeamExternalId")
@@ -270,6 +287,7 @@ struct GameLoader {
             .join("player", on: SQLColumn("player_guid", table: "player_game"), .equal, SQLColumn("guid", table: "player"))
             .where(SQLColumn("game_guid", table:"stat_summary"), .equal, SQLColumn("guid", table: "game"))
             .where("pit_games", .greaterThan, 0)
+            .where(SQLColumn("guid", table: "game"), .equal, SQLLiteral.string("\(gameGuid)"))
             .all(decoding: Pitcher.self)
         
         var returnPitchers: [Pitcher] = []
@@ -294,7 +312,7 @@ struct GameLoader {
         "fld_pickoff_success": "PickoffSuccess",
     ]
     
-    private func getFielders(home: Bool) async throws -> [Fielder] {
+    private func getFielders(gameGuid: UUID, home: Bool) async throws -> [Fielder] {
         let joinCol = home ? "home_game_guid" : "visitor_game_guid"
         var query = db.select()
             .column(SQLColumn("team_guid", table: "team_game"), as: "TeamExternalId")
@@ -315,6 +333,7 @@ struct GameLoader {
             .join("player", on: SQLColumn("player_guid", table: "player_game"), .equal, SQLColumn("guid", table: "player"))
             .where(SQLColumn("game_guid", table:"stat_summary"), .equal, SQLColumn("guid", table: "game"))
             .where("fld_games", .greaterThan, 0)
+            .where(SQLColumn("guid", table: "game"), .equal, SQLLiteral.string("\(gameGuid)"))
             .all(decoding: Fielder.self)
         
         var returnFielders: [Fielder] = []
