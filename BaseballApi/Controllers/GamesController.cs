@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using BaseballApi.Models;
 using Microsoft.AspNetCore.Authorization;
 using Newtonsoft.Json;
+using BaseballApi.Contracts;
 
 namespace BaseballApi.Controllers
 {
@@ -24,9 +25,22 @@ namespace BaseballApi.Controllers
 
         // GET: api/Games
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Game>>> GetGames()
+        public async Task<ActionResult<IEnumerable<GameSummary>>> GetGames(int skip = 0, int take = 10)
         {
-            return await _context.Games.ToListAsync();
+            return await _context.Games
+                .Include(nameof(Game.Away))
+                .Include(nameof(Game.Home))
+                .Include(nameof(Game.Location))
+                .Include(nameof(Game.WinningTeam))
+                .Include(nameof(Game.LosingTeam))
+                .Include(nameof(Game.WinningPitcher))
+                .Include(nameof(Game.LosingPitcher))
+                .Include(nameof(Game.LosingTeam))
+                .OrderBy(g => g.Date)
+                .Select(g => new GameSummary(g))
+                .Skip(skip)
+                .Take(take)
+                .ToListAsync();
         }
 
         // GET: api/Games/5
@@ -61,50 +75,6 @@ namespace BaseballApi.Controllers
             }
 
             return Ok(new { count = files.Count, size, metadata });
-        }
-
-        // PUT: api/Games/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        [Authorize]
-        public async Task<IActionResult> PutGame(long id, Game game)
-        {
-            if (id != game.Id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(game).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!GameExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
-        }
-
-        // POST: api/Games
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        [Authorize]
-        public async Task<ActionResult<Game>> PostGame(Game game)
-        {
-            _context.Games.Add(game);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(GetGame), new { id = game.Id }, game);
         }
 
         // DELETE: api/Games/5
