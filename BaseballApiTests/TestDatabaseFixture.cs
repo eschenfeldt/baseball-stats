@@ -27,8 +27,6 @@ public class TestDatabaseFixture
                     AddLocations(context);
                     context.SaveChanges();
                     AddGames(context);
-                    context.SaveChanges();
-                    AddGameDetails(context);
                 }
                 _dbInitialized = true;
             }
@@ -62,44 +60,13 @@ public class TestDatabaseFixture
         );
     }
 
+    /// <summary>
+    /// Add *and save* test games. Requires players and teams already be saved.
+    /// </summary>
     void AddGames(BaseballContext context)
     {
-        var team1 = context.Teams.First(t => t.City == "Test City");
-        var team2 = context.Teams.First(t => t.City == "New Tester Town");
-        var homeBox = new BoxScore
-        {
-            Game = null,
-            Team = team1
-        };
-        var awayBox = new BoxScore
-        {
-            Game = null,
-            Team = team2
-        };
-        var game = new Game
-        {
-            Name = "2022 Test Game 1",
-            Home = team1,
-            HomeTeamName = "Test City Old Timers",
-            Away = team2,
-            AwayTeamName = "New Tester Town Tubes",
-            BoxScores = [homeBox, awayBox]
-        };
-        homeBox.Game = game;
-        context.AddRange(
-            homeBox,
-            awayBox,
-            game
-        );
-    }
-
-    /// <summary>
-    /// Add *and save* detailed box scores for test games
-    /// </summary>
-    void AddGameDetails(BaseballContext context)
-    {
         var manager = new TestGameManager(context);
-        manager.AddBoxScore(1, true);
+        manager.AddAllGames();
     }
 
     public BaseballContext CreateContext()
@@ -109,5 +76,14 @@ public class TestDatabaseFixture
         var ownerConnectionString = configuration["Baseball:OwnerConnectionString"];
         return new BaseballContext(new DbContextOptionsBuilder<BaseballContext>()
                                     .UseNpgsql(ownerConnectionString).Options);
+    }
+
+    struct GameMetadata
+    {
+        public Team Home { get; set; }
+        public Team Away { get; set; }
+        public string Name { get; set; }
+        public string? HomeTeamName { get; set; }
+        public string? AwayTeamName { get; set; }
     }
 }

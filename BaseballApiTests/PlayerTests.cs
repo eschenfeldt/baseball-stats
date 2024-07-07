@@ -1,3 +1,5 @@
+using System.ComponentModel;
+using System.Linq.Expressions;
 using BaseballApi;
 using BaseballApi.Controllers;
 
@@ -29,30 +31,71 @@ public class PlayerTests : BaseballTests
         Assert.Equal(name, player.Name);
     }
 
-    public static TheoryData<string, int?, decimal?> BattingAverages => new()
+    static readonly string Batter1Name = "Test Batter 1";
+    static readonly string Batter2Name = "Test Batter 2";
+    static readonly string Batter3Name = "Test Batter 3";
+    static readonly Func<LeaderboardBatter, int> GetGames = (lb) => lb.Games;
+    static readonly Func<LeaderboardBatter, decimal?> GetBattingAverage = (lb) =>
     {
-        { "Test Batter 1", null, 0.333M }
+        if (lb.BattingAverage.HasValue)
+        {
+            return decimal.Round(lb.BattingAverage.Value, 3);
+        }
+        else
+        {
+            return null;
+        }
+    };
+
+    public static TheoryData<Func<LeaderboardBatter, decimal?>, string, int?, decimal?> DecimalStats => new()
+    {
+        { GetBattingAverage, Batter1Name, null, 0.333M },
+        { GetBattingAverage, Batter1Name, 2022, 0.333M },
+        { GetBattingAverage, Batter1Name, 2023, 0.333M },
+        { GetBattingAverage, Batter2Name, null, 0.333M },
+        { GetBattingAverage, Batter2Name, 2022, 0.333M },
+        { GetBattingAverage, Batter3Name, null, 0.273M },
+        { GetBattingAverage, Batter3Name, 2022, 0.250M },
+        { GetBattingAverage, Batter3Name, 2023, 0.333M },
+    };
+
+    public static TheoryData<Func<LeaderboardBatter, int>, string, int?, int> IntegerStats => new()
+    {
+        { GetGames, Batter1Name, null, 2 },
+        { GetGames, Batter1Name, 2022, 1 },
+        { GetGames, Batter3Name, null, 3 }
     };
 
     [Theory]
-    [MemberData(nameof(BattingAverages))]
-    public async void TestBattingAverage(string name, int? year, decimal? expected)
+    [MemberData(nameof(DecimalStats))]
+    public void TestDecimalStat(Func<LeaderboardBatter, decimal?> selectValue, string name, int? year, decimal? expected)
     {
-        var player = await GetBattingLeader(name, year);
+        var player = GetBattingLeader(name, year);
         Assert.Equal(name, player.Player.Name);
-        Assert.Equal(expected, player.BattingAverage);
+        var actualValue = selectValue(player);
+        Assert.Equal(expected, actualValue);
     }
 
-    private async Task<LeaderboardBatter> GetBattingLeader(string name, int? year)
+    [Theory]
+    [MemberData(nameof(IntegerStats))]
+    public void TestIntegerStat(Func<LeaderboardBatter, int> selectValue, string name, int? year, int expected)
     {
-        var leaders = await LeaderController.GetBattingLeaders(new LeaderboardParams
+        var player = GetBattingLeader(name, year);
+        Assert.Equal(name, player.Player.Name);
+        Assert.Equal(expected, selectValue(player));
+    }
+
+    private LeaderboardBatter GetBattingLeader(string name, int? year)
+    {
+        var leaders = LeaderController.GetBattingLeaders(new BatterLeaderboardParams
         {
             Skip = 0,
             Take = 10,
-            Year = year
+            Year = year,
+            MinPlateAppearances = 0
         });
-        Assert.NotNull(leaders.Value);
-        var player = leaders.Value.FirstOrDefault(l => l.Player.Name == name);
+        Assert.NotNull(leaders);
+        var player = leaders.FirstOrDefault(l => l.Player.Name == name);
         Assert.NotNull(player);
         return player;
     }

@@ -1,5 +1,4 @@
 using BaseballApi.Controllers;
-using Microsoft.AspNetCore.Mvc;
 
 namespace BaseballApiTests;
 

@@ -1,4 +1,5 @@
 ﻿using BaseballApi;
+using BaseballApi.Contracts;
 using BaseballApi.Models;
 
 namespace BaseballApiTests;
@@ -6,37 +7,416 @@ namespace BaseballApiTests;
 public class TestGameManager
 {
     private BaseballContext Context { get; }
-    private Player Batter1 { get; }
-    private Player Batter2 { get; }
-    private Player Batter3 { get; }
-    private Player Pitcher1 { get; }
-    private Player Pitcher2 { get; }
+    private Dictionary<int, Team> Teams { get; } = [];
+    private Dictionary<int, Player> Batters { get; } = [];
+    private Dictionary<int, Player> Pitchers { get; } = [];
 
     public TestGameManager(BaseballContext context)
     {
         Context = context;
-        Batter1 = context.Players.First(p => p.Name == "Test Batter 1");
-        Batter2 = context.Players.First(p => p.Name == "Test Batter 2");
-        Batter3 = context.Players.First(p => p.Name == "Test Batter 3");
-        Pitcher1 = context.Players.First(p => p.Name == "Test Pitcher 1");
-        Pitcher2 = context.Players.First(p => p.Name == "Test Pitcher 2");
+        Teams.Add(1, context.Teams.First(t => t.City == "Test City"));
+        Teams.Add(2, context.Teams.First(t => t.City == "New Tester Town"));
+        Batters.Add(1, context.Players.First(p => p.Name == "Test Batter 1"));
+        Batters.Add(2, context.Players.First(p => p.Name == "Test Batter 2"));
+        Batters.Add(3, context.Players.First(p => p.Name == "Test Batter 3"));
+        Pitchers.Add(1, context.Players.First(p => p.Name == "Test Pitcher 1"));
+        Pitchers.Add(2, context.Players.First(p => p.Name == "Test Pitcher 2"));
     }
 
-    public void AddBoxScore(int gameId, bool home)
+    public void ValidateGameSummary(GameSummary gameSummary, int gameNumber)
     {
-        var boxScore = Context.BoxScores.First(bs => bs.GameId == gameId);
+        if (!TestGames.TryGetValue(gameNumber, out GameInfo gameInfo))
+        {
+            Assert.Fail($"Could not find test game with number {gameNumber}");
+        }
+        Assert.Equal(gameInfo.Name, gameSummary.Name);
 
-        Context.AddRange(
-            new Batter
+        var home = Teams[gameInfo.Home.TeamNumber];
+        Assert.Equal(gameInfo.Home.TeamName, gameSummary.HomeTeamName);
+        Assert.Equal(home.Name, gameSummary.Home.Name);
+        Assert.Equal(home.City, gameSummary.Home.City);
+
+        var away = Teams[gameInfo.Away.TeamNumber];
+        Assert.Equal(gameInfo.Away.TeamName, gameSummary.AwayTeamName);
+        Assert.Equal(away.Name, gameSummary.Away.Name);
+        Assert.Equal(away.City, gameSummary.Away.City);
+    }
+
+    public void ValidateGame(Game game, int gameNumber)
+    {
+        if (!TestGames.TryGetValue(gameNumber, out GameInfo gameInfo))
+        {
+            Assert.Fail($"Could not find test game with number {gameNumber}");
+        }
+        Assert.Equal(gameInfo.Name, game.Name);
+
+        var home = Teams[gameInfo.Home.TeamNumber];
+        Assert.Equal(gameInfo.Home.TeamName ?? DefaultName(home), game.HomeTeamName);
+        Assert.Equal(home.Name, game.Home.Name);
+        Assert.Equal(home.City, game.Home.City);
+
+        var away = Teams[gameInfo.Away.TeamNumber];
+        Assert.Equal(gameInfo.Away.TeamName ?? DefaultName(away), game.AwayTeamName);
+        Assert.Equal(away.Name, game.Away.Name);
+        Assert.Equal(away.City, game.Away.City);
+
+        // Assert.NotNull(game.HomeBoxScore);
+        // Assert.NotNull(game.AwayBoxScore);
+
+        // var homeBatterRuns = game.HomeBoxScore.Batters.Select(b => b.Runs).Sum();
+        // var awayBatterRuns = game.AwayBoxScore.Batters.Select(b => b.Runs).Sum();
+        // var homePitcherRuns = game.HomeBoxScore.Pitchers.Select(p => p.Runs).Sum();
+        // var awayPitcherRuns = game.AwayBoxScore.Pitchers.Select(p => p.Runs).Sum();
+
+        // Assert.Equal(game.HomeScore, homeBatterRuns);
+        // Assert.Equal(game.HomeScore, awayPitcherRuns);
+        // Assert.Equal(game.AwayScore, awayBatterRuns);
+        // Assert.Equal(game.AwayScore, homePitcherRuns);
+    }
+
+    public void AddAllGames()
+    {
+        foreach (var gameInfo in TestGames.Values)
+        {
+            var home = Teams[gameInfo.Home.TeamNumber];
+            var away = Teams[gameInfo.Away.TeamNumber];
+            var homeBox = new BoxScore
+            {
+                Game = null,
+                Team = home,
+            };
+            var awayBox = new BoxScore
+            {
+                Game = null,
+                Team = away
+            };
+            var game = new Game
+            {
+                Date = gameInfo.Date,
+                Name = gameInfo.Name,
+                Home = home,
+                HomeTeamName = gameInfo.Home.TeamName ?? DefaultName(home),
+                Away = away,
+                AwayTeamName = gameInfo.Away.TeamName ?? DefaultName(away),
+                BoxScores = [homeBox, awayBox]
+            };
+            Context.AddRange(
+                homeBox,
+                awayBox,
+                game
+            );
+            Context.SaveChanges();
+            game.HomeBoxScore = homeBox;
+            game.AwayBoxScore = awayBox;
+            Context.SaveChanges();
+            PopulateBoxScore(homeBox, gameInfo.Home);
+            PopulateBoxScore(awayBox, gameInfo.Away);
+        }
+    }
+
+    void PopulateBoxScore(BoxScore boxScore, BoxScoreInfo info)
+    {
+        var batters = info.Batters.Select(batterInfo => new Batter
+        {
+            BoxScore = boxScore,
+            Player = Batters[batterInfo.BatterNumber],
+            Games = 1,
+            PlateAppearances = batterInfo.PlateAppearances,
+            AtBats = batterInfo.AtBats,
+            Hits = batterInfo.Hits,
+            Homeruns = batterInfo.Homeruns
+        });
+        Context.AddRange(batters);
+        var pitchers = info.Pitchers.Select(pitcherInfo => new Pitcher
+        {
+            BoxScore = boxScore,
+            Player = Pitchers[pitcherInfo.PitcherNumber],
+            Games = 1,
+            ThirdInningsPitched = pitcherInfo.Outs,
+            Runs = pitcherInfo.Runs,
+            EarnedRuns = pitcherInfo.EarnedRuns
+        });
+        Context.AddRange(pitchers);
+        var fielders = info.Fielders.Select(fielderInfo =>
+        {
+            Player player;
+            if (fielderInfo.BatterNumber.HasValue)
+            {
+                player = Batters[fielderInfo.BatterNumber.Value];
+            }
+            else if (fielderInfo.PitcherNumber.HasValue)
+            {
+                player = Pitchers[fielderInfo.PitcherNumber.Value];
+            }
+            else
+            {
+                Assert.Fail($"Fielder without a player identifier: {fielderInfo}");
+                throw new InvalidOperationException();
+            }
+            return new Fielder
             {
                 BoxScore = boxScore,
-                Player = Batter1,
+                Player = player,
                 Games = 1,
-                AtBats = 3,
-                Hits = 1
-            }
-        );
+                Putouts = fielderInfo.Putouts,
+                Assists = fielderInfo.Assists,
+                Errors = fielderInfo.Errors
+            };
+        });
+        Context.AddRange(fielders);
 
         Context.SaveChanges();
     }
+
+    private string DefaultName(Team team)
+    {
+        return $"{team.City} {team.Name}";
+    }
+
+    struct GameInfo
+    {
+        public DateOnly Date { get; set; }
+        public string Name { get; set; }
+        public BoxScoreInfo Home { get; set; }
+        public BoxScoreInfo Away { get; set; }
+    }
+
+    struct BoxScoreInfo
+    {
+        public int TeamNumber { get; set; }
+        public string? TeamName { get; set; }
+        public List<PitcherInfo> Pitchers { get; set; }
+        public List<BatterInfo> Batters { get; set; }
+        public List<FielderInfo> Fielders { get; set; }
+    }
+
+    struct PitcherInfo
+    {
+        public int PitcherNumber { get; set; }
+        public int Outs { get; set; }
+        public int Runs { get; set; }
+        public int EarnedRuns { get; set; }
+    }
+
+    struct BatterInfo
+    {
+        public int BatterNumber { get; set; }
+        public int PlateAppearances { get; set; }
+        public int AtBats { get; set; }
+        public int Hits { get; set; }
+        public int Homeruns { get; set; }
+    }
+
+    struct FielderInfo
+    {
+        public int? BatterNumber { get; set; }
+        public int? PitcherNumber { get; set; }
+        public int Putouts { get; set; }
+        public int Assists { get; set; }
+        public int Errors { get; set; }
+    }
+
+    private static readonly Dictionary<int, GameInfo> TestGames = new Dictionary<int, GameInfo>
+    {
+        {
+            1,
+            new GameInfo
+            {
+                Date = new DateOnly(2022, 4, 27),
+                Name = "2022 Test Game 1",
+                Away = new BoxScoreInfo
+                {
+                    TeamNumber = 1,
+                    TeamName = "Test City Old Timers",
+                    Batters = [
+                        new BatterInfo
+                        {
+                            BatterNumber = 1,
+                            PlateAppearances = 3,
+                            AtBats = 3,
+                            Hits = 1,
+                            Homeruns = 0
+                        }
+                    ],
+                    Pitchers = [
+                        new PitcherInfo
+                        {
+                            PitcherNumber = 1,
+                            Outs = 27,
+                            EarnedRuns = 0,
+                            Runs = 0
+                        }
+                    ],
+                    Fielders = [
+                        new FielderInfo
+                        {
+                            BatterNumber = 1,
+                            Assists = 1,
+                            Putouts = 5,
+                            Errors = 0
+                        },
+                        new FielderInfo
+                        {
+                            PitcherNumber = 1,
+                            Assists = 5,
+                            Putouts = 1,
+                            Errors = 1
+                        }
+                    ]
+                },
+                Home = new BoxScoreInfo
+                {
+                    TeamNumber = 2,
+                    TeamName = "New Tester Town Tubes",
+                    Batters = [
+                        new BatterInfo
+                        {
+                            BatterNumber = 3,
+                            PlateAppearances = 4,
+                            AtBats = 4,
+                            Hits = 0,
+                            Homeruns = 0
+                        }
+                    ],
+                    Pitchers = [
+                        new PitcherInfo
+                        {
+                            PitcherNumber = 2,
+                            Outs = 9,
+                            EarnedRuns = 1,
+                            Runs = 2
+                        }
+                    ],
+                    Fielders = []
+                }
+            }
+        },
+        {
+            2,
+            new GameInfo
+            {
+                Date = new DateOnly(2023, 6, 27),
+                Name = "2023 Test Game 1",
+                Away = new BoxScoreInfo
+                {
+                    TeamNumber = 1,
+                    Batters = [
+                        new BatterInfo
+                        {
+                            BatterNumber = 1,
+                            PlateAppearances = 4,
+                            AtBats = 3,
+                            Hits = 1,
+                            Homeruns = 0
+                        }
+                    ],
+                    Pitchers = [
+                        new PitcherInfo
+                        {
+                            PitcherNumber = 1,
+                            Outs = 15,
+                            EarnedRuns = 0,
+                            Runs = 2
+                        }
+                    ],
+                    Fielders = [
+                        new FielderInfo
+                        {
+                            BatterNumber = 1,
+                            Assists = 1,
+                            Putouts = 5,
+                            Errors = 0
+                        },
+                        new FielderInfo
+                        {
+                            PitcherNumber = 1,
+                            Assists = 5,
+                            Putouts = 1,
+                            Errors = 1
+                        }
+                    ]
+                },
+                Home = new BoxScoreInfo
+                {
+                    TeamNumber = 2,
+                    Batters = [
+                        new BatterInfo
+                        {
+                            BatterNumber = 3,
+                            PlateAppearances = 3,
+                            AtBats = 3,
+                            Hits = 1,
+                            Homeruns = 1
+                        }
+                    ],
+                    Pitchers = [
+                        new PitcherInfo
+                        {
+                            PitcherNumber = 2,
+                            Outs = 14,
+                            EarnedRuns = 3,
+                            Runs = 3
+                        }
+                    ],
+                    Fielders = []
+                }
+            }
+        },
+        {
+            3,
+            new GameInfo
+            {
+                Date = new DateOnly(2022, 8, 27),
+                Name = "2022 Test Game 2",
+                Away =new BoxScoreInfo
+                {
+                    TeamNumber = 2,
+                    Batters = [
+                        new BatterInfo
+                        {
+                            BatterNumber = 3,
+                            PlateAppearances = 4,
+                            AtBats = 4,
+                            Hits = 2,
+                            Homeruns = 1
+                        }
+                    ],
+                    Pitchers = [
+                        new PitcherInfo
+                        {
+                            PitcherNumber = 2,
+                            Outs = 14,
+                            EarnedRuns = 0,
+                            Runs = 0
+                        }
+                    ],
+                    Fielders = []
+                },
+                Home = new BoxScoreInfo
+                {
+                    TeamNumber = 1,
+                    Batters = [
+                        new BatterInfo
+                        {
+                            BatterNumber = 2,
+                            PlateAppearances = 3,
+                            AtBats = 3,
+                            Hits = 1,
+                            Homeruns = 1
+                        }
+                    ],
+                    Pitchers = [
+                        new PitcherInfo
+                        {
+                            PitcherNumber = 1,
+                            Outs = 10,
+                            EarnedRuns = 0,
+                            Runs = 0
+                        }
+                    ],
+                    Fielders = []
+                }
+            }
+        }
+    };
 }

@@ -10,7 +10,7 @@ public abstract class BaseballTests : IClassFixture<TestDatabaseFixture>, IDispo
     {
         Fixture = fixture;
         Context = Fixture.CreateContext();
-        Context.Database.BeginTransaction(); // allow changes without persisting to the db
+        // Context.Database.BeginTransaction(); // allow changes without persisting to the db
     }
 
     public void Dispose()
