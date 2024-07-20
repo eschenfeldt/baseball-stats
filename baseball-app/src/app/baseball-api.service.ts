@@ -6,6 +6,12 @@ import { catchError, map, mergeMap } from 'rxjs/operators';
 import { ErrorDialogComponent } from './error-dialog/error-dialog.component';
 import { environment } from '../environments/environment.development';
 
+export enum ApiMethod {
+    GET,
+    QUERY,
+    POST
+}
+
 @Injectable({
     providedIn: 'root'
 })

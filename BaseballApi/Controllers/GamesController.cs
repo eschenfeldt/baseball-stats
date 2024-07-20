@@ -25,9 +25,9 @@ namespace BaseballApi.Controllers
 
         // GET: api/Games
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<GameSummary>>> GetGames(int skip = 0, int take = 10)
+        public async Task<ActionResult<PagedResult<GameSummary>>> GetGameList(int skip = 0, int take = 10)
         {
-            return await _context.Games
+            var query = _context.Games
                 .Include(nameof(Game.Away))
                 .Include(nameof(Game.Home))
                 .Include(nameof(Game.Location))
@@ -35,12 +35,18 @@ namespace BaseballApi.Controllers
                 .Include(nameof(Game.LosingTeam))
                 .Include(nameof(Game.WinningPitcher))
                 .Include(nameof(Game.LosingPitcher))
-                .Include(nameof(Game.LosingTeam))
-                .OrderBy(g => g.Date)
-                .Select(g => new GameSummary(g))
-                .Skip(skip)
-                .Take(take)
-                .ToListAsync();
+                .Include(nameof(Game.LosingTeam));
+
+            return new PagedResult<GameSummary>
+            {
+                TotalCount = await query.CountAsync(),
+                Results = await query
+                    .OrderBy(g => g.Date)
+                    .Select(g => new GameSummary(g))
+                    .Skip(skip)
+                    .Take(take)
+                    .ToListAsync()
+            };
         }
 
         // GET: api/Games/5
