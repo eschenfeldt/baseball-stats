@@ -77,13 +77,4 @@ public class TestDatabaseFixture
         return new BaseballContext(new DbContextOptionsBuilder<BaseballContext>()
                                     .UseNpgsql(ownerConnectionString).Options);
     }
-
-    struct GameMetadata
-    {
-        public Team Home { get; set; }
-        public Team Away { get; set; }
-        public string Name { get; set; }
-        public string? HomeTeamName { get; set; }
-        public string? AwayTeamName { get; set; }
-    }
 }

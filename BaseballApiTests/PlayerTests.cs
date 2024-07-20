@@ -95,7 +95,7 @@ public class PlayerTests : BaseballTests
             MinPlateAppearances = 0
         });
         Assert.NotNull(leaders);
-        var player = leaders.FirstOrDefault(l => l.Player.Name == name);
+        var player = leaders.Results.FirstOrDefault(l => l.Player.Name == name);
         Assert.NotNull(player);
         return player;
     }

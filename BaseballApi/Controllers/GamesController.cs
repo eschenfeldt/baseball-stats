@@ -25,7 +25,7 @@ namespace BaseballApi.Controllers
 
         // GET: api/Games
         [HttpGet]
-        public async Task<ActionResult<PagedResult<GameSummary>>> GetGameList(int skip = 0, int take = 10)
+        public async Task<ActionResult<PagedResult<GameSummary>>> GetGames(int skip = 0, int take = 10)
         {
             var query = _context.Games
                 .Include(nameof(Game.Away))
@@ -70,6 +70,7 @@ namespace BaseballApi.Controllers
             GameMetadata metadata = JsonConvert.DeserializeObject<GameMetadata>(serializedMetadata);
             long size = files.Sum(f => f.Length);
 
+            var localFilePaths = new Dictionary<string, string>();
             foreach (var formFile in files)
             {
                 var filePath = Path.GetTempFileName();
@@ -78,9 +79,48 @@ namespace BaseballApi.Controllers
                 {
                     await formFile.CopyToAsync(stream);
                 }
+                localFilePaths[formFile.Name] = filePath;
             }
 
-            return Ok(new { count = files.Count, size, metadata });
+            GameImportManager importManager = new(new GameImportData
+            {
+                FilePaths = localFilePaths,
+                Metadata = metadata
+            });
+
+            Game newGame = importManager.GetGame();
+
+            // TODO: make this check more robust
+            Game? existingGame = await _context.Games.FirstOrDefaultAsync(g => g.Name == newGame.Name);
+            if (existingGame != null)
+            {
+                existingGame.Name = newGame.Name;
+                existingGame.Date = newGame.Date;
+                existingGame.GameType = newGame.GameType;
+                existingGame.Home = newGame.Home;
+                existingGame.HomeTeamName = newGame.HomeTeamName;
+                existingGame.Away = newGame.Away;
+                existingGame.AwayTeamName = newGame.AwayTeamName;
+                existingGame.ScheduledTime = newGame.ScheduledTime;
+                existingGame.StartTime = newGame.StartTime;
+                existingGame.EndTime = newGame.EndTime;
+                existingGame.Location = newGame.Location;
+                existingGame.HomeScore = newGame.HomeScore;
+                existingGame.AwayScore = newGame.AwayScore;
+                existingGame.WinningTeam = newGame.WinningTeam;
+                existingGame.LosingTeam = newGame.LosingTeam;
+                existingGame.WinningPitcher = newGame.WinningPitcher;
+                existingGame.LosingPitcher = newGame.LosingPitcher;
+                existingGame.SavingPitcher = newGame.SavingPitcher;
+            }
+            else
+            {
+                await _context.Games.AddAsync(newGame);
+            }
+
+            var changes = await _context.SaveChangesAsync();
+
+            return Ok(new { count = files.Count, size, metadata, changes });
         }
 
         // DELETE: api/Games/5

@@ -20,8 +20,9 @@ public class GameTests : BaseballTests
     {
         var games = await Controller.GetGames(expectedSkip, 1);
         Assert.NotNull(games.Value);
-        Assert.Single(games.Value);
-        var gameSummary = games.Value.FirstOrDefault();
+        Assert.Equal(3, games.Value.TotalCount);
+        Assert.Single(games.Value.Results);
+        var gameSummary = games.Value.Results.FirstOrDefault();
 
         var game = await Controller.GetGame(gameSummary.Id);
         Assert.NotNull(game.Value);

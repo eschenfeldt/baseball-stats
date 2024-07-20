@@ -73,7 +73,7 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--included-types Teams"
+            argument = "--included-types Games"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

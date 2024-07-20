@@ -31,4 +31,13 @@
     <ProjectReference Include="..\BaseballApi\BaseballApi.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="data\Game 1\scorecard.pdf">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\Game 1\statsHomeBatting.csv">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>
