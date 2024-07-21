@@ -53,7 +53,20 @@ namespace BaseballApi.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Game>> GetGame(long id)
         {
-            var game = await _context.Games.FindAsync(id);
+            var game = await _context.Games
+                .Include(g => g.AwayBoxScore)
+                    .ThenInclude(bs => bs.Batters)
+                .Include(g => g.AwayBoxScore)
+                    .ThenInclude(bs => bs.Pitchers)
+                .Include(g => g.AwayBoxScore)
+                    .ThenInclude(bs => bs.Fielders)
+                .Include(g => g.HomeBoxScore)
+                    .ThenInclude(bs => bs.Batters)
+                .Include(g => g.HomeBoxScore)
+                    .ThenInclude(bs => bs.Pitchers)
+                .Include(g => g.HomeBoxScore)
+                    .ThenInclude(bs => bs.Fielders)
+                .SingleOrDefaultAsync(g => g.Id == id);
 
             if (game == null)
             {
@@ -86,9 +99,28 @@ namespace BaseballApi.Controllers
             {
                 FilePaths = localFilePaths,
                 Metadata = metadata
-            });
+            }, _context);
 
-            Game newGame = importManager.GetGame();
+            Game newGame = await importManager.GetGame();
+            BoxScore homeBox = new()
+            {
+                Game = newGame,
+                Team = newGame.Home
+            };
+            importManager.PopulateBoxScore(homeBox, home: true);
+            int homeScoreBatters = homeBox.Batters.Select(b => b.Runs).Sum();
+            newGame.HomeScore = homeScoreBatters;
+
+            BoxScore awayBox = new()
+            {
+                Game = newGame,
+                Team = newGame.Away
+            };
+            importManager.PopulateBoxScore(awayBox, home: false);
+            int awayScoreBatters = awayBox.Batters.Select(b => b.Runs).Sum();
+            newGame.AwayScore = awayScoreBatters;
+
+            bool isNew = false;
 
             // TODO: make this check more robust
             Game? existingGame = await _context.Games.FirstOrDefaultAsync(g => g.Name == newGame.Name);
@@ -112,13 +144,24 @@ namespace BaseballApi.Controllers
                 existingGame.WinningPitcher = newGame.WinningPitcher;
                 existingGame.LosingPitcher = newGame.LosingPitcher;
                 existingGame.SavingPitcher = newGame.SavingPitcher;
+                // update box scores
+
             }
             else
             {
                 await _context.Games.AddAsync(newGame);
+                isNew = true;
             }
 
             var changes = await _context.SaveChangesAsync();
+
+            if (isNew)
+            {
+                newGame.HomeBoxScore = homeBox;
+                newGame.AwayBoxScore = awayBox;
+
+                await _context.SaveChangesAsync();
+            }
 
             return Ok(new { count = files.Count, size, metadata, changes });
         }

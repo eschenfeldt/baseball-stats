@@ -1,22 +1,23 @@
 ﻿using BaseballApi.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace BaseballApi;
 
 public class GameImportManager
 {
+    BaseballContext Context { get; }
     GameImportData Data { get; }
     GameMetadata Metadata => Data.Metadata;
     Dictionary<ImportFileType, CsvLoader> Files { get; }
-    public GameImportManager(GameImportData data)
+    public GameImportManager(GameImportData data, BaseballContext context)
     {
+        this.Context = context;
         this.Data = data;
         this.Files = new Dictionary<ImportFileType, CsvLoader>();
     }
 
-    public Game GetGame()
+    public async Task<Game> GetGame()
     {
-        var homeBatters = this.GetOrLoadFile(ImportFileType.HomeBatting);
-
         var gameDate = Metadata.ActualStart?.Date ?? Metadata.ScheduledStart?.Date;
         if (!gameDate.HasValue)
         {
@@ -34,19 +35,58 @@ public class GameImportManager
             StartTime = Metadata.ActualStart?.ToUniversalTime(),
             EndTime = Metadata.End?.ToUniversalTime(),
             HomeTeamName = homeTeamName,
-            Home = new Team
-            {
-                City = Metadata.Home.City,
-                Name = Metadata.Home.Name
-            },
+            Home = await this.GetTeam(Metadata.Home.City, Metadata.Home.Name),
             AwayTeamName = awayTeamName,
-            Away = new Team
-            {
-                City = Metadata.Away.City,
-                Name = Metadata.Away.Name
-            },
+            Away = await this.GetTeam(Metadata.Away.City, Metadata.Away.Name),
             BoxScores = []
         };
+    }
+
+    private async Task<Team> GetTeam(string city, string name)
+    {
+        var altName = $"{city} {name}";
+        var existing = await Context.Teams.FirstOrDefaultAsync(t =>
+            t.City == city && t.Name == name
+            || t.AlternateTeamNames.Any(atn => atn.FullName == altName)
+        );
+        if (existing != null)
+        {
+            return existing;
+        }
+        else
+        {
+            return new Team
+            {
+                City = city,
+                Name = name
+            };
+        }
+    }
+
+    public void PopulateBoxScore(BoxScore boxScore, bool home)
+    {
+        foreach (var batter in this.GetBatters(boxScore, home))
+        {
+            boxScore.Batters.Add(batter);
+        }
+        foreach (var pitcher in this.GetPitchers(boxScore, home))
+        {
+            boxScore.Pitchers.Add(pitcher);
+        }
+    }
+
+    private IEnumerable<Batter> GetBatters(BoxScore boxScore, bool home)
+    {
+        var fileType = home ? ImportFileType.HomeBatting : ImportFileType.VisitorBatting;
+        var stats = this.GetOrLoadFile(fileType);
+        return stats.GetBatters(boxScore);
+    }
+
+    private IEnumerable<Pitcher> GetPitchers(BoxScore boxScore, bool home)
+    {
+        var fileType = home ? ImportFileType.HomePitching : ImportFileType.VisitorPitching;
+        var stats = this.GetOrLoadFile(fileType);
+        return stats.GetPitchers(boxScore);
     }
 
     private CsvLoader GetOrLoadFile(ImportFileType fileType)

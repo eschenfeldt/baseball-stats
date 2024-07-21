@@ -60,18 +60,18 @@ public class TestGameManager
         Assert.Equal(away.Name, game.Away.Name);
         Assert.Equal(away.City, game.Away.City);
 
-        // Assert.NotNull(game.HomeBoxScore);
-        // Assert.NotNull(game.AwayBoxScore);
+        Assert.NotNull(game.HomeBoxScore);
+        Assert.NotNull(game.AwayBoxScore);
 
-        // var homeBatterRuns = game.HomeBoxScore.Batters.Select(b => b.Runs).Sum();
-        // var awayBatterRuns = game.AwayBoxScore.Batters.Select(b => b.Runs).Sum();
-        // var homePitcherRuns = game.HomeBoxScore.Pitchers.Select(p => p.Runs).Sum();
-        // var awayPitcherRuns = game.AwayBoxScore.Pitchers.Select(p => p.Runs).Sum();
+        var homeBatterRuns = game.HomeBoxScore.Batters.Select(b => b.Runs).Sum();
+        var awayBatterRuns = game.AwayBoxScore.Batters.Select(b => b.Runs).Sum();
+        var homePitcherRuns = game.HomeBoxScore.Pitchers.Select(p => p.Runs).Sum();
+        var awayPitcherRuns = game.AwayBoxScore.Pitchers.Select(p => p.Runs).Sum();
 
-        // Assert.Equal(game.HomeScore, homeBatterRuns);
-        // Assert.Equal(game.HomeScore, awayPitcherRuns);
-        // Assert.Equal(game.AwayScore, awayBatterRuns);
-        // Assert.Equal(game.AwayScore, homePitcherRuns);
+        Assert.Equal(game.HomeScore, homeBatterRuns);
+        Assert.Equal(game.HomeScore, awayPitcherRuns);
+        Assert.Equal(game.AwayScore, awayBatterRuns);
+        Assert.Equal(game.AwayScore, homePitcherRuns);
     }
 
     public void AddAllGames()
@@ -95,8 +95,10 @@ public class TestGameManager
                 Date = gameInfo.Date,
                 Name = gameInfo.Name,
                 Home = home,
+                HomeScore = gameInfo.HomeScore,
                 HomeTeamName = gameInfo.Home.TeamName ?? DefaultName(home),
                 Away = away,
+                AwayScore = gameInfo.AwayScore,
                 AwayTeamName = gameInfo.Away.TeamName ?? DefaultName(away),
                 BoxScores = [homeBox, awayBox]
             };
@@ -116,17 +118,22 @@ public class TestGameManager
 
     void PopulateBoxScore(BoxScore boxScore, BoxScoreInfo info)
     {
-        var batters = info.Batters.Select(batterInfo => new Batter
+        foreach (var batterInfo in info.Batters)
         {
-            BoxScore = boxScore,
-            Player = Batters[batterInfo.BatterNumber],
-            Games = 1,
-            PlateAppearances = batterInfo.PlateAppearances,
-            AtBats = batterInfo.AtBats,
-            Hits = batterInfo.Hits,
-            Homeruns = batterInfo.Homeruns
-        });
-        Context.AddRange(batters);
+            boxScore.Batters.Add(
+                new Batter
+                {
+                    BoxScore = boxScore,
+                    Player = Batters[batterInfo.BatterNumber],
+                    Games = 1,
+                    PlateAppearances = batterInfo.PlateAppearances,
+                    AtBats = batterInfo.AtBats,
+                    Hits = batterInfo.Hits,
+                    Homeruns = batterInfo.Homeruns,
+                    Runs = batterInfo.Runs
+                }
+            );
+        }
         var pitchers = info.Pitchers.Select(pitcherInfo => new Pitcher
         {
             BoxScore = boxScore,
@@ -178,7 +185,9 @@ public class TestGameManager
         public DateOnly Date { get; set; }
         public string Name { get; set; }
         public BoxScoreInfo Home { get; set; }
+        public required int HomeScore { get; set; }
         public BoxScoreInfo Away { get; set; }
+        public required int AwayScore { get; set; }
     }
 
     struct BoxScoreInfo
@@ -205,6 +214,7 @@ public class TestGameManager
         public int AtBats { get; set; }
         public int Hits { get; set; }
         public int Homeruns { get; set; }
+        public int Runs { get; set; }
     }
 
     struct FielderInfo
@@ -224,6 +234,8 @@ public class TestGameManager
             {
                 Date = new DateOnly(2022, 4, 27),
                 Name = "2022 Test Game 1",
+                HomeScore = 0,
+                AwayScore = 2,
                 Away = new BoxScoreInfo
                 {
                     TeamNumber = 1,
@@ -235,7 +247,8 @@ public class TestGameManager
                             PlateAppearances = 3,
                             AtBats = 3,
                             Hits = 1,
-                            Homeruns = 0
+                            Homeruns = 0,
+                            Runs = 2
                         }
                     ],
                     Pitchers = [
@@ -275,7 +288,8 @@ public class TestGameManager
                             PlateAppearances = 4,
                             AtBats = 4,
                             Hits = 0,
-                            Homeruns = 0
+                            Homeruns = 0,
+                            Runs = 0
                         }
                     ],
                     Pitchers = [
@@ -297,6 +311,8 @@ public class TestGameManager
             {
                 Date = new DateOnly(2023, 6, 27),
                 Name = "2023 Test Game 1",
+                HomeScore = 2,
+                AwayScore = 3,
                 Away = new BoxScoreInfo
                 {
                     TeamNumber = 1,
@@ -307,7 +323,8 @@ public class TestGameManager
                             PlateAppearances = 4,
                             AtBats = 3,
                             Hits = 1,
-                            Homeruns = 0
+                            Homeruns = 0,
+                            Runs = 3
                         }
                     ],
                     Pitchers = [
@@ -346,7 +363,8 @@ public class TestGameManager
                             PlateAppearances = 3,
                             AtBats = 3,
                             Hits = 1,
-                            Homeruns = 1
+                            Homeruns = 1,
+                            Runs = 2
                         }
                     ],
                     Pitchers = [
@@ -368,6 +386,8 @@ public class TestGameManager
             {
                 Date = new DateOnly(2022, 8, 27),
                 Name = "2022 Test Game 2",
+                HomeScore = 0,
+                AwayScore = 0,
                 Away =new BoxScoreInfo
                 {
                     TeamNumber = 2,
@@ -378,7 +398,8 @@ public class TestGameManager
                             PlateAppearances = 4,
                             AtBats = 4,
                             Hits = 2,
-                            Homeruns = 1
+                            Homeruns = 1,
+                            Runs = 0
                         }
                     ],
                     Pitchers = [
@@ -402,7 +423,8 @@ public class TestGameManager
                             PlateAppearances = 3,
                             AtBats = 3,
                             Hits = 1,
-                            Homeruns = 1
+                            Homeruns = 1,
+                            Runs = 0
                         }
                     ],
                     Pitchers = [
