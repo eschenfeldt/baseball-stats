@@ -114,6 +114,43 @@ public class CsvLoader
         }
     }
 
+    public IEnumerable<Fielder> GetFielders(BoxScore boxScore)
+    {
+        if (!this.IsLoaded)
+        {
+            this.LoadData();
+        }
+        foreach (var rawRow in this.Rows)
+        {
+            var name = rawRow[HeaderIndices["Name"]];
+            if (!name.Equals("TOTALS", StringComparison.OrdinalIgnoreCase))
+            {
+                yield return new Fielder
+                {
+                    BoxScore = boxScore,
+                    Player = new Player
+                    {
+                        Name = name,
+                    },
+                    Number = GetInt(rawRow, "#"),
+                    Games = GetInt(rawRow, "G"),
+                    Errors = GetInt(rawRow, "ERR"),
+                    ErrorsThrowing = GetInt(rawRow, "Et"),
+                    ErrorsFielding = GetInt(rawRow, "Ef"),
+                    Putouts = GetInt(rawRow, "PO"),
+                    Assists = GetInt(rawRow, "A"),
+                    StolenBaseAttempts = GetInt(rawRow, "SBA"),
+                    CaughtStealing = GetInt(rawRow, "CS"),
+                    DoublePlays = GetInt(rawRow, "DP"),
+                    TriplePlays = GetInt(rawRow, "TP"),
+                    PassedBalls = GetInt(rawRow, "PB"),
+                    PickoffFailed = GetInt(rawRow, "PKF"),
+                    PickoffSuccess = GetInt(rawRow, "PK")
+                };
+            }
+        }
+    }
+
     private int GetInt(List<string> row, string colName)
     {
         string rawVal = row[HeaderIndices[colName]];

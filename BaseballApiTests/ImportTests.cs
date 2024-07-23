@@ -117,7 +117,6 @@ public class ImportTests(TestImportDatabaseFixture fixture) : IClassFixture<Test
 
         await ValidateGameInDb(actual);
 
-        // TODO: Add assertions about players
         async Task ValidatePlayers()
         {
             var playersAfter = await playerController.GetPlayers();
@@ -126,7 +125,6 @@ public class ImportTests(TestImportDatabaseFixture fixture) : IClassFixture<Test
         }
         await ValidatePlayers();
 
-        // TODO: Add assertions about teams
         async Task ValidateTeams()
         {
             var teamsAfter = await teamsController.GetTeams();

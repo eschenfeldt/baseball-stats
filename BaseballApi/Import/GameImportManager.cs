@@ -9,6 +9,7 @@ public class GameImportManager
     GameImportData Data { get; }
     GameMetadata Metadata => Data.Metadata;
     Dictionary<ImportFileType, CsvLoader> Files { get; }
+    Dictionary<string, Player> NewPlayers { get; } = [];
     public GameImportManager(GameImportData data, BaseballContext context)
     {
         this.Context = context;
@@ -67,11 +68,18 @@ public class GameImportManager
     {
         foreach (var batter in this.GetBatters(boxScore, home))
         {
+            batter.Player = this.GetOrAddPlayer(batter.Player);
             boxScore.Batters.Add(batter);
         }
         foreach (var pitcher in this.GetPitchers(boxScore, home))
         {
+            pitcher.Player = this.GetOrAddPlayer(pitcher.Player);
             boxScore.Pitchers.Add(pitcher);
+        }
+        foreach (var fielder in this.GetFielders(boxScore, home))
+        {
+            fielder.Player = this.GetOrAddPlayer(fielder.Player);
+            boxScore.Fielders.Add(fielder);
         }
     }
 
@@ -87,6 +95,31 @@ public class GameImportManager
         var fileType = home ? ImportFileType.HomePitching : ImportFileType.VisitorPitching;
         var stats = this.GetOrLoadFile(fileType);
         return stats.GetPitchers(boxScore);
+    }
+
+    private IEnumerable<Fielder> GetFielders(BoxScore boxScore, bool home)
+    {
+        var fileType = home ? ImportFileType.HomeFielding : ImportFileType.VisitorFielding;
+        var stats = this.GetOrLoadFile(fileType);
+        return stats.GetFielders(boxScore);
+    }
+
+    private Player GetOrAddPlayer(Player player)
+    {
+        var existingPlayer = this.Context.Players.FirstOrDefault(p => p.Name == player.Name);
+        if (existingPlayer != null)
+        {
+            return existingPlayer;
+        }
+        else if (this.NewPlayers.TryGetValue(player.Name, out Player? newPlayer))
+        {
+            return newPlayer;
+        }
+        else
+        {
+            this.NewPlayers[player.Name] = player;
+            return player;
+        }
     }
 
     private CsvLoader GetOrLoadFile(ImportFileType fileType)
