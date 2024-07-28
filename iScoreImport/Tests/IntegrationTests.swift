@@ -257,6 +257,7 @@ final class IntegrationTests {
         let ExternalId: UUID
         let BatterCount: Int
         let BatterRuns: Int
+        let BatterAtBats: Int
     }
     
     private struct PitcherSummary: Codable {
@@ -289,6 +290,7 @@ final class IntegrationTests {
             .column("ExternalId")
             .column(SQLFunction("COUNT", args: SQLColumn("Id", table:"Batters")), as: "BatterCount")
             .column(SQLFunction("SUM", args: SQLColumn("Runs", table:"Batters")), as: "BatterRuns")
+            .column(SQLFunction("SUM", args: SQLColumn("AtBats", table:"Batters")), as: "BatterAtBats")
             .from("Games")
             .join("BoxScores", on: SQLColumn("Id", table: "Games"), .equal, SQLColumn("GameId", table: "BoxScores"))
             .join("Batters", method: SQLJoinMethod.left, on: SQLColumn("Id", table: "BoxScores"), .equal, SQLColumn("BoxScoreId", table: "Batters"))
@@ -340,6 +342,7 @@ final class IntegrationTests {
         #expect(pitcherSummary?.PitcherCount == 7)
         #expect(batterSummary?.BatterRuns == 7)
         #expect(pitcherSummary?.PitcherRuns == 7)
+        #expect(batterSummary?.BatterAtBats == 63)
     }
     
     private func getPlayersToDelete(db: SQLDatabase, gameId: Int) async throws -> [Int] {

@@ -49,14 +49,7 @@ export class BaseballApiService {
 
     public makeApiPost<T>(serviceUri: string, body: any, handleErrors: boolean = true): Observable<T> {
         const uri = BaseballApiService.apiBaseUrl + serviceUri;
-        let req = this.http.post<{ d: T }>(uri, body, { responseType: 'json', withCredentials: true })
-            .pipe(map((response: { d: T }) => {
-                if (response == null) {
-                    return response;
-                } else {
-                    return response.d;
-                }
-            }));
+        let req = this.http.post<T>(uri, body, { responseType: 'json', withCredentials: true });
 
         if (handleErrors) {
             req = req.pipe(catchError((error) => this.throwError(error)));

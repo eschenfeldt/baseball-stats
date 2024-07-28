@@ -157,6 +157,7 @@ final class SQLiteTests {
             #expect(lopezFld != nil)
             #expect(lopezBat?.Player?.Name == "Rodrigo Lopez")
             #expect(lopezBat?.Games == 1)
+            #expect(lopezBat?.AtBats == 2)
             #expect(lopezBat?.PlateAppearances == 2)
             #expect(lopezBat?.StrikeoutsCalled == 1)
             #expect(lopezBat?.Singles == 0)

@@ -52,27 +52,26 @@ public class LeaderboardController : ControllerBase
             BattingAverage = p.AtBats > 0 ? decimal.Divide(p.Hits, p.AtBats) : null
         });
 
+        var order = GetOrderBy(leaderboardParams.Order);
+        var sorted = leaderboardParams.SortDescending ? query.OrderByDescending(order) : query.OrderBy(order);
+
         return new PagedResult<LeaderboardBatter>
         {
             TotalCount = query.Count(),
-            Results = query.OrderByDescending(GetOrderBy(leaderboardParams.Order))
-                            .Skip(leaderboardParams.Skip)
+            Results = sorted.Skip(leaderboardParams.Skip)
                             .Take(leaderboardParams.Take)
                             .ToList()
         };
 
     }
 
-    private Func<LeaderboardBatter, decimal?> GetOrderBy(BatterLeaderboardOrder order)
+    private static Func<LeaderboardBatter, decimal?> GetOrderBy(BatterLeaderboardOrder order)
     {
-        switch (order)
+        return order switch
         {
-            case BatterLeaderboardOrder.Games:
-                return k => k.Games;
-            case BatterLeaderboardOrder.BattingAverage:
-                return k => k.BattingAverage;
-            default:
-                return k => k.Games;
-        }
+            BatterLeaderboardOrder.Games => k => k.Games,
+            BatterLeaderboardOrder.BattingAverage => k => k.BattingAverage,
+            _ => k => k.Games,
+        };
     }
 }

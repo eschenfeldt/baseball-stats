@@ -92,7 +92,7 @@ namespace BaseballApi.Controllers
                 {
                     await formFile.CopyToAsync(stream);
                 }
-                localFilePaths[formFile.Name] = filePath;
+                localFilePaths[formFile.FileName] = filePath;
             }
 
             GameImportManager importManager = new(new GameImportData

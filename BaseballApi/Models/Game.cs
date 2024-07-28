@@ -1,9 +1,11 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Security.Permissions;
+using Microsoft.EntityFrameworkCore;
 
 namespace BaseballApi.Models;
 
+[Index(nameof(ExternalId), IsUnique = true)]
 public class Game
 {
     public long Id { get; set; }

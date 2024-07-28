@@ -99,7 +99,7 @@ struct Import: AsyncParsableCommand {
     func updateGames(from: SQLiteConnector, to: PostgresConnector) async throws {
         let games = try await from.getGames()
         for try await game in games {
-            print("Updating game: \(game.Name)")
+            print("Inserting or updating game: \(game.Name)")
             try await to.insertOrUpdateGame(game: game)
         }
     }

@@ -19,4 +19,13 @@ public class BaseballContext : DbContext
 
     public DbSet<AlternateParkName> AlternateParkNames { get; set; }
     public DbSet<AlternateTeamName> AlternateTeamNames { get; set; }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+        modelBuilder.Entity<Game>()
+            .HasIndex(g => g.ExternalId)
+            .IsUnique()
+            .HasFilter("\"ExternalId\" != '00000000-0000-0000-0000-000000000000'"); // allow multiple games with default external id
+    }
 }

@@ -35,6 +35,8 @@ public class PlayerTests : BaseballTests
     static readonly string Batter2Name = "Test Batter 2";
     static readonly string Batter3Name = "Test Batter 3";
     static readonly Func<LeaderboardBatter, int> GetGames = (lb) => lb.Games;
+    static readonly Func<LeaderboardBatter, int> GetAb = (lb) => lb.AtBats;
+    static readonly Func<LeaderboardBatter, int> GetH = (lb) => lb.Hits;
     static readonly Func<LeaderboardBatter, decimal?> GetBattingAverage = (lb) =>
     {
         if (lb.BattingAverage.HasValue)
@@ -63,7 +65,8 @@ public class PlayerTests : BaseballTests
     {
         { GetGames, Batter1Name, null, 2 },
         { GetGames, Batter1Name, 2022, 1 },
-        { GetGames, Batter3Name, null, 3 }
+        { GetGames, Batter3Name, null, 3 },
+        { GetAb, Batter1Name, null, 6}
     };
 
     [Theory]

@@ -4,7 +4,7 @@
         <mat-toolbar>Menu</mat-toolbar>
         <mat-nav-list>
             <a mat-list-item [routerLink]="['/home']" routerLinkActive="router-link-active">Home</a>
-            <a mat-list-item href="#">Leaders</a>
+            <a mat-list-item [routerLink]="['leaders']" routerLinkActive="router-link-active">Leaders</a>
             <a mat-list-item>Teams</a>
             <a mat-list-item [routerLink]="['games']" routerLinkActive="router-link-active">Games</a>
             <a mat-list-item [routerLink]="['admin']" routerLinkActive="router-link-active">Admin</a>

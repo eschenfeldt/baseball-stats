@@ -192,7 +192,6 @@ struct GameLoader {
     private static let batterColumnMap = [
         "bat_games": "Games",
         "bat_pa": "PlateAppearances",
-        "bat_ab": "AtBats",
         "bat_runs": "Runs",
         "bat_bunt_singles": "BuntSingles",
         "bat_1b": "Singles",
@@ -222,6 +221,15 @@ struct GameLoader {
             .column(SQLColumn("player_guid", table: "player_game"), as: "PlayerExternalId")
             .column(SQLFunction("CONCAT", args: SQLColumn("first_nm"), SQLLiteral.string(" "), SQLColumn("last_nm")), as: "PlayerName")
             .column("player_number", as: "Number")
+            // "bat_ab" seems to always be null for some reason, so compute it
+            .column(SQLBinaryExpression(SQLColumn("bat_pa"), .subtract,
+                                        SQLBinaryExpression(SQLColumn("bat_ci"), .subtract,
+                                                            SQLBinaryExpression(
+                                                                SQLColumn("bat_sf"), .subtract,
+                                                                SQLBinaryExpression(SQLColumn("bat_scb"), .subtract,
+                                                                                    SQLBinaryExpression(SQLColumn("bat_hbp"), .subtract,
+                                                                                                        SQLColumn("bat_bb")))))),
+                    as: "AtBats")
         for kvp in GameLoader.batterColumnMap {
             query = query.column(
                 SQLFunction("COALESCE", args: SQLColumn(kvp.key), SQLLiteral.numeric("0")),

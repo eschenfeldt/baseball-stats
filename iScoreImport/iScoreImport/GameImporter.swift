@@ -37,8 +37,10 @@ struct GameImporter {
             existingGameId = try await getGameId(name: game.Name)
         }
         if let existingGameId {
+            print("Updating existing")
             try await updateGame(game: game, gameId: existingGameId)
         } else {
+            print("Inserting new")
             try await insertGame(game: game)
         }
     }
@@ -130,8 +132,15 @@ struct GameImporter {
             updateStatement = updateStatement
                 .set("ExternalId", to: externalId)
         }
+        updateStatement = updateStatement.where("Id", .equal, gameId)
         
-        try await updateStatement.run()
+        do {
+            try await updateStatement.run()
+        }
+        catch {
+            print("Update failure: \(String(reflecting: error))")
+            throw error
+        }
         try await setBoxScoreIdsIfNecessary(game: game, gameId: gameId)
         try await insertOrUpdatePlayerGames(game: game, gameId: gameId)
     }
