@@ -37,7 +37,8 @@ public class TestDatabaseFixture
     {
         context.AddRange(
             new Team { City = "Test City", Name = "Testers" },
-            new Team { City = "New Tester Town", Name = "Tubes" }
+            new Team { City = "New Tester Town", Name = "Tubes" },
+            new Team { City = "St. Test", Name = "Guinea Pigs" }
         );
     }
 

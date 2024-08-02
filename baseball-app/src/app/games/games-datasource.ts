@@ -1,3 +1,4 @@
+import { ApiMethod, BaseballApiService } from '../baseball-api.service'
 import { BaseballDataSource } from '../baseball-data-source'
 import { GameType } from '../game-type'
 import { PagedApiParameters } from '../paged-api-parameters'
@@ -16,9 +17,9 @@ export interface GameSummary {
     homeTeamName: string,
     away: Team,
     awayTeamName: string,
-    scheduledTime?: Date,
-    startTime?: Date,
-    endTime?: Date,
+    scheduledTime?: string,
+    startTime?: string,
+    endTime?: string,
     location?: Park,
     homeScore: number,
     awayScore: number,
@@ -30,13 +31,24 @@ export interface GameSummary {
 }
 
 export interface GamesListParams extends PagedApiParameters {
-
+    teamId?: number;
 }
 
 export class GamesDataSource extends BaseballDataSource<GamesListParams, GameSummary> {
 
+    public constructor(
+        endpoint: string,
+        method: ApiMethod,
+        api: BaseballApiService,
+        private team?: Team
+    ) {
+        super(endpoint, method, api);
+    }
+
     protected override getParameters(): GamesListParams {
-        return {};
+        return {
+            teamId: this.team?.id
+        };
     }
 
 }

@@ -25,7 +25,7 @@ namespace BaseballApi.Controllers
 
         // GET: api/Games
         [HttpGet]
-        public async Task<ActionResult<PagedResult<GameSummary>>> GetGames(int skip = 0, int take = 10)
+        public async Task<ActionResult<PagedResult<GameSummary>>> GetGames(int skip = 0, int take = 10, long? teamId = null)
         {
             var query = _context.Games
                 .Include(nameof(Game.Away))
@@ -36,6 +36,11 @@ namespace BaseballApi.Controllers
                 .Include(nameof(Game.WinningPitcher))
                 .Include(nameof(Game.LosingPitcher))
                 .Include(nameof(Game.LosingTeam));
+
+            if (teamId.HasValue)
+            {
+                query = query.Where(g => g.Away.Id == teamId || g.Home.Id == teamId);
+            }
 
             return new PagedResult<GameSummary>
             {

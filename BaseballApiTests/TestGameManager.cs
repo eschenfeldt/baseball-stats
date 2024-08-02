@@ -16,11 +16,25 @@ public class TestGameManager
         Context = context;
         Teams.Add(1, context.Teams.First(t => t.City == "Test City"));
         Teams.Add(2, context.Teams.First(t => t.City == "New Tester Town"));
+        Teams.Add(3, context.Teams.First(t => t.City == "St. Test"));
         Batters.Add(1, context.Players.First(p => p.Name == "Test Batter 1"));
         Batters.Add(2, context.Players.First(p => p.Name == "Test Batter 2"));
         Batters.Add(3, context.Players.First(p => p.Name == "Test Batter 3"));
         Pitchers.Add(1, context.Players.First(p => p.Name == "Test Pitcher 1"));
         Pitchers.Add(2, context.Players.First(p => p.Name == "Test Pitcher 2"));
+    }
+
+    public long GetTeamId(int teamNumber)
+    {
+        if (Teams.TryGetValue(teamNumber, out Team? team))
+        {
+            return team.Id;
+        }
+        else
+        {
+            Assert.Fail($"No test team defined with number {teamNumber}");
+            return 0;
+        }
     }
 
     public void ValidateGameSummary(GameSummary gameSummary, int gameNumber)
@@ -32,12 +46,14 @@ public class TestGameManager
         Assert.Equal(gameInfo.Name, gameSummary.Name);
 
         var home = Teams[gameInfo.Home.TeamNumber];
-        Assert.Equal(gameInfo.Home.TeamName, gameSummary.HomeTeamName);
+        var defaultHomeName = $"{home.City} {home.Name}";
+        Assert.Equal(gameInfo.Home.TeamName ?? defaultHomeName, gameSummary.HomeTeamName);
         Assert.Equal(home.Name, gameSummary.Home.Name);
         Assert.Equal(home.City, gameSummary.Home.City);
 
         var away = Teams[gameInfo.Away.TeamNumber];
-        Assert.Equal(gameInfo.Away.TeamName, gameSummary.AwayTeamName);
+        var defaultAwayName = $"{away.City} {away.Name}";
+        Assert.Equal(gameInfo.Away.TeamName ?? defaultAwayName, gameSummary.AwayTeamName);
         Assert.Equal(away.Name, gameSummary.Away.Name);
         Assert.Equal(away.City, gameSummary.Away.City);
     }
@@ -102,6 +118,16 @@ public class TestGameManager
                 AwayTeamName = gameInfo.Away.TeamName ?? DefaultName(away),
                 BoxScores = [homeBox, awayBox]
             };
+            if (game.HomeScore > game.AwayScore)
+            {
+                game.WinningTeam = home;
+                game.LosingTeam = away;
+            }
+            else if (game.HomeScore < game.AwayScore)
+            {
+                game.WinningTeam = away;
+                game.LosingTeam = home;
+            }
             Context.AddRange(
                 homeBox,
                 awayBox,
@@ -194,9 +220,9 @@ public class TestGameManager
     {
         public int TeamNumber { get; set; }
         public string? TeamName { get; set; }
-        public List<PitcherInfo> Pitchers { get; set; }
-        public List<BatterInfo> Batters { get; set; }
-        public List<FielderInfo> Fielders { get; set; }
+        public required List<PitcherInfo> Pitchers { get; set; }
+        public required List<BatterInfo> Batters { get; set; }
+        public required List<FielderInfo> Fielders { get; set; }
     }
 
     struct PitcherInfo
@@ -436,6 +462,30 @@ public class TestGameManager
                             Runs = 0
                         }
                     ],
+                    Fielders = []
+                }
+            }
+        },
+        {
+            4,
+            new GameInfo
+            {
+                Date = new DateOnly(2024, 6, 30),
+                Name = "2024 Test Game 1",
+                AwayScore = 3,
+                HomeScore = 4,
+                Away = new BoxScoreInfo
+                {
+                    TeamNumber = 1,
+                    Batters = [],
+                    Pitchers = [],
+                    Fielders = []
+                },
+                Home = new BoxScoreInfo
+                {
+                    TeamNumber = 3,
+                    Batters = [],
+                    Pitchers = [],
                     Fielders = []
                 }
             }

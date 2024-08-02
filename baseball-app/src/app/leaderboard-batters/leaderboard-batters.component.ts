@@ -8,6 +8,8 @@ import { MatTableModule } from '@angular/material/table';
 import { TypeSafeMatCellDef } from '../type-safe-mat-cell-def.directive';
 import { TypeSafeMatRowDef } from '../type-safe-mat-row-def.directive';
 import { AsyncPipe, CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
+import { BaseballApiFilter, BaseballFilterService } from '../baseball-filter.service';
 
 @Component({
     selector: 'app-leaderboard-batters',
@@ -19,7 +21,8 @@ import { AsyncPipe, CommonModule } from '@angular/common';
         MatPaginatorModule,
         MatSortModule,
         AsyncPipe,
-        CommonModule
+        CommonModule,
+        RouterModule
     ],
     templateUrl: './leaderboard-batters.component.html',
     styleUrl: './leaderboard-batters.component.scss'
@@ -37,11 +40,13 @@ export class LeaderboardBattersComponent extends BaseballTableComponent<BatterLe
         'hits',
         'battingAverage'
     ];
+    protected override defaultFilters?: BaseballApiFilter = {};
 
     constructor(
-        private api: BaseballApiService
+        private api: BaseballApiService,
+        protected filterService: BaseballFilterService
     ) {
-        super();
+        super('LeaderboardBatters');
         this.dataSource = new LeaderboardBattersDataSource("leaderboard/batting", ApiMethod.POST, api);
     }
 }

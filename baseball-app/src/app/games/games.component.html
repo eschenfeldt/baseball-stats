@@ -1,4 +1,6 @@
+@if (team == null) {
 <h3>Games</h3>
+}
 
 <div>
     <table mat-table [dataSource]="dataSource" #table="matTable" matSort class="mat-elevation-z8">
@@ -8,19 +10,37 @@
             <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by date">
                 Date
             </th>
-            <td mat-cell *matCellDef="let game; table: table"> {{game.date}} </td>
+            <td mat-cell *matCellDef="let game; table: table">
+                <a [routerLink]="['/game', game.id]" routerLinkActive="router-link-active">
+                    {{game.date}}
+                </a>
+                <span class="game-time">
+                    {{gameTime(game)}}
+                    @if (game.endTime) {
+                    - {{endTime(game)}}
+                    }
+                </span>
+            </td>
         </ng-container>
 
         <!-- Away Team -->
         <ng-container matColumnDef="awayTeam">
             <th mat-header-cell *matHeaderCellDef>Away</th>
-            <td mat-cell *matCellDef="let game"> {{game.awayTeamName}} </td>
+            <td mat-cell *matCellDef="let game">
+                <a [routerLink]="['/team', game.away.id]" routerLinkActive="router-link-active">
+                    {{game.awayTeamName}}
+                </a>
+            </td>
         </ng-container>
 
         <!-- Home Team -->
         <ng-container matColumnDef="homeTeam">
             <th mat-header-cell *matHeaderCellDef>Home</th>
-            <td mat-cell *matCellDef="let game"> {{game.homeTeamName}} </td>
+            <td mat-cell *matCellDef="let game">
+                <a [routerLink]="['/team', game.home.id]" routerLinkActive="router-link-active">
+                    {{game.homeTeamName}}
+                </a>
+            </td>
         </ng-container>
 
         <!-- Away Score -->
@@ -36,7 +56,7 @@
         </ng-container>
 
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns; table: table"></tr>
+        <tr mat-row *matRowDef="let game; columns: displayedColumns; table: table"></tr>
     </table>
 </div>
 

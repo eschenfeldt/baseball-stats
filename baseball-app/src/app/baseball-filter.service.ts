@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, debounceTime, Observable } from 'rxjs';
+import { PagedApiParameters } from './paged-api-parameters';
 
 export interface BaseballApiFilter {
     [propertyName: string]: any
@@ -8,7 +9,7 @@ export interface BaseballApiFilter {
 @Injectable({
     providedIn: 'root'
 })
-export class BaseballFilterServiceService {
+export class BaseballFilterService {
 
     private filters: {
         [tableIdentifier: string]: BaseballApiFilter
@@ -20,16 +21,16 @@ export class BaseballFilterServiceService {
 
     constructor() { }
 
-    private getFilters<T>(uniqueIdentifier: string): T {
+    private getFilters<T extends PagedApiParameters>(uniqueIdentifier: string): T {
         return this.filters[uniqueIdentifier] as T;
     }
 
-    public getFilterValue<T>(uniqueIdentifier: string, filterName: keyof T): any {
+    public getFilterValue<T extends PagedApiParameters>(uniqueIdentifier: string, filterName: keyof T): any {
         const filters = this.getFilters<T>(uniqueIdentifier);
         return filters[filterName];
     }
 
-    public setFilterValue<T>(uniqueIdentifier: string, filterName: keyof T, value: any): void {
+    public setFilterValue<T extends PagedApiParameters>(uniqueIdentifier: string, filterName: keyof T, value: any): void {
         const filters = this.getFilters<T>(uniqueIdentifier);
         filters[filterName] = value;
         this.signalFilterChange(uniqueIdentifier);
@@ -42,7 +43,7 @@ export class BaseballFilterServiceService {
             );
     }
 
-    public initFilters(uniqueIdentifier: string, defaultFilters?: any): void {
+    public initFilters(uniqueIdentifier: string, defaultFilters?: BaseballApiFilter): void {
         if (this.filters[uniqueIdentifier] == null) {
             if (defaultFilters != null) {
                 this.filters[uniqueIdentifier] = this.cloneFilter(defaultFilters);
@@ -55,7 +56,7 @@ export class BaseballFilterServiceService {
         }
     }
 
-    public resetFilters(uniqueIdentifier: string, defaultFilters?: any): void {
+    public resetFilters(uniqueIdentifier: string, defaultFilters?: BaseballApiFilter): void {
         if (this.filters[uniqueIdentifier] == null) {
             this.initFilters(uniqueIdentifier, defaultFilters);
         } else {
@@ -76,7 +77,7 @@ export class BaseballFilterServiceService {
     /**
     * Shallow copy
     */
-    private cloneFilter(filter: any): any {
+    private cloneFilter(filter: BaseballApiFilter): BaseballApiFilter {
         return { ...filter };
     }
 }

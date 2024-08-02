@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using BaseballApi;
 using BaseballApi.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore.Internal;
 
 namespace BaseballApi.Controllers
 {
@@ -27,6 +28,43 @@ namespace BaseballApi.Controllers
         public async Task<ActionResult<IEnumerable<Team>>> GetTeams()
         {
             return await _context.Teams.ToListAsync();
+        }
+
+        [HttpGet("summaries")]
+        public async Task<ActionResult<PagedResult<TeamSummary>>> GetTeamSummaries(int skip, int take)
+        {
+            var awayGames = _context.Teams
+                .GroupJoin(_context.Games, t => t.Id, g => g.Away.Id, (team, games) => new
+                {
+                    Team = team,
+                    Games = games.Count(),
+                    Wins = games.Count(g => g.WinningTeam == team),
+                    Losses = games.Count(g => g.LosingTeam == team)
+                }).DefaultIfEmpty();
+            var homeGames = _context.Teams
+                .GroupJoin(_context.Games, t => t.Id, g => g.Home.Id, (team, games) => new
+                {
+                    Team = team,
+                    Games = games.Count(),
+                    Wins = games.Count(g => g.WinningTeam == team),
+                    Losses = games.Count(g => g.LosingTeam == team)
+                }).DefaultIfEmpty();
+            var query = awayGames.Join(homeGames, ag => ag.Team, hg => hg.Team, (ag, hg) => new TeamSummary
+            {
+                Team = ag.Team ?? hg.Team,
+                Games = ag.Games + hg.Games,
+                Wins = ag.Wins + hg.Wins,
+                Losses = ag.Losses + hg.Losses
+            });
+            return new PagedResult<TeamSummary>
+            {
+                TotalCount = await query.CountAsync(),
+                Results = await query
+                    .OrderByDescending(t => t.Games)
+                    .Skip(skip)
+                    .Take(take)
+                    .ToListAsync()
+            };
         }
 
         // GET: api/Teams/5

@@ -1,0 +1,6 @@
+@if (team$ | async; as team) {
+<h4>{{team.city}} {{team.name}}</h4>
+<app-games [team]="team"></app-games>
+} @else {
+loading...
+}
