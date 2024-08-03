@@ -25,7 +25,12 @@ namespace BaseballApi.Controllers
 
         // GET: api/Games
         [HttpGet]
-        public async Task<ActionResult<PagedResult<GameSummary>>> GetGames(int skip = 0, int take = 10, long? teamId = null)
+        public async Task<ActionResult<PagedResult<GameSummary>>> GetGames(
+            int skip = 0,
+            int take = 10,
+            bool asc = false,
+            long? teamId = null,
+            int? year = null)
         {
             var query = _context.Games
                 .Include(nameof(Game.Away))
@@ -41,12 +46,18 @@ namespace BaseballApi.Controllers
             {
                 query = query.Where(g => g.Away.Id == teamId || g.Home.Id == teamId);
             }
+            if (year.HasValue)
+            {
+                query = query.Where(g => g.Date.Year == year);
+            }
+
+            var sorted = asc ? query.OrderBy(g => g.StartTime ?? g.ScheduledTime ?? g.Date.ToDateTime(TimeOnly.MinValue))
+                : query.OrderByDescending(g => g.StartTime ?? g.ScheduledTime ?? g.Date.ToDateTime(TimeOnly.MinValue));
 
             return new PagedResult<GameSummary>
             {
                 TotalCount = await query.CountAsync(),
-                Results = await query
-                    .OrderBy(g => g.Date)
+                Results = await sorted
                     .Select(g => new GameSummary(g))
                     .Skip(skip)
                     .Take(take)
@@ -79,6 +90,18 @@ namespace BaseballApi.Controllers
             }
 
             return game;
+        }
+
+        [HttpGet("years")]
+        public async Task<ActionResult<List<int>>> GetGameYears(long? teamId = null)
+        {
+            IQueryable<Game> query = _context.Games;
+
+            if (teamId.HasValue)
+            {
+                query = query.Where(g => g.Away.Id == teamId || g.Home.Id == teamId);
+            }
+            return await query.Select(g => g.Date.Year).Distinct().OrderBy(i => i).ToListAsync();
         }
 
         [HttpPost("import")]

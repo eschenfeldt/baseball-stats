@@ -71,9 +71,9 @@ public class PlayerTests : BaseballTests
 
     [Theory]
     [MemberData(nameof(DecimalStats))]
-    public void TestDecimalStat(Func<LeaderboardBatter, decimal?> selectValue, string name, int? year, decimal? expected)
+    public async Task TestDecimalStat(Func<LeaderboardBatter, decimal?> selectValue, string name, int? year, decimal? expected)
     {
-        var player = GetBattingLeader(name, year);
+        var player = await GetBattingLeader(name, year);
         Assert.Equal(name, player.Player.Name);
         var actualValue = selectValue(player);
         Assert.Equal(expected, actualValue);
@@ -81,24 +81,24 @@ public class PlayerTests : BaseballTests
 
     [Theory]
     [MemberData(nameof(IntegerStats))]
-    public void TestIntegerStat(Func<LeaderboardBatter, int> selectValue, string name, int? year, int expected)
+    public async Task TestIntegerStat(Func<LeaderboardBatter, int> selectValue, string name, int? year, int expected)
     {
-        var player = GetBattingLeader(name, year);
+        var player = await GetBattingLeader(name, year);
         Assert.Equal(name, player.Player.Name);
         Assert.Equal(expected, selectValue(player));
     }
 
-    private LeaderboardBatter GetBattingLeader(string name, int? year)
+    private async Task<LeaderboardBatter> GetBattingLeader(string name, int? year)
     {
-        var leaders = LeaderController.GetBattingLeaders(new BatterLeaderboardParams
+        var leaders = await LeaderController.GetBattingLeaders(new BatterLeaderboardParams
         {
             Skip = 0,
             Take = 10,
             Year = year,
             MinPlateAppearances = 0
         });
-        Assert.NotNull(leaders);
-        var player = leaders.Results.FirstOrDefault(l => l.Player.Name == name);
+        Assert.NotNull(leaders.Value);
+        var player = leaders.Value.Results.FirstOrDefault(l => l.Player.Name == name);
         Assert.NotNull(player);
         return player;
     }

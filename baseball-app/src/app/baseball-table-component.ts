@@ -14,25 +14,15 @@ export abstract class BaseballTableComponent<ArgType extends PagedApiParameters,
     protected abstract sort: MatSort;
     protected abstract dataSource: BaseballDataSource<ArgType, ReturnType>;
 
-    protected uniqueIdentifier: string;
-    protected abstract filterService: BaseballFilterService
     protected abstract readonly defaultFilters?: BaseballApiFilter
 
     defaultPageSize = BaseballDataSource.defaultPageSize;
 
-    public constructor(
-        @Inject(null) protected readonly componentName: string,
-        @Inject(null) protected readonly sharePageState: boolean = false
-    ) {
-        if (this.sharePageState) {
-            this.uniqueIdentifier = this.componentName;
-        } else {
-            this.uniqueIdentifier = `${this.componentName}${uuidv4()}`;
-        }
+    protected get uniqueIdentifier(): string {
+        return this.dataSource.uniqueIdentifier;
     }
 
     public ngOnInit(): void {
-        this.filterService.initFilters(this.uniqueIdentifier, this.defaultFilters);
         this.refresh();
     }
 

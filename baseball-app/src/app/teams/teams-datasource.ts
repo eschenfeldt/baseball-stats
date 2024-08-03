@@ -4,14 +4,19 @@ import { Team } from "../team";
 
 export interface TeamSummary {
     team: Team;
+    lastGameDate: string;
     games: number;
     wins: number;
     losses: number;
 }
 
-export class TeamsDataSource extends BaseballDataSource<PagedApiParameters, TeamSummary> {
+interface TeamSummaryParameters extends PagedApiParameters {
 
-    protected override getParameters(): PagedApiParameters {
+}
+
+export class TeamsDataSource extends BaseballDataSource<TeamSummaryParameters, TeamSummary> {
+
+    protected override getParameters(): TeamSummaryParameters {
         return {}
     }
 

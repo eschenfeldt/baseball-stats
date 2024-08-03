@@ -5,12 +5,13 @@ import { MatSort, Sort } from '@angular/material/sort';
 import { MatPaginator } from '@angular/material/paginator';
 import { PagedApiParameters } from './paged-api-parameters';
 import { PagedResult } from './paged-result';
+import { BaseballApiFilter, BaseballFilterService } from './baseball-filter.service';
+import { v4 as uuidv4 } from 'uuid';
 
 export abstract class BaseballDataSource<ArgType extends PagedApiParameters, ReturnType> extends DataSource<ReturnType> {
 
     public static readonly defaultPageSize = 10;
 
-    protected sharePageState: boolean = true;
     protected updateOnFilterChanges: boolean = true;
 
     private dataSubject = new BehaviorSubject<ReturnType[]>([]);
@@ -33,14 +34,19 @@ export abstract class BaseballDataSource<ArgType extends PagedApiParameters, Ret
     public constructor(
         private endpoint: string,
         private method: ApiMethod,
-        private api: BaseballApiService
+        private api: BaseballApiService,
+        private filterService: BaseballFilterService,
+        sharePageState: boolean = true,
+        defaultFilters?: BaseballApiFilter
     ) {
         super();
-        if (this.sharePageState) {
+        if (sharePageState) {
             this.uniqueIdentifier = this.endpoint;
         } else {
-            this.uniqueIdentifier = this.endpoint + + '_' + (Math.random() * 100000).toString();
+            this.uniqueIdentifier = `${this.endpoint}${uuidv4()}`;
         }
+        this.filterService.initFilters(this.uniqueIdentifier, defaultFilters);
+        this.subscribeToFilterChanges();
     }
 
     override connect(): Observable<readonly ReturnType[]> {
@@ -67,12 +73,11 @@ export abstract class BaseballDataSource<ArgType extends PagedApiParameters, Ret
 
         let body = this.getParameters();
         this.setPaging(body);
+        this.setSort(body);
+        this.setFiltersFromFilterService(body);
         let queryBase;
         if (this.method == ApiMethod.GET) {
-            const uri = this.endpoint + `?${Object.keys(body)
-                .filter(key => (body as any)[key] != null)
-                .map(key => `${key}=${encodeURIComponent((body as any)[key])}`).join('&')}`;
-            queryBase = this.api.makeApiGet<PagedResult<ReturnType>>(uri);
+            queryBase = this.api.makeApiGet<PagedResult<ReturnType>>(this.endpoint, body);
         } else {
             queryBase = this.api.makeApiPost<PagedResult<ReturnType>>(this.endpoint, body);
         }
@@ -84,7 +89,7 @@ export abstract class BaseballDataSource<ArgType extends PagedApiParameters, Ret
 
     protected abstract getParameters(): ArgType;
 
-    private setPaging(body: ArgType): ArgType {
+    private setPaging(body: ArgType): void {
         if (this.paginator) {
             body.skip = this.paginator.pageIndex * this.paginator.pageSize;
             body.take = this.paginator.pageSize;
@@ -92,6 +97,21 @@ export abstract class BaseballDataSource<ArgType extends PagedApiParameters, Ret
             body.skip = 0;
             body.take = BaseballDataSource.defaultPageSize;
         }
-        return body;
+    }
+
+    private setSort(body: ArgType): void {
+        if (this.sort && this.sort.active) {
+            body.sort = this.sort.active;
+            body.asc = this.sort.direction === 'asc';
+        }
+    }
+
+    protected setFiltersFromFilterService(body: ArgType): void {
+        this.filterService.updateParamsFromFilters(this.uniqueIdentifier, body);
+    }
+
+    private subscribeToFilterChanges(): void {
+        this.filterChangesSubscription = this.filterService.filtersChanged$(this.uniqueIdentifier)
+            .subscribe(() => this.loadData());
     }
 }

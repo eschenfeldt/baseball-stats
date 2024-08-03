@@ -8,6 +8,9 @@
     </p>
     }
     @if (error) {
-    {{error.message}}
+    <p>{{error.message}}</p>
+    @if (isLoggedIn) {
+    <p>{{error.error}}</p>
+    }
     }
 </mat-dialog-content>

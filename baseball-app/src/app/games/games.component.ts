@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, Input, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, Input, OnChanges, OnInit, SimpleChanges, ViewChild } from '@angular/core';
 import { GamesDataSource, GamesListParams, GameSummary } from './games-datasource';
 import { ApiMethod, BaseballApiService } from '../baseball-api.service';
 import { MatTableModule } from '@angular/material/table';
@@ -11,6 +11,11 @@ import { MatSort, MatSortModule } from '@angular/material/sort';
 import { RouterModule } from '@angular/router';
 import { Team } from '../team';
 import { BaseballApiFilter, BaseballFilterService } from '../baseball-filter.service';
+import { Observable } from 'rxjs';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelect, MatSelectModule } from '@angular/material/select';
+import { MatInputModule } from '@angular/material/input';
+import { FormsModule } from '@angular/forms';
 
 @Component({
     selector: 'app-games',
@@ -23,7 +28,11 @@ import { BaseballApiFilter, BaseballFilterService } from '../baseball-filter.ser
         MatSortModule,
         AsyncPipe,
         CommonModule,
-        RouterModule
+        RouterModule,
+        FormsModule,
+        MatInputModule,
+        MatFormFieldModule,
+        MatSelectModule
     ],
     templateUrl: './games.component.html',
     styleUrl: './games.component.scss'
@@ -31,7 +40,7 @@ import { BaseballApiFilter, BaseballFilterService } from '../baseball-filter.ser
 export class GamesComponent extends BaseballTableComponent<GamesListParams, GameSummary> implements OnInit, AfterViewInit {
 
     @Input()
-    public team?: Team;
+    public team?: Team
 
     @ViewChild(MatPaginator) paginator!: MatPaginator;
     @ViewChild(MatSort) sort!: MatSort;
@@ -45,21 +54,34 @@ export class GamesComponent extends BaseballTableComponent<GamesListParams, Game
         'homeScore'
     ];
     protected override get defaultFilters(): BaseballApiFilter {
-        return {
-            teamId: this.team?.id
-        };
+        return {};
+    }
+
+    public yearOptions$?: Observable<number[]>;
+
+    public get selectedYear(): number | undefined {
+        return this.filterService.getFilterValue<GamesListParams>(this.uniqueIdentifier, 'year');
+    }
+    public set selectedYear(value: number) {
+        this.filterService.setFilterValue<GamesListParams>(this.uniqueIdentifier, 'year', value);
     }
 
     constructor(
-        api: BaseballApiService,
-        protected filterService: BaseballFilterService
+        private api: BaseballApiService,
+        private filterService: BaseballFilterService
     ) {
-        super('Games');
-        this.dataSource = new GamesDataSource("games", ApiMethod.GET, api);
+        super();
+        this.dataSource = new GamesDataSource(api, filterService);
     }
 
     public override ngOnInit(): void {
         super.ngOnInit();
+        if (this.team) {
+            this.filterService.setFilterValue<GamesListParams>(this.uniqueIdentifier, 'teamId', this.team.id);
+        } else {
+            this.filterService.unsetFilterValue<GamesListParams>(this.uniqueIdentifier, 'teamId');
+        }
+        this.yearOptions$ = this.api.makeApiGet<number[]>('games/years', { teamId: this.team?.id });
     }
 
     public gameTime(game: GameSummary): string {

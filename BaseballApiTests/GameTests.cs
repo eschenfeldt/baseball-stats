@@ -19,7 +19,7 @@ public class GameTests : BaseballTests
     // intentionally not validating game 4 since it doesn't have player info
     public async void TestGetGames(int testGameNumber, int expectedSkip)
     {
-        var games = await Controller.GetGames(expectedSkip, 1);
+        var games = await Controller.GetGames(expectedSkip, 1, asc: true);
         Assert.NotNull(games.Value);
         Assert.Equal(4, games.Value.TotalCount);
         Assert.Single(games.Value.Results);
@@ -38,9 +38,32 @@ public class GameTests : BaseballTests
     public async void TestGetGamesByTeam(int testTeamNumber, int gameCount)
     {
         var teamId = TestGameManager.GetTeamId(testTeamNumber);
-        var games = await Controller.GetGames(0, 10, teamId);
+        var games = await Controller.GetGames(0, 10, teamId: teamId);
         Assert.NotNull(games.Value);
         Assert.Equal(gameCount, games.Value.TotalCount);
+    }
 
+    [Theory]
+    [InlineData(2022, 2)]
+    [InlineData(2023, 1)]
+    [InlineData(2024, 1)]
+    public async void TestGetGamesByYear(int year, int gameCount)
+    {
+        var games = await Controller.GetGames(0, 10, year: year);
+        Assert.NotNull(games.Value);
+        Assert.Equal(gameCount, games.Value.TotalCount);
+    }
+
+    [Theory]
+    [InlineData(null, 2022, 2023, 2024)]
+    [InlineData(1, 2022, 2023, 2024)]
+    [InlineData(2, 2022, 2023)]
+    [InlineData(3, 2024)]
+    public async void TestGetAvailableYears(int? testTeamNumber, params int[] years)
+    {
+        long? teamId = testTeamNumber.HasValue ? TestGameManager.GetTeamId(testTeamNumber.Value) : null;
+        var actualYears = await Controller.GetGameYears(teamId);
+        Assert.NotNull(actualYears.Value);
+        Assert.Equal(years, actualYears.Value);
     }
 }

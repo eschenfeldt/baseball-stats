@@ -17,7 +17,7 @@ public class LeaderboardController : ControllerBase
     }
 
     [HttpPost("batting")]
-    public PagedResult<LeaderboardBatter> GetBattingLeaders(BatterLeaderboardParams leaderboardParams)
+    public async Task<ActionResult<PagedResult<LeaderboardBatter>>> GetBattingLeaders(BatterLeaderboardParams leaderboardParams)
     {
         IQueryable<Batter> batters = _context.Batters;
         if (leaderboardParams.Year.HasValue)
@@ -52,26 +52,37 @@ public class LeaderboardController : ControllerBase
             BattingAverage = p.AtBats > 0 ? decimal.Divide(p.Hits, p.AtBats) : null
         });
 
-        var order = GetOrderBy(leaderboardParams.Order);
-        var sorted = leaderboardParams.SortDescending ? query.OrderByDescending(order) : query.OrderBy(order);
+        var sorted = GetSorted(query, leaderboardParams.Order, leaderboardParams.SortAscending);
 
         return new PagedResult<LeaderboardBatter>
         {
-            TotalCount = query.Count(),
-            Results = sorted.Skip(leaderboardParams.Skip)
+            TotalCount = await query.CountAsync(),
+            Results = await sorted.Skip(leaderboardParams.Skip)
                             .Take(leaderboardParams.Take)
-                            .ToList()
+                            .ToListAsync()
         };
 
     }
 
-    private static Func<LeaderboardBatter, decimal?> GetOrderBy(BatterLeaderboardOrder order)
+    private static IOrderedQueryable<LeaderboardBatter> GetSorted(IQueryable<LeaderboardBatter> query, BatterLeaderboardOrder order, bool asc)
     {
-        return order switch
+        if (asc)
         {
-            BatterLeaderboardOrder.Games => k => k.Games,
-            BatterLeaderboardOrder.BattingAverage => k => k.BattingAverage,
-            _ => k => k.Games,
-        };
+            return order switch
+            {
+                BatterLeaderboardOrder.Games => query.OrderBy(k => k.Games),
+                BatterLeaderboardOrder.BattingAverage => query.OrderBy(k => k.BattingAverage),
+                _ => query.OrderBy(k => k.Games),
+            };
+        }
+        else
+        {
+            return order switch
+            {
+                BatterLeaderboardOrder.Games => query.OrderByDescending(k => k.Games),
+                BatterLeaderboardOrder.BattingAverage => query.OrderByDescending(k => k.BattingAverage),
+                _ => query.OrderByDescending(k => k.Games),
+            };
+        }
     }
 }

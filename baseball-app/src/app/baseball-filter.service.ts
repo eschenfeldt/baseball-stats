@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, debounceTime, Observable } from 'rxjs';
 import { PagedApiParameters } from './paged-api-parameters';
 
-export interface BaseballApiFilter {
+export interface BaseballApiFilter extends PagedApiParameters {
     [propertyName: string]: any
 }
 
@@ -34,6 +34,20 @@ export class BaseballFilterService {
         const filters = this.getFilters<T>(uniqueIdentifier);
         filters[filterName] = value;
         this.signalFilterChange(uniqueIdentifier);
+    }
+
+    public unsetFilterValue<T extends PagedApiParameters>(uniqueIdentifier: string, filterName: keyof T): void {
+        this.setFilterValue<T>(uniqueIdentifier, filterName, undefined);
+    }
+
+    public updateParamsFromFilters<T extends PagedApiParameters>(uniqueIdentifier: string, params: T): T {
+        const filters = this.getFilters<T>(uniqueIdentifier);
+        let filterName: keyof T;
+        for (filterName in filters) {
+            const val = filters[filterName];
+            params[filterName] = val;
+        }
+        return params;
     }
 
     public filtersChanged$(uniqueIdentifier: string): Observable<void> {

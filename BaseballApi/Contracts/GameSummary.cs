@@ -27,3 +27,9 @@ public struct GameSummary(Game game)
     public Player? LosingPitcher { get; set; } = game.LosingPitcher;
     public Player? SavingPitcher { get; set; } = game.SavingPitcher;
 }
+
+public enum GameOrder
+{
+    [ParamValue("date")]
+    Date
+}

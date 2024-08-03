@@ -43,10 +43,17 @@ export class LeaderboardBattersComponent extends BaseballTableComponent<BatterLe
     protected override defaultFilters?: BaseballApiFilter = {};
 
     constructor(
-        private api: BaseballApiService,
-        protected filterService: BaseballFilterService
+        api: BaseballApiService,
+        filterService: BaseballFilterService
     ) {
-        super('LeaderboardBatters');
-        this.dataSource = new LeaderboardBattersDataSource("leaderboard/batting", ApiMethod.POST, api);
+        super();
+        this.dataSource = new LeaderboardBattersDataSource(
+            'leaderboard/batting',
+            ApiMethod.POST,
+            api,
+            filterService,
+            true,
+            this.defaultFilters
+        );
     }
 }

@@ -2,6 +2,17 @@
 <h3>Games</h3>
 }
 
+@if (yearOptions$ | async; as yearOptions) {
+<mat-form-field>
+    <mat-label>Year</mat-label>
+    <mat-select [(ngModel)]="selectedYear">
+        @for (year of yearOptions; track year) {
+        <mat-option [value]="year">{{year}}</mat-option>
+        }
+    </mat-select>
+</mat-form-field>
+}
+
 <div>
     <table mat-table [dataSource]="dataSource" #table="matTable" matSort class="mat-elevation-z8">
 

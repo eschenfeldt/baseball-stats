@@ -62,8 +62,13 @@ export class BaseballApiService {
         return this.http.post(uri, body, { responseType: 'blob' });
     }
 
-    public makeApiGet<T>(serviceUri: string, handleErrors: boolean = true, withCredentials: boolean = false): Observable<T> {
-        const uri = BaseballApiService.apiBaseUrl + serviceUri;
+    public makeApiGet<T>(serviceUri: string, queryParams: any = null, handleErrors: boolean = true, withCredentials: boolean = false): Observable<T> {
+        let uri = BaseballApiService.apiBaseUrl + serviceUri;
+        if (queryParams) {
+            uri += `?${Object.keys(queryParams)
+                .filter(key => queryParams[key] != null)
+                .map(key => `${key}=${encodeURIComponent(queryParams[key])}`).join('&')}`;
+        }
         let req = this.http.get<T>(uri, { responseType: 'json', withCredentials: withCredentials });
 
         if (handleErrors) {

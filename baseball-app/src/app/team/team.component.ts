@@ -20,7 +20,7 @@ import { GamesComponent } from '../games/games.component';
 export class TeamComponent implements OnInit {
 
     @param<typeof BASEBALL_ROUTES.TEAM>("teamId")
-    private teamId$!: Observable<number>
+    public teamId$!: Observable<number>
     team$?: Observable<Team>
 
     constructor(

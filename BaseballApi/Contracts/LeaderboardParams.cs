@@ -7,5 +7,5 @@ public class BatterLeaderboardParams
     public int Take { get; set; }
     public int MinPlateAppearances { get; set; }
     public BatterLeaderboardOrder Order { get; set; }
-    public bool SortDescending { get; set; } = true;
+    public bool SortAscending { get; set; } = false;
 }

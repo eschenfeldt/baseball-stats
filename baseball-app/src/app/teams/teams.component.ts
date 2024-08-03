@@ -32,8 +32,6 @@ import { BaseballFilterService, BaseballApiFilter } from '../baseball-filter.ser
 })
 export class TeamsComponent extends BaseballTableComponent<PagedApiParameters, TeamSummary> {
 
-    override componentName: string = 'Teams';
-
     @ViewChild(MatPaginator)
     protected paginator!: MatPaginator;
     @ViewChild(MatSort)
@@ -42,6 +40,7 @@ export class TeamsComponent extends BaseballTableComponent<PagedApiParameters, T
     dataSource: TeamsDataSource;
     displayedColumns = [
         'team',
+        'lastGame',
         'games',
         'wins',
         'losses'
@@ -52,8 +51,14 @@ export class TeamsComponent extends BaseballTableComponent<PagedApiParameters, T
         api: BaseballApiService,
         protected filterService: BaseballFilterService
     ) {
-        super('Teams');
-        this.dataSource = new TeamsDataSource('teams/summaries', ApiMethod.GET, api);
-        this.filterService = filterService
+        super();
+        this.dataSource = new TeamsDataSource(
+            'teams/summaries',
+            ApiMethod.GET,
+            api,
+            filterService,
+            true,
+            this.defaultFilters
+        );
     }
 }

@@ -31,36 +31,43 @@ namespace BaseballApi.Controllers
         }
 
         [HttpGet("summaries")]
-        public async Task<ActionResult<PagedResult<TeamSummary>>> GetTeamSummaries(int skip, int take)
+        public async Task<ActionResult<PagedResult<TeamSummary>>> GetTeamSummaries(int skip, int take, string? sort = null, bool asc = false)
         {
+            TeamSummaryOrder order = sort.ToEnumOrDefault<TeamSummaryOrder, ParamValueAttribute>();
+
             var awayGames = _context.Teams
                 .GroupJoin(_context.Games, t => t.Id, g => g.Away.Id, (team, games) => new
                 {
                     Team = team,
                     Games = games.Count(),
                     Wins = games.Count(g => g.WinningTeam == team),
-                    Losses = games.Count(g => g.LosingTeam == team)
-                }).DefaultIfEmpty();
+                    Losses = games.Count(g => g.LosingTeam == team),
+                    LastGame = games.Select(g => g.Date).DefaultIfEmpty().Max()
+                });
             var homeGames = _context.Teams
                 .GroupJoin(_context.Games, t => t.Id, g => g.Home.Id, (team, games) => new
                 {
                     Team = team,
                     Games = games.Count(),
                     Wins = games.Count(g => g.WinningTeam == team),
-                    Losses = games.Count(g => g.LosingTeam == team)
-                }).DefaultIfEmpty();
+                    Losses = games.Count(g => g.LosingTeam == team),
+                    LastGame = games.Select(g => g.Date).DefaultIfEmpty().Max()
+                });
+            var awayList = awayGames.ToList();
+            var homeList = homeGames.ToList();
             var query = awayGames.Join(homeGames, ag => ag.Team, hg => hg.Team, (ag, hg) => new TeamSummary
             {
                 Team = ag.Team ?? hg.Team,
                 Games = ag.Games + hg.Games,
                 Wins = ag.Wins + hg.Wins,
-                Losses = ag.Losses + hg.Losses
+                Losses = ag.Losses + hg.Losses,
+                LastGameDate = ag.LastGame > hg.LastGame ? ag.LastGame : hg.LastGame
             });
+            var sorted = GetSorted(query, order, asc);
             return new PagedResult<TeamSummary>
             {
                 TotalCount = await query.CountAsync(),
-                Results = await query
-                    .OrderByDescending(t => t.Games)
+                Results = await sorted
                     .Skip(skip)
                     .Take(take)
                     .ToListAsync()
@@ -145,6 +152,34 @@ namespace BaseballApi.Controllers
         private bool TeamExists(long id)
         {
             return _context.Teams.Any(e => e.Id == id);
+        }
+
+        private static IOrderedQueryable<TeamSummary> GetSorted(IQueryable<TeamSummary> query, TeamSummaryOrder order, bool asc)
+        {
+            if (asc)
+            {
+                return order switch
+                {
+                    TeamSummaryOrder.Team => query.OrderBy(k => k.Team),
+                    TeamSummaryOrder.Games => query.OrderBy(k => k.Games),
+                    TeamSummaryOrder.Wins => query.OrderBy(k => k.Wins),
+                    TeamSummaryOrder.Losses => query.OrderBy(k => k.Losses),
+                    TeamSummaryOrder.LastGame => query.OrderBy(k => k.LastGameDate),
+                    _ => query.OrderBy(k => k.Games),
+                };
+            }
+            else
+            {
+                return order switch
+                {
+                    TeamSummaryOrder.Team => query.OrderByDescending(k => k.Team),
+                    TeamSummaryOrder.Games => query.OrderByDescending(k => k.Games),
+                    TeamSummaryOrder.Wins => query.OrderByDescending(k => k.Wins),
+                    TeamSummaryOrder.Losses => query.OrderByDescending(k => k.Losses),
+                    TeamSummaryOrder.LastGame => query.OrderByDescending(k => k.LastGameDate),
+                    _ => query.OrderByDescending(k => k.Games),
+                };
+            }
         }
     }
 }
