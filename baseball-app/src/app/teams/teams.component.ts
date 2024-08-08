@@ -1,7 +1,7 @@
 import { Component, ViewChild } from '@angular/core';
 import { BaseballTableComponent } from '../baseball-table-component';
 import { PagedApiParameters } from '../paged-api-parameters';
-import { Team } from '../team';
+import { Team } from '../contracts/team';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { BaseballDataSource } from '../baseball-data-source';

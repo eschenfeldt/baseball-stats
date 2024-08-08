@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, of } from 'rxjs';
 import { catchError, map, mergeMap } from 'rxjs/operators';
 import { ErrorDialogComponent } from './error-dialog/error-dialog.component';
 import { environment } from '../environments/environment.development';
@@ -29,12 +29,14 @@ export class BaseballApiService {
     constructor(
         private http: HttpClient,
         private dialog: MatDialog
-    ) {
-
-    }
+    ) { }
 
     public checkLoginStatus(): void {
-        this.makeApiGet<boolean>('Admin/isAuthorized', true, true)
+        this.makeApiGet<boolean>('Admin/isAuthorized', null, false, true)
+            .pipe(catchError((error) => {
+                this.loggedInSubject.next(false);
+                throw error;
+            }))
             .subscribe(result => {
                 this.loggedInSubject.next(result);
             });

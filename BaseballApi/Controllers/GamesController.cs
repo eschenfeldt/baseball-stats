@@ -67,21 +67,30 @@ namespace BaseballApi.Controllers
 
         // GET: api/Games/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Game>> GetGame(long id)
+        public async Task<ActionResult<GameDetail>> GetGame(long id)
         {
             var game = await _context.Games
+                .Include(g => g.Home)
+                .Include(g => g.Away)
                 .Include(g => g.AwayBoxScore)
                     .ThenInclude(bs => bs.Batters)
+                        .ThenInclude(p => p.Player)
                 .Include(g => g.AwayBoxScore)
                     .ThenInclude(bs => bs.Pitchers)
+                        .ThenInclude(p => p.Player)
                 .Include(g => g.AwayBoxScore)
                     .ThenInclude(bs => bs.Fielders)
+                        .ThenInclude(p => p.Player)
                 .Include(g => g.HomeBoxScore)
                     .ThenInclude(bs => bs.Batters)
+                        .ThenInclude(p => p.Player)
                 .Include(g => g.HomeBoxScore)
                     .ThenInclude(bs => bs.Pitchers)
+                        .ThenInclude(p => p.Player)
                 .Include(g => g.HomeBoxScore)
                     .ThenInclude(bs => bs.Fielders)
+                        .ThenInclude(p => p.Player)
+                .AsSplitQuery()
                 .SingleOrDefaultAsync(g => g.Id == id);
 
             if (game == null)
@@ -89,8 +98,31 @@ namespace BaseballApi.Controllers
                 return NotFound();
             }
 
-            return game;
+            return new GameDetail(game);
         }
+
+        // [HttpGet("{gameId}/boxscore")]
+        // public async Task<ActionResult<BoxScoreDetail>> GetBoxScore(long gameId, bool home = true)
+        // {
+        //     var box = await _context.Games
+        //         .Where(g => g.Id == gameId)
+        //         .Select(g => home ? g.HomeBoxScore : g.AwayBoxScore)
+        //         .Include(b => b.Batters)
+        //             .ThenInclude(b => b.Player)
+        //         .Include(b => b.Pitchers)
+        //             .ThenInclude(p => p.Player)
+        //         .Include(b => b.Fielders)
+        //             .ThenInclude(f => f.Player)
+        //         .AsSplitQuery()
+        //         .SingleOrDefaultAsync();
+
+        //     if (box == null)
+        //     {
+        //         return NotFound();
+        //     }
+
+        //     return new BoxScoreDetail(box);
+        // }
 
         [HttpGet("years")]
         public async Task<ActionResult<List<int>>> GetGameYears(long? teamId = null)

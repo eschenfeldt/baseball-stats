@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { BaseballApiService } from '../baseball-api.service';
 import { first, Observable, switchMap } from 'rxjs';
-import { Player } from '../player';
+import { Player } from '../contracts/player';
 import { RouterModule } from '@angular/router';
 import { param } from '../param.decorator';
 import { BASEBALL_ROUTES } from '../app.routes';
@@ -30,7 +30,7 @@ export class PlayerComponent implements OnInit {
     ngOnInit(): void {
         this.player$ = this.playerId$.pipe(
             switchMap((playerId) => {
-                return this.api.makeApiGet<Player>(`player/${playerId}`, true, false);
+                return this.api.makeApiGet<Player>(`player/${playerId}`);
             }));
     }
 }

@@ -27,7 +27,7 @@ public class GameTests : BaseballTests
         TestGameManager.ValidateGameSummary(gameSummary, testGameNumber);
 
         var game = await Controller.GetGame(gameSummary.Id);
-        Assert.NotNull(game.Value);
+        Assert.NotNull(game);
         TestGameManager.ValidateGame(game.Value, testGameNumber);
     }
 

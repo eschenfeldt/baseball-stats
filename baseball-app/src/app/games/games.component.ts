@@ -9,7 +9,7 @@ import { AsyncPipe, CommonModule } from '@angular/common';
 import { BaseballTableComponent } from '../baseball-table-component';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { RouterModule } from '@angular/router';
-import { Team } from '../team';
+import { Team } from '../contracts/team';
 import { BaseballApiFilter, BaseballFilterService } from '../baseball-filter.service';
 import { Observable } from 'rxjs';
 import { MatFormFieldModule } from '@angular/material/form-field';

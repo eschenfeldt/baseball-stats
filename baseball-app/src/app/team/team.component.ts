@@ -3,7 +3,7 @@ import { param } from '../param.decorator';
 import { BASEBALL_ROUTES } from '../app.routes';
 import { Observable, switchMap } from 'rxjs';
 import { ApiMethod, BaseballApiService } from '../baseball-api.service';
-import { Team } from '../team';
+import { Team } from '../contracts/team';
 import { AsyncPipe } from '@angular/common';
 import { GamesComponent } from '../games/games.component';
 

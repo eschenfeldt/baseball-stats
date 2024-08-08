@@ -1,11 +1,11 @@
 import { ApiMethod, BaseballApiService } from '../baseball-api.service'
 import { BaseballDataSource } from '../baseball-data-source'
 import { BaseballApiFilter, BaseballFilterService } from '../baseball-filter.service'
-import { GameType } from '../game-type'
+import { GameType } from '../contracts/game-type'
 import { PagedApiParameters } from '../paged-api-parameters'
-import { Park } from '../park'
-import { Player } from '../player'
-import { Team } from '../team'
+import { Park } from '../contracts/park'
+import { Player } from '../contracts/player'
+import { Team } from '../contracts/team'
 
 
 export interface GameSummary {

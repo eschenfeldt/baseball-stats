@@ -4,7 +4,7 @@ import { ApiMethod, BaseballApiService } from './baseball-api.service';
 import { MatSort, Sort } from '@angular/material/sort';
 import { MatPaginator } from '@angular/material/paginator';
 import { PagedApiParameters } from './paged-api-parameters';
-import { PagedResult } from './paged-result';
+import { PagedResult } from './contracts/paged-result';
 import { BaseballApiFilter, BaseballFilterService } from './baseball-filter.service';
 import { v4 as uuidv4 } from 'uuid';
 

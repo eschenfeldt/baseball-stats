@@ -1,0 +1,14 @@
+.game-teams {
+    display: flex;
+    justify-content: space-evenly;
+
+    mat-card-header {
+        text-align: center;
+    }
+
+    mat-card-content {
+        font-size: 2em;
+        text-align: center;
+        font-weight: bolder;
+    }
+}

@@ -1,4 +1,4 @@
-﻿namespace BaseballApi;
+﻿namespace BaseballApi.Contracts;
 
 public class PagedResult<T>
 {

@@ -9,7 +9,7 @@ import { MtxDatetimepicker, MtxDatetimepickerInput, MtxDatetimepickerInputEvent,
 import { provideMomentDatetimeAdapter } from '@ng-matero/extensions-moment-adapter';
 import { NgFor, NgIf } from '@angular/common';
 import { BaseballApiService } from '../baseball-api.service';
-import { Team } from '../team';
+import { Team } from '../contracts/team';
 
 @Component({
     selector: 'app-import-game-dialog',

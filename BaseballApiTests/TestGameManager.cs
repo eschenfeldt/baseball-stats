@@ -58,7 +58,7 @@ public class TestGameManager
         Assert.Equal(away.City, gameSummary.Away.City);
     }
 
-    public void ValidateGame(Game game, int gameNumber)
+    public void ValidateGame(GameDetail game, int gameNumber)
     {
         if (!TestGames.TryGetValue(gameNumber, out GameInfo gameInfo))
         {
@@ -79,15 +79,45 @@ public class TestGameManager
         Assert.NotNull(game.HomeBoxScore);
         Assert.NotNull(game.AwayBoxScore);
 
-        var homeBatterRuns = game.HomeBoxScore.Batters.Select(b => b.Runs).Sum();
-        var awayBatterRuns = game.AwayBoxScore.Batters.Select(b => b.Runs).Sum();
-        var homePitcherRuns = game.HomeBoxScore.Pitchers.Select(p => p.Runs).Sum();
-        var awayPitcherRuns = game.AwayBoxScore.Pitchers.Select(p => p.Runs).Sum();
+        var homeBatterRuns = game.HomeBoxScore.Value.Batters.Select(b => b.Runs).Sum();
+        var awayBatterRuns = game.AwayBoxScore.Value.Batters.Select(b => b.Runs).Sum();
+        var homePitcherRuns = game.HomeBoxScore.Value.Pitchers.Select(p => p.Runs).Sum();
+        var awayPitcherRuns = game.AwayBoxScore.Value.Pitchers.Select(p => p.Runs).Sum();
 
         Assert.Equal(game.HomeScore, homeBatterRuns);
         Assert.Equal(game.HomeScore, awayPitcherRuns);
         Assert.Equal(game.AwayScore, awayBatterRuns);
         Assert.Equal(game.AwayScore, homePitcherRuns);
+
+        foreach (var batter in game.HomeBoxScore.Value.Batters)
+        {
+            Assert.NotNull(batter.Player);
+        }
+
+        foreach (var batter in game.AwayBoxScore.Value.Batters)
+        {
+            Assert.NotNull(batter.Player);
+        }
+
+        foreach (var pitcher in game.HomeBoxScore.Value.Pitchers)
+        {
+            Assert.NotNull(pitcher.Player);
+        }
+
+        foreach (var pitcher in game.HomeBoxScore.Value.Pitchers)
+        {
+            Assert.NotNull(pitcher.Player);
+        }
+
+        foreach (var fielder in game.HomeBoxScore.Value.Fielders)
+        {
+            Assert.NotNull(fielder.Player);
+        }
+
+        foreach (var fielder in game.HomeBoxScore.Value.Fielders)
+        {
+            Assert.NotNull(fielder.Player);
+        }
     }
 
     public void AddAllGames()

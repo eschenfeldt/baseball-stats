@@ -1,6 +1,6 @@
 import { BaseballDataSource } from "../baseball-data-source";
 import { PagedApiParameters } from "../paged-api-parameters";
-import { Team } from "../team";
+import { Team } from "../contracts/team";
 
 export interface TeamSummary {
     team: Team;

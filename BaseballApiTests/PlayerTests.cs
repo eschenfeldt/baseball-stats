@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Linq.Expressions;
 using BaseballApi;
+using BaseballApi.Contracts;
 using BaseballApi.Controllers;
 
 namespace BaseballApiTests;

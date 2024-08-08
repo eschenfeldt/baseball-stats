@@ -1,5 +1,3 @@
-
-using System.Diagnostics.CodeAnalysis;
 using BaseballApi.Models;
 
 namespace BaseballApi.Contracts;

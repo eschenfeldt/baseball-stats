@@ -97,22 +97,22 @@ public class ImportTests(TestImportDatabaseFixture fixture) : IClassFixture<Test
             Assert.NotNull(game.HomeBoxScore);
             Assert.NotNull(game.AwayBoxScore);
 
-            var homeBatterRuns = game.HomeBoxScore.Batters.Select(b => b.Runs).Sum();
-            var awayBatterRuns = game.AwayBoxScore.Batters.Select(b => b.Runs).Sum();
-            var homePitcherRuns = game.HomeBoxScore.Pitchers.Select(p => p.Runs).Sum();
-            var awayPitcherRuns = game.AwayBoxScore.Pitchers.Select(p => p.Runs).Sum();
+            var homeBatterRuns = game.HomeBoxScore.Value.Batters.Select(b => b.Runs).Sum();
+            var awayBatterRuns = game.AwayBoxScore.Value.Batters.Select(b => b.Runs).Sum();
+            var homePitcherRuns = game.HomeBoxScore.Value.Pitchers.Select(p => p.Runs).Sum();
+            var awayPitcherRuns = game.AwayBoxScore.Value.Pitchers.Select(p => p.Runs).Sum();
 
             Assert.Equal(game.HomeScore, homeBatterRuns);
             Assert.Equal(game.HomeScore, awayPitcherRuns);
             Assert.Equal(game.AwayScore, awayBatterRuns);
             Assert.Equal(game.AwayScore, homePitcherRuns);
 
-            Assert.Equal(11, game.HomeBoxScore.Batters.Count);
-            Assert.Equal(3, game.HomeBoxScore.Pitchers.Count);
-            Assert.Equal(11, game.HomeBoxScore.Fielders.Count);
-            Assert.Equal(9, game.AwayBoxScore.Batters.Count);
-            Assert.Equal(3, game.AwayBoxScore.Pitchers.Count);
-            Assert.Equal(11, game.AwayBoxScore.Fielders.Count);
+            Assert.Equal(11, game.HomeBoxScore.Value.Batters.Count);
+            Assert.Equal(3, game.HomeBoxScore.Value.Pitchers.Count);
+            Assert.Equal(11, game.HomeBoxScore.Value.Fielders.Count);
+            Assert.Equal(9, game.AwayBoxScore.Value.Batters.Count);
+            Assert.Equal(3, game.AwayBoxScore.Value.Pitchers.Count);
+            Assert.Equal(11, game.AwayBoxScore.Value.Fielders.Count);
         }
 
         await ValidateGameInDb(actual);
