@@ -70,6 +70,7 @@ namespace BaseballApi.Controllers
         public async Task<ActionResult<GameDetail>> GetGame(long id)
         {
             var game = await _context.Games
+                .Include(g => g.Location)
                 .Include(g => g.Home)
                 .Include(g => g.Away)
                 .Include(g => g.AwayBoxScore)

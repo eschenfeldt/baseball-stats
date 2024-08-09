@@ -1,0 +1,40 @@
+<div class="game-details">
+    @if (game.location != null) {
+    <dl>
+        <dt>Location</dt>
+        <dd>{{game.location.name}}</dd>
+    </dl>
+    <mat-divider></mat-divider>
+    }
+    <dl>
+        <dt>Win</dt>
+        <dd>
+            <a [routerLink]="['/player', game.winningPitcher?.id]" routerLinkActive="router-link-active">
+                {{game.winningPitcher?.name}}
+            </a>
+        </dd>
+        <dt>Loss</dt>
+        <dd>
+            <a [routerLink]="['/player', game.losingPitcher?.id]" routerLinkActive="router-link-active">
+                {{game.losingPitcher?.name}}
+            </a>
+        </dd>
+        @if (game.savingPitcher != null) {
+        <dt>Save</dt>
+        <dd>
+            <a [routerLink]="['/player', game.savingPitcher.id]" routerLinkActive="router-link-active">
+                {{game.savingPitcher.name}}
+            </a>
+        </dd>
+        }
+    </dl>
+    <mat-divider></mat-divider>
+    <dl>
+        <dt>Scheduled</dt>
+        <dd>{{formatTime(game.scheduledTime)}}</dd>
+        <dt>Started</dt>
+        <dd>{{formatTime(game.startTime)}}</dd>
+        <dt>Ended</dt>
+        <dd>{{formatTime(game.endTime)}}</dd>
+    </dl>
+</div>

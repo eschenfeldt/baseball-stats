@@ -10,6 +10,7 @@ public class TestGameManager
     private Dictionary<int, Team> Teams { get; } = [];
     private Dictionary<int, Player> Batters { get; } = [];
     private Dictionary<int, Player> Pitchers { get; } = [];
+    private Dictionary<int, Park> Parks { get; } = [];
 
     public TestGameManager(BaseballContext context)
     {
@@ -22,6 +23,8 @@ public class TestGameManager
         Batters.Add(3, context.Players.First(p => p.Name == "Test Batter 3"));
         Pitchers.Add(1, context.Players.First(p => p.Name == "Test Pitcher 1"));
         Pitchers.Add(2, context.Players.First(p => p.Name == "Test Pitcher 2"));
+        Parks.Add(1, context.Parks.First(p => p.Name == "Test Stadium"));
+        Parks.Add(2, context.Parks.First(p => p.Name == "Test Park"));
     }
 
     public long GetTeamId(int teamNumber)
@@ -45,6 +48,10 @@ public class TestGameManager
         }
         Assert.Equal(gameInfo.Name, gameSummary.Name);
 
+        var park = Parks[gameInfo.ParkNumber];
+        Assert.NotNull(gameSummary.Location);
+        Assert.Equal(park.Name, gameSummary.Location.Name);
+
         var home = Teams[gameInfo.Home.TeamNumber];
         var defaultHomeName = $"{home.City} {home.Name}";
         Assert.Equal(gameInfo.Home.TeamName ?? defaultHomeName, gameSummary.HomeTeamName);
@@ -65,6 +72,10 @@ public class TestGameManager
             Assert.Fail($"Could not find test game with number {gameNumber}");
         }
         Assert.Equal(gameInfo.Name, game.Name);
+
+        var park = Parks[gameInfo.ParkNumber];
+        Assert.NotNull(game.Location);
+        Assert.Equal(park.Name, game.Location.Name);
 
         var home = Teams[gameInfo.Home.TeamNumber];
         Assert.Equal(gameInfo.Home.TeamName ?? DefaultName(home), game.HomeTeamName);
@@ -126,6 +137,7 @@ public class TestGameManager
         {
             var home = Teams[gameInfo.Home.TeamNumber];
             var away = Teams[gameInfo.Away.TeamNumber];
+            var park = Parks[gameInfo.ParkNumber];
             var homeBox = new BoxScore
             {
                 Game = null,
@@ -140,6 +152,7 @@ public class TestGameManager
             {
                 Date = gameInfo.Date,
                 Name = gameInfo.Name,
+                Location = park,
                 Home = home,
                 HomeScore = gameInfo.HomeScore,
                 HomeTeamName = gameInfo.Home.TeamName ?? DefaultName(home),
@@ -239,6 +252,7 @@ public class TestGameManager
     struct GameInfo
     {
         public DateOnly Date { get; set; }
+        public required int ParkNumber { get; set; }
         public string Name { get; set; }
         public BoxScoreInfo Home { get; set; }
         public required int HomeScore { get; set; }
@@ -289,6 +303,7 @@ public class TestGameManager
             new GameInfo
             {
                 Date = new DateOnly(2022, 4, 27),
+                ParkNumber = 1,
                 Name = "2022 Test Game 1",
                 HomeScore = 0,
                 AwayScore = 2,
@@ -366,6 +381,7 @@ public class TestGameManager
             new GameInfo
             {
                 Date = new DateOnly(2023, 6, 27),
+                ParkNumber = 2,
                 Name = "2023 Test Game 1",
                 HomeScore = 2,
                 AwayScore = 3,
@@ -441,6 +457,7 @@ public class TestGameManager
             new GameInfo
             {
                 Date = new DateOnly(2022, 8, 27),
+                ParkNumber = 1,
                 Name = "2022 Test Game 2",
                 HomeScore = 0,
                 AwayScore = 0,
@@ -501,6 +518,7 @@ public class TestGameManager
             new GameInfo
             {
                 Date = new DateOnly(2024, 6, 30),
+                ParkNumber = 1,
                 Name = "2024 Test Game 1",
                 AwayScore = 3,
                 HomeScore = 4,

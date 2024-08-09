@@ -8,19 +8,34 @@ import { AsyncPipe } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { MatTabsModule } from '@angular/material/tabs';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { GameBatter } from '../contracts/game-batter';
 import { BoxScoreBattersComponent } from '../box-score-batters/box-score-batters.component';
+import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
+import { GameDetailsComponent } from '../game-details/game-details.component';
+import { RouterModule } from '@angular/router';
+import { GameFielder } from '../contracts/game-fielder';
+import { GamePitcher } from '../contracts/game-pitcher';
+import { BoxScorePitchersComponent } from '../box-score-pitchers/box-score-pitchers.component';
+import { BoxScoreFieldersComponent } from '../box-score-fielders/box-score-fielders.component';
 
 @Component({
     selector: 'app-game',
     standalone: true,
     imports: [
         AsyncPipe,
+        RouterModule,
         MatCardModule,
         MatButtonToggleModule,
         FormsModule,
         ReactiveFormsModule,
-        BoxScoreBattersComponent
+        MatTabsModule,
+        MatProgressSpinnerModule,
+        GameDetailsComponent,
+        BoxScoreBattersComponent,
+        BoxScorePitchersComponent,
+        BoxScoreFieldersComponent
     ],
     templateUrl: './game.component.html',
     styleUrl: './game.component.scss'
@@ -31,7 +46,13 @@ export class GameComponent implements OnInit {
     gameId$!: Observable<number>
     game$?: Observable<GameDetail>;
 
-    boxScoreOption: BoxScoreOption = BoxScoreOption.homeBatters;
+    boxScoreOption: BoxScoreOption = BoxScoreOption.awayPitchers;
+    abbreviateBoxScoreOptions = false;
+    tabIndex: GameTab = GameTab.boxScore;
+
+    get boxScoresActive(): boolean {
+        return this.tabIndex === GameTab.boxScore;
+    }
 
     public battersDataSource(game: GameDetail): GameBatter[] | null {
         switch (this.boxScoreOption) {
@@ -43,8 +64,29 @@ export class GameComponent implements OnInit {
                 return null;
         }
     }
+    public fieldersDataSource(game: GameDetail): GameFielder[] | null {
+        switch (this.boxScoreOption) {
+            case BoxScoreOption.homeFielders:
+                return game.homeBoxScore.fielders;
+            case BoxScoreOption.awayFielders:
+                return game.awayBoxScore.fielders;
+            default:
+                return null;
+        }
+    }
+    public pitchersDataSource(game: GameDetail): GamePitcher[] | null {
+        switch (this.boxScoreOption) {
+            case BoxScoreOption.homePitchers:
+                return game.homeBoxScore.pitchers;
+            case BoxScoreOption.awayPitchers:
+                return game.awayBoxScore.pitchers;
+            default:
+                return null;
+        }
+    }
 
     constructor(
+        private breakpointObserver: BreakpointObserver,
         private api: BaseballApiService
     ) { }
 
@@ -54,7 +96,39 @@ export class GameComponent implements OnInit {
             switchMap((gameId) => {
                 return this.api.makeApiGet<GameDetail>(`games/${gameId}`);
             }));
+
+        this.breakpointObserver.observe([
+            Breakpoints.XSmall,
+            Breakpoints.TabletPortrait // sidebar menu shows up here
+        ]).subscribe(result => {
+            if (result.matches) {
+                this.abbreviateBoxScoreOptions = true;
+            } else {
+                this.abbreviateBoxScoreOptions = false;
+            }
+        })
     }
+
+    public hasMedia(game: GameDetail): boolean {
+        return false;
+    }
+
+    public get batterLabel(): string {
+        return this.abbreviateBoxScoreOptions ? 'B' : 'Batters';
+    }
+    public get pitcherLabel(): string {
+        return this.abbreviateBoxScoreOptions ? 'P' : 'Pitchers';
+    }
+    public get fielderLabel(): string {
+        return this.abbreviateBoxScoreOptions ? 'F' : 'Fielders';
+    }
+}
+
+enum GameTab {
+    details,
+    boxScore,
+    scoreCard,
+    media
 }
 
 enum BoxScoreOption {

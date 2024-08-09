@@ -16,6 +16,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelect, MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
+import { Utils } from '../utils';
 
 @Component({
     selector: 'app-games',
@@ -86,9 +87,9 @@ export class GamesComponent extends BaseballTableComponent<GamesListParams, Game
 
     public gameTime(game: GameSummary): string {
         if (game.startTime) {
-            return this.formatTime(game.startTime);
+            return Utils.formatTime(game.startTime);
         } else if (game.scheduledTime) {
-            return this.formatTime(game.scheduledTime);
+            return Utils.formatTime(game.scheduledTime);
         } else {
             return '';
         }
@@ -96,13 +97,9 @@ export class GamesComponent extends BaseballTableComponent<GamesListParams, Game
 
     public endTime(game: GameSummary): string {
         if (game.endTime) {
-            return this.formatTime(game.endTime);
+            return Utils.formatTime(game.endTime);
         } else {
             return '';
         }
-    }
-
-    private formatTime(datetime: string): string {
-        return new Date(datetime).toLocaleTimeString();
     }
 }

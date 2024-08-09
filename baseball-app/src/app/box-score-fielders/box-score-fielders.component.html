@@ -5,19 +5,19 @@
             <th mat-header-cell *matHeaderCellDef>
                 Name
             </th>
-            <td mat-cell *matCellDef="let batter; table: table">
-                <a [routerLink]="['/player', batter.player.id]"
-                    routerLinkActive="router-link-active">{{batter.player.name}}</a>
+            <td mat-cell *matCellDef="let fielder; table: table">
+                <a [routerLink]="['/player', fielder.player.id]"
+                    routerLinkActive="router-link-active">{{fielder.player.name}}</a>
 
                 &nbsp;
-                <small>#{{batter.number}}</small>
+                <small>#{{fielder.number}}</small>
             </td>
         </ng-container>
 
         @for (basicColumn of basicColumns; track basicColumn) {
         <ng-container matColumnDef="{{basicColumn}}">
             <th mat-header-cell mat-sort-header *matHeaderCellDef>{{basicHeaders[basicColumn]}}</th>
-            <td mat-cell *matCellDef="let batter; table: table">{{batter[basicColumn]}}</td>
+            <td mat-cell *matCellDef="let fielder; table: table">{{fielder[basicColumn]}}</td>
         </ng-container>
         }
 

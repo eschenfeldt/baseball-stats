@@ -1,47 +1,72 @@
 @if (game$ | async; as game) {
-<h4>{{game.name}}</h4>
+<h5>{{game.name}}</h5>
 <div class="game-teams">
     <mat-card appearance="raised">
         <mat-card-header>
             <mat-card-title>
-                {{game.away.name}}
+                <a [routerLink]="['/team', game.away.id]" routerLinkActive="router-link-active">
+                    {{game.away.name}}
+                </a>
             </mat-card-title>
         </mat-card-header>
         <mat-card-content>
             {{game.awayScore}}
         </mat-card-content>
+        @if (boxScoresActive) {
         <mat-card-actions>
             <mat-button-toggle-group name="awayTeamOptions" aria-label="Away Team Options" [(ngModel)]="boxScoreOption"
                 [hideSingleSelectionIndicator]="true">
-                <mat-button-toggle value="awayBatters">Batters</mat-button-toggle>
-                <mat-button-toggle value="awayPitchers">Pitchers</mat-button-toggle>
-                <mat-button-toggle value="awayFielders">Fielders</mat-button-toggle>
+                <mat-button-toggle value="awayBatters">{{batterLabel}}</mat-button-toggle>
+                <mat-button-toggle value="awayPitchers">{{pitcherLabel}}</mat-button-toggle>
+                <mat-button-toggle value="awayFielders">{{fielderLabel}}</mat-button-toggle>
             </mat-button-toggle-group>
         </mat-card-actions>
+        }
     </mat-card>
     <mat-card appearance="raised">
         <mat-card-header>
             <mat-card-title>
-                {{game.home.name}}
+                <a [routerLink]="['/team', game.home.id]" routerLinkActive="router-link-active">
+                    {{game.home.name}}
+                </a>
             </mat-card-title>
         </mat-card-header>
         <mat-card-content>
             {{game.homeScore}}
         </mat-card-content>
+        @if (boxScoresActive) {
         <mat-card-actions>
             <mat-button-toggle-group name="homeTeamOptions" aria-label="home Team Options" [(ngModel)]="boxScoreOption"
                 [hideSingleSelectionIndicator]="true">
-                <mat-button-toggle value="homeBatters">Batters</mat-button-toggle>
-                <mat-button-toggle value="homePitchers">Pitchers</mat-button-toggle>
-                <mat-button-toggle value="homeFielders">Fielders</mat-button-toggle>
+                <mat-button-toggle value="homeBatters">{{batterLabel}}</mat-button-toggle>
+                <mat-button-toggle value="homePitchers">{{pitcherLabel}}</mat-button-toggle>
+                <mat-button-toggle value="homeFielders">{{fielderLabel}}</mat-button-toggle>
             </mat-button-toggle-group>
         </mat-card-actions>
+        }
     </mat-card>
 </div>
 
-@if (battersDataSource(game); as dataSource) {
-<app-box-score-batters [dataSource]="dataSource"></app-box-score-batters>
-}
+<mat-tab-group [(selectedIndex)]="tabIndex">
+    <mat-tab label="Details">
+        <app-game-details [game]="game"></app-game-details>
+    </mat-tab>
+    <mat-tab label="Box Score">
+        @if (battersDataSource(game); as dataSource) {
+        <app-box-score-batters [dataSource]="dataSource" class="game-box"></app-box-score-batters>
+        }
+        @if (pitchersDataSource(game); as dataSource) {
+        <app-box-score-pitchers [dataSource]="dataSource" class="game-box"></app-box-score-pitchers>
+        }
+        @if (fieldersDataSource(game); as dataSource) {
+        <app-box-score-fielders [dataSource]="dataSource" class="game-box"></app-box-score-fielders>
+        }
+    </mat-tab>
+    <mat-tab label="Scorecard">scorecard here!</mat-tab>
+    @if (hasMedia(game)) {
+    <mat-tab label="Media">Photos + videos here</mat-tab>
+    }
+</mat-tab-group>
 } @else {
-loading...
+<mat-spinner></mat-spinner>
 }

@@ -1,0 +1,19 @@
+.game-details {
+    padding-left: 2em;
+    padding-right: 2em;
+
+    dl {
+        display: grid;
+        gap: 0.5em 2em;
+        grid-template-columns: max-content;
+    }
+
+    dt {
+        font-weight: bold;
+    }
+
+    dd {
+        margin: 0;
+        grid-column-start: 2;
+    }
+}
