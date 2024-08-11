@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { BaseballApiService } from '../baseball-api.service';
 import { param } from '../param.decorator';
 import { BASEBALL_ROUTES } from '../app.routes';
@@ -19,6 +19,9 @@ import { GameFielder } from '../contracts/game-fielder';
 import { GamePitcher } from '../contracts/game-pitcher';
 import { BoxScorePitchersComponent } from '../box-score-pitchers/box-score-pitchers.component';
 import { BoxScoreFieldersComponent } from '../box-score-fielders/box-score-fielders.component';
+import { ScorecardComponent } from '../scorecard/scorecard.component';
+import { LivePhoto } from '../contracts/live-photo';
+import { LivePhotoComponent } from '../live-photo/live-photo.component';
 
 @Component({
     selector: 'app-game',
@@ -35,7 +38,9 @@ import { BoxScoreFieldersComponent } from '../box-score-fielders/box-score-field
         GameDetailsComponent,
         BoxScoreBattersComponent,
         BoxScorePitchersComponent,
-        BoxScoreFieldersComponent
+        BoxScoreFieldersComponent,
+        ScorecardComponent,
+        LivePhotoComponent
     ],
     templateUrl: './game.component.html',
     styleUrl: './game.component.scss'
@@ -46,9 +51,11 @@ export class GameComponent implements OnInit {
     gameId$!: Observable<number>
     game$?: Observable<GameDetail>;
 
-    boxScoreOption: BoxScoreOption = BoxScoreOption.awayPitchers;
+    @ViewChild('livephoto') livePhotoDiv?: ElementRef;
+
+    boxScoreOption: BoxScoreOption = BoxScoreOption.homeBatters;
     abbreviateBoxScoreOptions = false;
-    tabIndex: GameTab = GameTab.boxScore;
+    tabIndex: GameTab = GameTab.media;
 
     get boxScoresActive(): boolean {
         return this.tabIndex === GameTab.boxScore;
@@ -106,11 +113,25 @@ export class GameComponent implements OnInit {
             } else {
                 this.abbreviateBoxScoreOptions = false;
             }
-        })
+        });
     }
 
     public hasMedia(game: GameDetail): boolean {
-        return false;
+        return true;
+    }
+
+    scorecardUrl(game: GameDetail): string {
+        return 'https://eschenfeldt-baseball-media.nyc3.cdn.digitaloceanspaces.com/scorecards/scorecard.pdf';
+    }
+    get livePhoto(): LivePhoto {
+        return {
+            photo: {
+                url: 'https://eschenfeldt-baseball-media.nyc3.cdn.digitaloceanspaces.com/live-photos/IMG_4316.HEIC'
+            },
+            video: {
+                url: 'https://eschenfeldt-baseball-media.nyc3.cdn.digitaloceanspaces.com/live-photos/IMG_4316.mov'
+            }
+        }
     }
 
     public get batterLabel(): string {

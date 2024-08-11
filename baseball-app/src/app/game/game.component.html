@@ -1,4 +1,5 @@
 @if (game$ | async; as game) {
+<!-- <div class="game"> -->
 <h5>{{game.name}}</h5>
 <div class="game-teams">
     <mat-card appearance="raised">
@@ -47,26 +48,39 @@
     </mat-card>
 </div>
 
-<mat-tab-group [(selectedIndex)]="tabIndex">
+<mat-tab-group [(selectedIndex)]="tabIndex" dynamicHeight>
     <mat-tab label="Details">
         <app-game-details [game]="game"></app-game-details>
     </mat-tab>
     <mat-tab label="Box Score">
-        @if (battersDataSource(game); as dataSource) {
-        <app-box-score-batters [dataSource]="dataSource" class="game-box"></app-box-score-batters>
-        }
-        @if (pitchersDataSource(game); as dataSource) {
-        <app-box-score-pitchers [dataSource]="dataSource" class="game-box"></app-box-score-pitchers>
-        }
-        @if (fieldersDataSource(game); as dataSource) {
-        <app-box-score-fielders [dataSource]="dataSource" class="game-box"></app-box-score-fielders>
-        }
+        <div class="mat-tab-body-wrapper">
+            @if (battersDataSource(game); as dataSource) {
+            <app-box-score-batters [dataSource]="dataSource" class="game-box"></app-box-score-batters>
+            }
+            @if (pitchersDataSource(game); as dataSource) {
+            <app-box-score-pitchers [dataSource]="dataSource" class="game-box"></app-box-score-pitchers>
+            }
+            @if (fieldersDataSource(game); as dataSource) {
+            <app-box-score-fielders [dataSource]="dataSource" class="game-box"></app-box-score-fielders>
+            }
+        </div>
     </mat-tab>
-    <mat-tab label="Scorecard">scorecard here!</mat-tab>
+    <mat-tab label="Scorecard">
+        <app-scorecard [game]="game"></app-scorecard>
+    </mat-tab>
     @if (hasMedia(game)) {
-    <mat-tab label="Media">Photos + videos here</mat-tab>
+    <mat-tab label="Media">
+        <div class="mat-tab-body-wrapper">
+            <app-live-photo [photo]="livePhoto"></app-live-photo>
+        </div>
+        <!-- <video controls src="https://eschenfeldt-baseball-media.nyc3.cdn.digitaloceanspaces.com/video/IMG_4244.mov"
+            width="100%"></video> -->
+        <!-- <img src="https://eschenfeldt-baseball-media.nyc3.cdn.digitaloceanspaces.com/images/IMG_4307.jpeg"
+            alt="test image" width="100%"> -->
+    </mat-tab>
     }
 </mat-tab-group>
+<!-- </div> -->
 } @else {
 <mat-spinner></mat-spinner>
 }

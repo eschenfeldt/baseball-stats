@@ -1,4 +1,5 @@
 ﻿using System.Security.Policy;
+using BaseballApi.Models;
 
 namespace BaseballApi;
 
@@ -13,4 +14,6 @@ public class Player
     public string? LastName { get; set; }
     public string? Suffix { get; set; }
     public Uri? FangraphsPage { get; set; }
+
+    public ICollection<MediaResource> Media { get; set; } = [];
 }

@@ -1,8 +1,10 @@
 ﻿using BaseballApi;
 using BaseballApi.Contracts;
 using BaseballApi.Controllers;
+using BaseballApi.Import;
 using BaseballApi.Models;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 
 namespace BaseballApiTests;
@@ -15,9 +17,12 @@ public class ImportTests(TestImportDatabaseFixture fixture) : IClassFixture<Test
     public async void TestImportGameViaController()
     {
         using BaseballContext context = Fixture.CreateContext();
-        var gamesController = new GamesController(context);
+        RemoteFileManager remoteFileManager = new(nameof(ImportTests));
+        var gamesController = new GamesController(context, remoteFileManager);
         var playerController = new PlayerController(context);
         var teamsController = new TeamsController(context);
+
+        var remoteValidator = new RemoteFileValidator(remoteFileManager);
 
         // add one of the teams and players from the test game before importingto be sure the importer doesn't duplicate them
         context.Teams.Add(new Team { City = "Washington", Name = "Nationals" });
@@ -65,7 +70,7 @@ public class ImportTests(TestImportDatabaseFixture fixture) : IClassFixture<Test
 
         await gamesController.ImportGame(files, JsonConvert.SerializeObject(metadata));
 
-        async Task ValidateGameInDb(DateTimeOffset expectedActualStart)
+        async Task<GameDetail> ValidateGameInDb(DateTimeOffset expectedActualStart)
         {
             var games = await gamesController.GetGames(0, 2);
             Assert.NotNull(games.Value);
@@ -82,7 +87,7 @@ public class ImportTests(TestImportDatabaseFixture fixture) : IClassFixture<Test
             Assert.Equal(0, gameSummary.HomeScore);
 
             var gameTask = await gamesController.GetGame(gameSummary.Id);
-            Assert.NotNull(gameTask.Value);
+            Assert.NotNull(gameTask);
             var game = gameTask.Value;
             Assert.Equal("7/8/24 St. Louis Cardinals at Washington Nationals", game.Name);
             Assert.Equal("St. Louis Cardinals", game.AwayTeamName);
@@ -92,6 +97,12 @@ public class ImportTests(TestImportDatabaseFixture fixture) : IClassFixture<Test
             Assert.Equal(end, game.EndTime);
             Assert.Equal(6, game.AwayScore);
             Assert.Equal(0, game.HomeScore);
+            Assert.NotNull(game.Scorecard);
+            var scorecardFile = game.Scorecard.Value.File;
+            Assert.NotEqual(Guid.Empty, scorecardFile.AssetIdentifier);
+            Assert.Equal(".pdf", scorecardFile.Extension);
+            Assert.Equal("scorecard.pdf", scorecardFile.OriginalFileName);
+            await remoteValidator.ValidateFileExists(scorecardFile);
 
             // validate box scores
             Assert.NotNull(game.HomeBoxScore);
@@ -113,9 +124,12 @@ public class ImportTests(TestImportDatabaseFixture fixture) : IClassFixture<Test
             Assert.Equal(9, game.AwayBoxScore.Value.Batters.Count);
             Assert.Equal(3, game.AwayBoxScore.Value.Pitchers.Count);
             Assert.Equal(11, game.AwayBoxScore.Value.Fielders.Count);
+
+            return game;
         }
 
-        await ValidateGameInDb(actual);
+        var originalGameDetail = await ValidateGameInDb(actual);
+        var originalScorecardFile = originalGameDetail.Scorecard!.Value.File;
 
         async Task ValidatePlayers()
         {
@@ -147,9 +161,19 @@ public class ImportTests(TestImportDatabaseFixture fixture) : IClassFixture<Test
 
         await gamesController.ImportGame(files, JsonConvert.SerializeObject(metadata));
 
-        await ValidateGameInDb(newStartTime);
+        await remoteValidator.ValidateFileDeleted(originalScorecardFile);
+
+        var newGameDetail = await ValidateGameInDb(newStartTime);
         await ValidateTeams();
         await ValidatePlayers();
+
+        var scoreCard = newGameDetail.Scorecard;
+        Assert.NotNull(scoreCard);
+        var scoreCardResource = await context.Scorecards.FirstOrDefaultAsync(s => s.AssetIdentifier == scoreCard.Value.File.AssetIdentifier);
+        Assert.NotNull(scoreCardResource);
+        await remoteFileManager.DeleteResource(scoreCardResource);
+
+        await remoteValidator.ValidateFileDeleted(scoreCard.Value.File);
     }
 
 

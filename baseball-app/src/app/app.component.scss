@@ -2,6 +2,13 @@
     height: 100%;
 }
 
+.sidenav-content {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    // overflow: hidden;
+}
+
 .sidenav {
     width: 200px;
 }
@@ -14,4 +21,9 @@
     position: sticky;
     top: 0;
     z-index: 1;
+}
+
+.content-wrapper {
+    flex: auto;
+    min-height: 0;
 }

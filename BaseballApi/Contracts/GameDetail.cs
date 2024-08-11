@@ -19,6 +19,8 @@ public struct GameDetail(Game game)
     public DateTimeOffset? StartTime { get; set; } = game.StartTime;
     public DateTimeOffset? EndTime { get; set; } = game.EndTime;
     public Park? Location { get; set; } = game.Location;
+    public readonly ScorecardDetail? Scorecard => game.Scorecard != null ? new(game.Scorecard) : null;
+    public readonly bool HasMedia => game.Media.Count != 0;
     public int? HomeScore { get; set; } = game.HomeScore;
     public int? AwayScore { get; set; } = game.AwayScore;
     public Team? WinningTeam { get; set; } = game.WinningTeam;
