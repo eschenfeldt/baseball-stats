@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BaseballApi.Migrations
 {
     /// <inheritdoc />
-    public partial class RemoteResources : Migration
+    public partial class RemoteResource : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -16,6 +16,12 @@ namespace BaseballApi.Migrations
                 name: "ColorHex",
                 table: "Teams",
                 type: "text",
+                nullable: true);
+
+            migrationBuilder.AddColumn<long>(
+                name: "ScorecardId",
+                table: "Games",
+                type: "bigint",
                 nullable: true);
 
             migrationBuilder.CreateTable(
@@ -27,20 +33,16 @@ namespace BaseballApi.Migrations
                     AssetIdentifier = table.Column<Guid>(type: "uuid", nullable: false),
                     DateTime = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     OriginalFileName = table.Column<string>(type: "text", nullable: false),
-                    GameId = table.Column<long>(type: "bigint", nullable: true),
                     Discriminator = table.Column<string>(type: "character varying(21)", maxLength: 21, nullable: false),
-                    ResourceType = table.Column<int>(type: "integer", nullable: true)
+                    Favorite = table.Column<bool>(type: "boolean", nullable: true),
+                    ResourceType = table.Column<int>(type: "integer", nullable: true),
+                    GameId = table.Column<long>(type: "bigint", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_RemoteResource", x => x.Id);
                     table.ForeignKey(
                         name: "FK_RemoteResource_Games_GameId",
-                        column: x => x.GameId,
-                        principalTable: "Games",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_RemoteResource_Games_GameId1",
                         column: x => x.GameId,
                         principalTable: "Games",
                         principalColumn: "Id");
@@ -93,6 +95,12 @@ namespace BaseballApi.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_Games_ScorecardId",
+                table: "Games",
+                column: "ScorecardId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_MediaResourcePlayer_PlayersId",
                 table: "MediaResourcePlayer",
                 column: "PlayersId");
@@ -107,16 +115,21 @@ namespace BaseballApi.Migrations
                 table: "RemoteResource",
                 column: "GameId");
 
-            migrationBuilder.CreateIndex(
-                name: "IX_RemoteResource_GameId1",
-                table: "RemoteResource",
-                column: "GameId",
-                unique: true);
+            migrationBuilder.AddForeignKey(
+                name: "FK_Games_RemoteResource_ScorecardId",
+                table: "Games",
+                column: "ScorecardId",
+                principalTable: "RemoteResource",
+                principalColumn: "Id");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropForeignKey(
+                name: "FK_Games_RemoteResource_ScorecardId",
+                table: "Games");
+
             migrationBuilder.DropTable(
                 name: "MediaResourcePlayer");
 
@@ -126,9 +139,17 @@ namespace BaseballApi.Migrations
             migrationBuilder.DropTable(
                 name: "RemoteResource");
 
+            migrationBuilder.DropIndex(
+                name: "IX_Games_ScorecardId",
+                table: "Games");
+
             migrationBuilder.DropColumn(
                 name: "ColorHex",
                 table: "Teams");
+
+            migrationBuilder.DropColumn(
+                name: "ScorecardId",
+                table: "Games");
         }
     }
 }

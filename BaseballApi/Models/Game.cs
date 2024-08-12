@@ -35,5 +35,6 @@ public class Game
     public Player? SavingPitcher { get; set; }
 
     public Scorecard? Scorecard { get; set; }
+    public long? ScorecardId { get; set; }
     public ICollection<MediaResource> Media { get; set; } = [];
 }

@@ -11,5 +11,4 @@ public class RemoteResource
     public ICollection<RemoteFile> Files { get; } = [];
 
     public Game? Game { get; set; }
-    public long? GameId { get; set; }
 }

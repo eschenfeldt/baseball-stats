@@ -57,6 +57,7 @@ struct TeamImporter {
             .set("ExternalId", to: team.ExternalId)
             .set("City", to: team.City)
             .set("Name", to: team.Name)
+            .set("ColorHex", to: team.ColorHex)
             .where("Id", .equal, id)
             .run()
     }

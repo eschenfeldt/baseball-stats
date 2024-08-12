@@ -338,6 +338,9 @@ namespace BaseballApi.Migrations
                     b.Property<DateTimeOffset?>("ScheduledTime")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<long?>("ScorecardId")
+                        .HasColumnType("bigint");
+
                     b.Property<DateTimeOffset?>("StartTime")
                         .HasColumnType("timestamp with time zone");
 
@@ -368,6 +371,9 @@ namespace BaseballApi.Migrations
                     b.HasIndex("LosingTeamId");
 
                     b.HasIndex("SavingPitcherId");
+
+                    b.HasIndex("ScorecardId")
+                        .IsUnique();
 
                     b.HasIndex("WinningPitcherId");
 
@@ -422,9 +428,6 @@ namespace BaseballApi.Migrations
                         .IsRequired()
                         .HasMaxLength(21)
                         .HasColumnType("character varying(21)");
-
-                    b.Property<long?>("GameId")
-                        .HasColumnType("bigint");
 
                     b.Property<string>("OriginalFileName")
                         .IsRequired()
@@ -649,6 +652,12 @@ namespace BaseballApi.Migrations
                 {
                     b.HasBaseType("BaseballApi.Models.RemoteResource");
 
+                    b.Property<bool>("Favorite")
+                        .HasColumnType("boolean");
+
+                    b.Property<long?>("GameId")
+                        .HasColumnType("bigint");
+
                     b.Property<int>("ResourceType")
                         .HasColumnType("integer");
 
@@ -660,10 +669,6 @@ namespace BaseballApi.Migrations
             modelBuilder.Entity("BaseballApi.Models.Scorecard", b =>
                 {
                     b.HasBaseType("BaseballApi.Models.RemoteResource");
-
-                    b.HasIndex("GameId")
-                        .IsUnique()
-                        .HasDatabaseName("IX_RemoteResource_GameId1");
 
                     b.HasDiscriminator().HasValue("Scorecard");
                 });
@@ -777,6 +782,10 @@ namespace BaseballApi.Migrations
                         .WithMany()
                         .HasForeignKey("SavingPitcherId");
 
+                    b.HasOne("BaseballApi.Models.Scorecard", "Scorecard")
+                        .WithOne("Game")
+                        .HasForeignKey("BaseballApi.Models.Game", "ScorecardId");
+
                     b.HasOne("BaseballApi.Player", "WinningPitcher")
                         .WithMany()
                         .HasForeignKey("WinningPitcherId");
@@ -800,6 +809,8 @@ namespace BaseballApi.Migrations
                     b.Navigation("LosingTeam");
 
                     b.Navigation("SavingPitcher");
+
+                    b.Navigation("Scorecard");
 
                     b.Navigation("WinningPitcher");
 
@@ -869,16 +880,6 @@ namespace BaseballApi.Migrations
                     b.Navigation("Game");
                 });
 
-            modelBuilder.Entity("BaseballApi.Models.Scorecard", b =>
-                {
-                    b.HasOne("BaseballApi.Models.Game", "Game")
-                        .WithOne("Scorecard")
-                        .HasForeignKey("BaseballApi.Models.Scorecard", "GameId")
-                        .HasConstraintName("FK_RemoteResource_Games_GameId1");
-
-                    b.Navigation("Game");
-                });
-
             modelBuilder.Entity("BaseballApi.BoxScore", b =>
                 {
                     b.Navigation("Batters");
@@ -893,8 +894,6 @@ namespace BaseballApi.Migrations
                     b.Navigation("BoxScores");
 
                     b.Navigation("Media");
-
-                    b.Navigation("Scorecard");
                 });
 
             modelBuilder.Entity("BaseballApi.Models.RemoteResource", b =>
@@ -910,6 +909,11 @@ namespace BaseballApi.Migrations
             modelBuilder.Entity("BaseballApi.Team", b =>
                 {
                     b.Navigation("AlternateTeamNames");
+                });
+
+            modelBuilder.Entity("BaseballApi.Models.Scorecard", b =>
+                {
+                    b.Navigation("Game");
                 });
 #pragma warning restore 612, 618
         }
