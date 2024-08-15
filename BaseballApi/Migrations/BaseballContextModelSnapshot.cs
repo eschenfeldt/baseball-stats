@@ -407,6 +407,9 @@ namespace BaseballApi.Migrations
 
                     b.HasIndex("ResourceId");
 
+                    b.HasIndex("ResourceId", "NameModifier", "Extension")
+                        .IsUnique();
+
                     b.ToTable("RemoteFile");
                 });
 
@@ -434,6 +437,9 @@ namespace BaseballApi.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("AssetIdentifier")
+                        .IsUnique();
 
                     b.ToTable("RemoteResource");
 

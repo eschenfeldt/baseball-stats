@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BaseballApi.Migrations
 {
     /// <inheritdoc />
-    public partial class RemoteResource : Migration
+    public partial class RemoteResources : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -109,6 +109,18 @@ namespace BaseballApi.Migrations
                 name: "IX_RemoteFile_ResourceId",
                 table: "RemoteFile",
                 column: "ResourceId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_RemoteFile_ResourceId_NameModifier_Extension",
+                table: "RemoteFile",
+                columns: new[] { "ResourceId", "NameModifier", "Extension" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_RemoteResource_AssetIdentifier",
+                table: "RemoteResource",
+                column: "AssetIdentifier",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_RemoteResource_GameId",

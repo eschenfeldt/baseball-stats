@@ -1,7 +1,9 @@
 using System;
+using Microsoft.EntityFrameworkCore;
 
 namespace BaseballApi.Models;
 
+[Index(nameof(AssetIdentifier), IsUnique = true)]
 public class RemoteResource
 {
     public long Id { get; set; }

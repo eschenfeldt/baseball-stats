@@ -1,0 +1,124 @@
+from dataclasses import dataclass
+import json
+import psycopg
+from psycopg.rows import dict_row
+from path_management import Game, PathManager
+from osxphotos import PhotoInfo
+import os
+from datetime import date
+
+@dataclass
+class PostgresConfig:
+    hostname: str
+    database: str
+    username: str
+    password: str
+
+    def connection_info(self) -> str:
+        return f'postgresql://{self.username}:{self.password}@{self.hostname}/{self.database}'
+
+
+class DbConnector:
+
+    def __init__(self, path: str, path_manager: PathManager, name_modifiers: list[str]):
+        self._name_modifiers = name_modifiers
+        self._path_manager = path_manager
+        with open(path, 'r') as config_file:
+            config_dict = json.loads(config_file.read())
+        self.__config = PostgresConfig(**config_dict)
+
+
+    def get_games(self, from_date: date = None, to_date: date = None) -> list[Game]:
+        with psycopg.connect(self.__config.connection_info()) as connection:
+            with connection.cursor(row_factory=dict_row) as cursor:
+                games_q = cursor.execute('SELECT "Id", "Name", "Date", "ScheduledTime", "StartTime", "EndTime" FROM "Games"')
+                games = games_q.fetchall()
+                results = [Game(**g) for g in games]
+        
+        if from_date:
+            results = [g for g in results if g.Date >= from_date]
+        if to_date:
+            results = [g for g in results if g.Date <= to_date]
+
+        return results
+            
+    def resource_type(self, photo: PhotoInfo) -> int:
+        if photo.ismovie:
+            return 4
+        elif photo.live_photo:
+            return 3
+        elif photo.isphoto:
+            return 2
+        else:
+            return 0
+    
+    def get_params(self, gameId: int, photo: PhotoInfo) -> tuple:
+        return (
+            photo.uuid, 
+            photo.date, 
+            photo.original_filename, 
+            gameId, 
+            'MediaResource', 
+            self.resource_type(photo),
+            photo.favorite
+        )
+
+    def get_name_modifier(self, name: str) -> str:
+        split_name = name.split('_')
+        if split_name[-1] in self._name_modifiers:
+            return split_name[-1]
+        else:
+            return None
+
+    def get_file_purpose(self, name_modifier: str | None, ext: str, photo: PhotoInfo) -> tuple[int, str]:
+        if photo.ismovie and ext == '.jpeg':
+            return 2 # Thumbnail
+        elif name_modifier is not None:
+            return 2 # Thumbnail
+        else:
+            return 1 # Original
+
+    def get_file_params(self, resourceId: int, photo: PhotoInfo) -> list[tuple]:
+        out_dir = self._path_manager.temp_dir(photo)
+        results = []
+        for file in os.listdir(out_dir):
+            name, ext = os.path.splitext(os.path.basename(file))
+            name_modifier = self.get_name_modifier(name)
+            file_purpose = self.get_file_purpose(name_modifier, ext, photo)
+            
+            results.append((resourceId, file_purpose, name_modifier, ext))
+        return results
+    
+
+    def import_files(self, resourceId: int, photo: PhotoInfo, cursor):
+        statement = """
+            INSERT INTO "RemoteFile"("ResourceId", 
+                                        "Purpose", 
+                                        "NameModifier", 
+                                        "Extension") 
+            VALUES (%s, %s, %s, %s)
+        """
+        for params in self.get_file_params(resourceId, photo):
+            cursor.execute(statement, params)
+
+    def import_resources(self, gameId: int, photos: list[PhotoInfo]):
+        statement = """
+            INSERT INTO "RemoteResource"("AssetIdentifier", 
+                                        "DateTime", 
+                                        "OriginalFileName", 
+                                        "GameId", 
+                                        "Discriminator", 
+                                        "ResourceType", 
+                                        "Favorite") 
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            RETURNING "Id"
+        """
+        with psycopg.connect(self._config.connection_info()) as connection:
+            with connection.cursor() as cursor:
+                for photo in photos:
+                    params = self.get_params(gameId, photo)
+                    cursor.execute(statement, params)
+                    id = cursor.fetchone()[0]
+                    self.import_files(id, photo, cursor)
+            
+            connection.commit()

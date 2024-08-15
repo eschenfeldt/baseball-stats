@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BaseballApi.Migrations
 {
     [DbContext(typeof(BaseballContext))]
-    [Migration("20240812023127_RemoteResource")]
-    partial class RemoteResource
+    [Migration("20240815014411_RemoteResources")]
+    partial class RemoteResources
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -410,6 +410,9 @@ namespace BaseballApi.Migrations
 
                     b.HasIndex("ResourceId");
 
+                    b.HasIndex("ResourceId", "NameModifier", "Extension")
+                        .IsUnique();
+
                     b.ToTable("RemoteFile");
                 });
 
@@ -437,6 +440,9 @@ namespace BaseballApi.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("AssetIdentifier")
+                        .IsUnique();
 
                     b.ToTable("RemoteResource");
 
