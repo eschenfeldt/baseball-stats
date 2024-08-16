@@ -12,5 +12,6 @@ public struct RemoteFileDetail(RemoteFile file)
     public string? NameModifier { get; set; } = file.NameModifier;
     public string Extension { get; set; } = file.Extension;
     public string OriginalFileName { get; set; } = file.Resource.OriginalFileName;
-    public readonly string Key => $"{AssetIdentifier}/{this.Purpose.BaseFileName()}{this.NameModifier}{this.Extension}";
+    private readonly string NameModifierForKey => this.NameModifier == null ? "" : $"_{this.NameModifier}";
+    public readonly string Key => $"{AssetIdentifier}/{this.Purpose.BaseFileName()}{this.NameModifierForKey}{this.Extension}";
 }

@@ -20,8 +20,7 @@ class PostgresConfig:
 
 class DbConnector:
 
-    def __init__(self, path: str, path_manager: PathManager, name_modifiers: list[str]):
-        self._name_modifiers = name_modifiers
+    def __init__(self, path: str, path_manager: PathManager):
         self._path_manager = path_manager
         with open(path, 'r') as config_file:
             config_dict = json.loads(config_file.read())
@@ -41,6 +40,35 @@ class DbConnector:
             results = [g for g in results if g.Date <= to_date]
 
         return results
+
+    def get_db_id(self, photo_uuid: str) -> int | None:
+        statement = """
+        SELECT "Id"
+        FROM "RemoteResource"
+        WHERE "RemoteResource"."AssetIdentifier" = %s
+        """
+        with psycopg.connect(self.__config.connection_info()) as connection:
+            with connection.cursor() as cursor:
+                result = cursor.execute(statement, (photo_uuid,))
+                id = result.fetchone()
+                if id:
+                    return id[0]
+                else:
+                    return None
+            
+    def file_exists(self, photo_uuid: str, name_modifier: str, ext: str) -> bool:
+        statement = """
+        SELECT COUNT(*)
+        FROM "RemoteResource"
+        JOIN "RemoteFile" ON "RemoteResource"."Id" = "RemoteFile"."ResourceId"
+        WHERE "RemoteResource"."AssetIdentifier" = %s
+            AND "RemoteFile"."NameModifier" = %s
+            AND "RemoteFile"."Extension" = %s
+        """
+        with psycopg.connect(self.__config.connection_info()) as connection:
+            with connection.cursor() as cursor:
+                count = cursor.execute(statement, (photo_uuid, name_modifier, ext))
+                return count.fetchone()[0] > 0
             
     def resource_type(self, photo: PhotoInfo) -> int:
         if photo.ismovie:
@@ -63,14 +91,7 @@ class DbConnector:
             photo.favorite
         )
 
-    def get_name_modifier(self, name: str) -> str:
-        split_name = name.split('_')
-        if split_name[-1] in self._name_modifiers:
-            return split_name[-1]
-        else:
-            return None
-
-    def get_file_purpose(self, name_modifier: str | None, ext: str, photo: PhotoInfo) -> tuple[int, str]:
+    def get_file_purpose(self, name_modifier: str | None, ext: str, photo: PhotoInfo) -> int:
         if photo.ismovie and ext == '.jpeg':
             return 2 # Thumbnail
         elif name_modifier is not None:
@@ -78,19 +99,19 @@ class DbConnector:
         else:
             return 1 # Original
 
-    def get_file_params(self, resourceId: int, photo: PhotoInfo) -> list[tuple]:
-        out_dir = self._path_manager.temp_dir(photo)
+    def get_file_params(self, resourceId: int, game: Game, photo: PhotoInfo) -> list[tuple]:
+        out_dir = self._path_manager.temp_dir(game, photo)
         results = []
         for file in os.listdir(out_dir):
             name, ext = os.path.splitext(os.path.basename(file))
-            name_modifier = self.get_name_modifier(name)
+            name_modifier = self._path_manager.get_name_modifier(name)
             file_purpose = self.get_file_purpose(name_modifier, ext, photo)
             
             results.append((resourceId, file_purpose, name_modifier, ext))
         return results
     
 
-    def import_files(self, resourceId: int, photo: PhotoInfo, cursor):
+    def import_files(self, resourceId: int, game: Game, photo: PhotoInfo, cursor):
         statement = """
             INSERT INTO "RemoteFile"("ResourceId", 
                                         "Purpose", 
@@ -98,10 +119,11 @@ class DbConnector:
                                         "Extension") 
             VALUES (%s, %s, %s, %s)
         """
-        for params in self.get_file_params(resourceId, photo):
-            cursor.execute(statement, params)
+        for params in self.get_file_params(resourceId, game, photo):
+            if not self.file_exists(photo.uuid, params[2], params[3]):
+                cursor.execute(statement, params)
 
-    def import_resources(self, gameId: int, photos: list[PhotoInfo]):
+    def import_resources(self, game: Game, photos: list[PhotoInfo]):
         statement = """
             INSERT INTO "RemoteResource"("AssetIdentifier", 
                                         "DateTime", 
@@ -113,12 +135,14 @@ class DbConnector:
             VALUES (%s, %s, %s, %s, %s, %s, %s)
             RETURNING "Id"
         """
-        with psycopg.connect(self._config.connection_info()) as connection:
+        with psycopg.connect(self.__config.connection_info()) as connection:
             with connection.cursor() as cursor:
                 for photo in photos:
-                    params = self.get_params(gameId, photo)
-                    cursor.execute(statement, params)
-                    id = cursor.fetchone()[0]
-                    self.import_files(id, photo, cursor)
+                    id = self.get_db_id(photo.uuid)
+                    if id is None:
+                        params = self.get_params(game.Id, photo)
+                        cursor.execute(statement, params)
+                        id = cursor.fetchone()[0]
+                    self.import_files(id, game, photo, cursor)
             
             connection.commit()

@@ -14,7 +14,8 @@ class Game:
 
 class PathManager:
 
-    def __init__(self):
+    def __init__(self, name_modifiers: list[str]):
+        self._name_modifiers = name_modifiers
         self.root = os.path.join('.', 'exported')
 
     def base_dir(self, game: Game) -> str:
@@ -34,3 +35,10 @@ class PathManager:
         if not os.path.exists(out_dir):
             os.makedirs(out_dir)
         return out_dir
+    
+    def get_name_modifier(self, name: str) -> str:
+        split_name = name.split('_')
+        if split_name[-1] in self._name_modifiers:
+            return split_name[-1]
+        else:
+            return None

@@ -5,6 +5,7 @@
 **/.DS_Store
 xcuserdata/
 *.postgres_config
+*.bucket_config
 .Python
 [Bb]in
 [Ii]nclude

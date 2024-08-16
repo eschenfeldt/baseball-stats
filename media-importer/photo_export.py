@@ -18,9 +18,12 @@ class PhotoExporter:
         for p in photos:
             self.export(p, game)
 
+    def get_exported_photos_for_game(self, game: Game) -> list[PhotoInfo]:
+        return [p for p in self.get_photos_for_game(game) if p.uuid in self.export_paths]
+
     def get_photos_to_thumbnail(self, game: Game) -> list[ThumbnailParams]:
         
-        photos = [p for p in self.get_photos_for_game(game) if p.uuid in self.export_paths]
+        photos = self.get_exported_photos_for_game(game)
         if len(photos) == 0:
             return []
         
@@ -38,8 +41,22 @@ class PhotoExporter:
         return to_thumbnail
     
     def get_photos_to_upload(self, game: Game) -> list[PhotoInfo]:
-        # make sure they actually exported and got thumbnailed
-        return []
+        photos = self.get_exported_photos_for_game(game)
+        if len(photos) == 0:
+            return []
+        
+        preview_dir = self._paths.preview_dir(game)
+        remaining_previews = set(os.listdir(preview_dir))
+        
+        to_upload: list[PhotoInfo] = []
+        for photo in photos:
+            export_path = self.export_paths[photo.uuid]
+            ext = os.path.splitext(export_path)[1]
+            preview_name = f'{photo.uuid}{ext}'
+            if preview_name in remaining_previews:
+                to_upload.append(photo)
+        
+        return to_upload
 
     def get_photos_for_game(self, game: Game) -> list[PhotoInfo]:
         start_time = game.StartTime + timedelta(hours=-3)
