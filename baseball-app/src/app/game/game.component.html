@@ -71,7 +71,7 @@
     @if (hasMedia(game)) {
     <mat-tab label="Media">
         <div class="mat-tab-body-wrapper">
-            <app-live-photo [photo]="livePhoto"></app-live-photo>
+            <app-media-gallery [gameId]="game.id"></app-media-gallery>
         </div>
         <!-- <video controls src="https://eschenfeldt-baseball-media.nyc3.cdn.digitaloceanspaces.com/video/IMG_4244.mov"
             width="100%"></video> -->

@@ -7,6 +7,7 @@ import { GameComponent } from './game/game.component';
 import { TeamsComponent } from './teams/teams.component';
 import { TeamComponent } from './team/team.component';
 import { PlayerComponent } from './player/player.component';
+import { MediaCarouselComponent } from './media-carousel/media-carousel.component';
 
 export const BASEBALL_ROUTES = <const>{
     HOME: 'home',
@@ -16,7 +17,8 @@ export const BASEBALL_ROUTES = <const>{
     TEAM: 'team/:teamId',
     LEADERS: 'leaders',
     PLAYER: 'player/:playerId',
-    ADMIN: 'admin'
+    ADMIN: 'admin',
+    MEDIA: 'media/:assetIdentifier'
 }
 
 export const routes: Routes = [
@@ -28,5 +30,6 @@ export const routes: Routes = [
     { path: BASEBALL_ROUTES.LEADERS, component: LeadersComponent },
     { path: BASEBALL_ROUTES.PLAYER, component: PlayerComponent },
     { path: BASEBALL_ROUTES.ADMIN, component: AdminViewComponent },
-    { path: '', redirectTo: 'home', pathMatch: 'full' }
+    { path: BASEBALL_ROUTES.MEDIA, component: MediaCarouselComponent },
+    { path: '', redirectTo: BASEBALL_ROUTES.HOME, pathMatch: 'full' }
 ];

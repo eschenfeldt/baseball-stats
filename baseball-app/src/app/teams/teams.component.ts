@@ -1,10 +1,8 @@
 import { Component, ViewChild } from '@angular/core';
 import { BaseballTableComponent } from '../baseball-table-component';
 import { PagedApiParameters } from '../paged-api-parameters';
-import { Team } from '../contracts/team';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
-import { BaseballDataSource } from '../baseball-data-source';
 import { ApiMethod, BaseballApiService } from '../baseball-api.service';
 import { TeamsDataSource, TeamSummary } from './teams-datasource';
 import { MatTableModule } from '@angular/material/table';
@@ -33,7 +31,7 @@ import { BaseballFilterService, BaseballApiFilter } from '../baseball-filter.ser
 export class TeamsComponent extends BaseballTableComponent<PagedApiParameters, TeamSummary> {
 
     @ViewChild(MatPaginator)
-    protected paginator!: MatPaginator;
+    protected paginator!: MatPaginator
     @ViewChild(MatSort)
     protected sort!: MatSort;
 

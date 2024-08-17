@@ -22,6 +22,7 @@ import { BoxScoreFieldersComponent } from '../box-score-fielders/box-score-field
 import { ScorecardComponent } from '../scorecard/scorecard.component';
 import { LivePhoto } from '../contracts/live-photo';
 import { LivePhotoComponent } from '../live-photo/live-photo.component';
+import { MediaGalleryComponent } from '../media-gallery/media-gallery.component';
 
 @Component({
     selector: 'app-game',
@@ -40,7 +41,7 @@ import { LivePhotoComponent } from '../live-photo/live-photo.component';
         BoxScorePitchersComponent,
         BoxScoreFieldersComponent,
         ScorecardComponent,
-        LivePhotoComponent
+        MediaGalleryComponent
     ],
     templateUrl: './game.component.html',
     styleUrl: './game.component.scss'
