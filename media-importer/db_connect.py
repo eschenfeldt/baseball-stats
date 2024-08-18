@@ -40,6 +40,60 @@ class DbConnector:
             results = [g for g in results if g.Date <= to_date]
 
         return results
+    
+    def get_game_by_id(self, id: int) -> Game:
+        statement = 'SELECT "Id", "Name", "Date", "ScheduledTime", "StartTime", "EndTime" FROM "Games" WHERE "Id" = %s'
+        with psycopg.connect(self.__config.connection_info()) as connection:
+            with connection.cursor(row_factory=dict_row) as cursor:
+                games_q = cursor.execute(statement, (id,))
+                g = games_q.fetchone()
+                return Game(**g)
+    
+    def get_game_by_name(self, name: str) -> int | None:
+        statement = """
+        SELECT "Id"
+        FROM "Games"
+        WHERE "Games"."Name" = %s
+        """
+        with psycopg.connect(self.__config.connection_info()) as connection:
+            with connection.cursor() as cursor:
+                result = cursor.execute(statement, (name,))
+                id = result.fetchone()
+                if id:
+                    return id[0]
+                else:
+                    return None
+                
+    def get_game_by_date(self, date: date) -> int | None:
+        statement = """
+        SELECT "Id"
+        FROM "Games"
+        WHERE "Games"."Date" = %s
+        """
+        with psycopg.connect(self.__config.connection_info()) as connection:
+            with connection.cursor() as cursor:
+                result = cursor.execute(statement, (date,))
+                ids = result.fetchall()
+                if ids and len(ids) == 1:
+                    # if there are multiple games on the same day don't return any of them
+                    return ids[0][0]
+                else:
+                    return None
+                
+    def has_scorecard(self, game_id) -> bool:
+        statement = """
+        SELECT "ScorecardId"
+        FROM "Games"
+        WHERE "Games"."Id" = %s
+        """
+        with psycopg.connect(self.__config.connection_info()) as connection:
+            with connection.cursor() as cursor:
+                result = cursor.execute(statement, (game_id,))
+                id = result.fetchone()
+                if id:
+                    return id[0] is not None
+                else:
+                    return False
 
     def get_db_id(self, photo_uuid: str) -> int | None:
         statement = """
@@ -146,3 +200,39 @@ class DbConnector:
                     self.import_files(id, game, photo, cursor)
             
             connection.commit()
+
+    def import_scorecard_file(self, resource_id: int, ext: str, cursor):
+        statement = """
+            INSERT INTO "RemoteFile"("ResourceId", 
+                                        "Purpose", 
+                                        "NameModifier", 
+                                        "Extension") 
+            VALUES (%s, %s, %s, %s)
+        """
+        params = (resource_id, 1, None, ext)
+        cursor.execute(statement, params)
+
+    def import_scorecard(self, game: Game, identifier: str, original_name: str, ext: str):
+        statement = """
+            INSERT INTO "RemoteResource"("AssetIdentifier", 
+                                        "DateTime", 
+                                        "OriginalFileName", 
+                                        "GameId", 
+                                        "Discriminator", 
+                                        "ResourceType", 
+                                        "Favorite") 
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            RETURNING "Id"
+        """
+        update_statement = """
+        UPDATE "Games"
+        SET "ScorecardId" = %s
+        WHERE "Id" = %s
+        """
+        with psycopg.connect(self.__config.connection_info()) as connection:
+            with connection.cursor() as cursor:
+                params = (identifier, game.EndTime, original_name, game.Id, 'Scorecard', 1, False)
+                cursor.execute(statement, params)
+                id = cursor.fetchone()[0]
+                self.import_scorecard_file(id, ext, cursor)
+                cursor.execute(update_statement, (id, game.Id))

@@ -125,7 +125,7 @@ export class GameComponent implements OnInit {
     }
 
     public hasMedia(game: GameDetail): boolean {
-        return true;
+        return game.hasMedia;
     }
 
     scorecardUrl(game: GameDetail): string {

@@ -25,7 +25,7 @@ struct Team : Codable {
     }
     
     static let compoundCityStarts = Set<String>([
-        "Los", "Las", "San", "St.", "Great", "New", "Quad", "Lake", "Kane"
+        "Los", "Las", "San", "St.", "Great", "New", "Quad", "Lake", "Kane", "Tampa"
     ])
     
     static func withParsedName(team: Team) -> Team {

@@ -54,10 +54,13 @@ class BucketConnector:
         request = requests.head(f'{base}/{key}')
         return request.status_code == 200
     
-    def upload_file(self, path: str, photo: PhotoInfo, name_modifier: str, ext: str):
+    def upload_by_key(self, path: str, key: str):
         client = self.get_client()
-        key = self.get_key(photo, name_modifier, ext)
         client.upload_file(path, self.__config.bucket, key, ExtraArgs={'ACL':'public-read'})
+
+    def upload_file(self, path: str, photo: PhotoInfo, name_modifier: str, ext: str):
+        key = self.get_key(photo, name_modifier, ext)
+        self.upload_by_key(path, key)
 
     def upload_all_files(self, root_path: str, photo: PhotoInfo):
         for file in os.listdir(root_path):

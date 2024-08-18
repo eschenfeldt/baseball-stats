@@ -3,7 +3,8 @@ import { GameSummary } from "./game-summary";
 import { ScorecardDetail } from "./scorecard-detail";
 
 export interface GameDetail extends GameSummary {
-    scorecard?: ScorecardDetail
+    scorecard?: ScorecardDetail;
+    hasMedia: boolean;
     awayBoxScore: BoxScoreDetail;
     homeBoxScore: BoxScoreDetail;
 }
