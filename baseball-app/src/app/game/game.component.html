@@ -1,5 +1,4 @@
 @if (game$ | async; as game) {
-<!-- <div class="game"> -->
 <h5>{{game.name}}</h5>
 <div class="game-teams">
     <mat-card appearance="raised">
@@ -10,7 +9,7 @@
                 </a>
             </mat-card-title>
         </mat-card-header>
-        <mat-card-content>
+        <mat-card-content [style.color]="color(game.away)">
             {{game.awayScore}}
         </mat-card-content>
         @if (boxScoresActive) {
@@ -32,7 +31,7 @@
                 </a>
             </mat-card-title>
         </mat-card-header>
-        <mat-card-content>
+        <mat-card-content [style.color]="color(game.home)">
             {{game.homeScore}}
         </mat-card-content>
         @if (boxScoresActive) {
@@ -48,9 +47,11 @@
     </mat-card>
 </div>
 
-<mat-tab-group [(selectedIndex)]="tabIndex" dynamicHeight>
+<mat-tab-group [(selectedIndex)]="tabIndex">
     <mat-tab label="Details">
-        <app-game-details [game]="game"></app-game-details>
+        <div class="mat-tab-body-wrapper">
+            <app-game-details [game]="game"></app-game-details>
+        </div>
     </mat-tab>
     <mat-tab label="Box Score">
         <div class="mat-tab-body-wrapper">
@@ -66,21 +67,18 @@
         </div>
     </mat-tab>
     <mat-tab label="Scorecard">
-        <app-scorecard [game]="game"></app-scorecard>
+        <div class="mat-tab-body-wrapper">
+            <app-scorecard [game]="game"></app-scorecard>
+        </div>
     </mat-tab>
     @if (hasMedia(game)) {
     <mat-tab label="Media">
         <div class="mat-tab-body-wrapper">
             <app-media-gallery [gameId]="game.id"></app-media-gallery>
         </div>
-        <!-- <video controls src="https://eschenfeldt-baseball-media.nyc3.cdn.digitaloceanspaces.com/video/IMG_4244.mov"
-            width="100%"></video> -->
-        <!-- <img src="https://eschenfeldt-baseball-media.nyc3.cdn.digitaloceanspaces.com/images/IMG_4307.jpeg"
-            alt="test image" width="100%"> -->
     </mat-tab>
     }
 </mat-tab-group>
-<!-- </div> -->
 } @else {
 <mat-spinner></mat-spinner>
 }

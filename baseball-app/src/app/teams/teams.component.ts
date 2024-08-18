@@ -11,6 +11,8 @@ import { TypeSafeMatRowDef } from '../type-safe-mat-row-def.directive';
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { BaseballFilterService, BaseballApiFilter } from '../baseball-filter.service';
+import { Team } from '../contracts/team';
+import { Utils } from '../utils';
 
 @Component({
     selector: 'app-teams',
@@ -44,6 +46,10 @@ export class TeamsComponent extends BaseballTableComponent<PagedApiParameters, T
         'losses'
     ]
     protected override defaultFilters?: BaseballApiFilter = {};
+
+    backgroundColor(team: Team): string {
+        return Utils.transparentTeamColor(team, 20);
+    }
 
     constructor(
         api: BaseballApiService,

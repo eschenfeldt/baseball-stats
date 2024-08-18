@@ -51,7 +51,8 @@ public class RemoteFileManager : IRemoteFileManager
         {
             BucketName = this.BucketName,
             Key = this.GetKey(fileDetail),
-            InputStream = fileStream
+            InputStream = fileStream,
+            CannedACL = S3CannedACL.PublicRead
         };
         return await this.Client.PutObjectAsync(request);
     }

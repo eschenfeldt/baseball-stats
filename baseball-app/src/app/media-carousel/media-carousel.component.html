@@ -1,1 +1,17 @@
-<p>media-carousel works!</p>
+<div class="focused-item">
+    @if(focusedOriginal$ | async; as focusedItem) {
+    <h6>{{headerText(focusedItem)}}</h6>
+    @if (focusedItem.fileType === 'Live photo') {
+    <app-live-photo [photo]="focusedItem"></app-live-photo>
+    } @else if (focusedItem.fileType === 'Photo') {
+    <img src="{{photoUrl(focusedItem)}}" alt="{{altText(focusedItem)}}">
+    } @else if (focusedItem.fileType === 'Video') {
+    <video controls src="{{videoUrl(focusedItem)}}"></video>
+    }
+    } @else {
+    <mat-spinner></mat-spinner>
+    }
+</div>
+<div class="thumbnails">
+    <app-thumbnail-scroll></app-thumbnail-scroll>
+</div>

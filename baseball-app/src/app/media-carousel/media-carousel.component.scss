@@ -1,0 +1,33 @@
+:host {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+
+.focused-item {
+    flex-shrink: 1;
+    flex-grow: 1;
+    min-height: 0;
+    overflow: auto;
+
+    img {
+        max-width: 100%;
+    }
+
+    video {
+        max-width: 100%;
+    }
+}
+
+.thumbnails {
+    flex: auto;
+    max-height: 10vh;
+    border: 2px solid black;
+}
+
+mat-spinner {
+    position: absolute;
+    left: calc(50% - 50px);
+    top: calc(50% - 50px);
+}

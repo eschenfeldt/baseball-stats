@@ -24,6 +24,7 @@
     "@ng-matero/extensions-moment-adapter": "^17.1.2",
     "livephotoskit": "^1.5.6",
     "ng2-pdf-viewer": "^10.2.2",
+    "ngx-infinite-scroll": "^18.0.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "uuid": "^10.0.0",

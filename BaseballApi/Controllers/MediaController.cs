@@ -19,6 +19,46 @@ namespace BaseballApi.Controllers
             _context = context;
         }
 
+        private static readonly HashSet<string> VIDEO_EXTENSIONS =
+        [
+            ".mov",
+            ".MOV"
+        ];
+
+        [HttpGet("original/{assetIdentifier}")]
+        public async Task<ActionResult<RemoteOriginal>> GetOriginal(Guid assetIdentifier)
+        {
+            return await _context.MediaResources
+                    .Where(r => r.AssetIdentifier == assetIdentifier)
+                    .Select(r => new RemoteOriginal
+                    {
+                        FileType = r.ResourceType.Humanize(),
+                        GameName = r.Game != null ? r.Game.Name : null,
+                        Photo = r.ResourceType == MediaResourceType.Photo || r.ResourceType == MediaResourceType.LivePhoto ? r.Files.Where(f => f.Purpose == RemoteFilePurpose.Original && !VIDEO_EXTENSIONS.Contains(f.Extension))
+                        .Select(f => new RemoteFileDetail
+                        {
+                            AssetIdentifier = r.AssetIdentifier,
+                            DateTime = r.DateTime,
+                            FileType = r.ResourceType.Humanize(),
+                            OriginalFileName = r.OriginalFileName,
+                            NameModifier = f.NameModifier,
+                            Purpose = f.Purpose,
+                            Extension = f.Extension
+                        }).SingleOrDefault() : null,
+                        Video = r.ResourceType == MediaResourceType.Video || r.ResourceType == MediaResourceType.LivePhoto ? r.Files.Where(f => f.Purpose == RemoteFilePurpose.Original && VIDEO_EXTENSIONS.Contains(f.Extension))
+                        .Select(f => new RemoteFileDetail
+                        {
+                            AssetIdentifier = r.AssetIdentifier,
+                            DateTime = r.DateTime,
+                            FileType = r.ResourceType.Humanize(),
+                            OriginalFileName = r.OriginalFileName,
+                            NameModifier = f.NameModifier,
+                            Purpose = f.Purpose,
+                            Extension = f.Extension
+                        }).SingleOrDefault() : null
+                    }).SingleOrDefaultAsync();
+        }
+
         [HttpGet("thumbnails")]
         public async Task<ActionResult<PagedResult<RemoteFileDetail>>> GetThumbnails(
             int skip = 0,

@@ -2,7 +2,6 @@ import { Component, Input } from '@angular/core';
 import { RemoteFileDetail } from '../contracts/remote-file-detail';
 import { MatTooltip } from '@angular/material/tooltip';
 import { Utils } from '../utils';
-import { environment } from '../../environments/environment';
 import { RouterModule } from '@angular/router';
 import { MediaParams } from '../media-gallery/media-gallery.component';
 
@@ -27,6 +26,10 @@ export class ThumbnailComponent {
     queryParams?: MediaParams
 
     get title(): string {
+        return `${this.time} (${this.file.fileType})`
+    }
+
+    private get time(): string {
         if (this.singleDayMode) {
             return Utils.formatTime(this.file.dateTime);
         } else {
@@ -35,8 +38,6 @@ export class ThumbnailComponent {
     }
 
     get src(): string {
-        const keyEnd = this.file.key.replace(this.file.assetIdentifier, '');
-        // return `${environment.bucketUrl}/${this.file.assetIdentifier.toUpperCase()}${keyEnd}`;
-        return `${environment.bucketUrl}/${this.file.key}`;
+        return Utils.keyToUrl(this.file.key);
     }
 }

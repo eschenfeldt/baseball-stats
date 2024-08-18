@@ -20,9 +20,8 @@ import { GamePitcher } from '../contracts/game-pitcher';
 import { BoxScorePitchersComponent } from '../box-score-pitchers/box-score-pitchers.component';
 import { BoxScoreFieldersComponent } from '../box-score-fielders/box-score-fielders.component';
 import { ScorecardComponent } from '../scorecard/scorecard.component';
-import { LivePhoto } from '../contracts/live-photo';
-import { LivePhotoComponent } from '../live-photo/live-photo.component';
 import { MediaGalleryComponent } from '../media-gallery/media-gallery.component';
+import { Team } from '../contracts/team';
 
 @Component({
     selector: 'app-game',
@@ -56,7 +55,7 @@ export class GameComponent implements OnInit {
 
     boxScoreOption: BoxScoreOption = BoxScoreOption.homeBatters;
     abbreviateBoxScoreOptions = false;
-    tabIndex: GameTab = GameTab.media;
+    tabIndex: GameTab = GameTab.scoreCard;
 
     get boxScoresActive(): boolean {
         return this.tabIndex === GameTab.boxScore;
@@ -93,6 +92,14 @@ export class GameComponent implements OnInit {
         }
     }
 
+    public color(team: Team): string {
+        if (team.colorHex) {
+            return `rgb(from #${team.colorHex} r g b / 50%)`;
+        } else {
+            return 'black';
+        }
+    }
+
     constructor(
         private breakpointObserver: BreakpointObserver,
         private api: BaseballApiService
@@ -123,16 +130,6 @@ export class GameComponent implements OnInit {
 
     scorecardUrl(game: GameDetail): string {
         return 'https://eschenfeldt-baseball-media.nyc3.cdn.digitaloceanspaces.com/scorecards/scorecard.pdf';
-    }
-    get livePhoto(): LivePhoto {
-        return {
-            photo: {
-                url: 'https://eschenfeldt-baseball-media.nyc3.cdn.digitaloceanspaces.com/live-photos/IMG_4316.HEIC'
-            },
-            video: {
-                url: 'https://eschenfeldt-baseball-media.nyc3.cdn.digitaloceanspaces.com/live-photos/IMG_4316.mov'
-            }
-        }
     }
 
     public get batterLabel(): string {

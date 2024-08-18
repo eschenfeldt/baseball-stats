@@ -4,13 +4,26 @@
     justify-content: space-between;
     align-items: flex-start;
     flex-shrink: 1;
+    flex-grow: 1;
     min-height: 0;
     overflow: auto;
+
+    &::after {
+        content: '';
+        flex: auto
+    }
 }
 
 .thumbnail {
     margin: 0.2em;
-    max-width: 23%
+
+    &.medium {
+        max-width: 23%;
+    }
+
+    &.large {
+        max-width: 19%;
+    }
 }
 
 mat-spinner {

@@ -1,0 +1,10 @@
+:host {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+pdf-viewer {
+    width: 100%;
+    flex-grow: 1;
+}

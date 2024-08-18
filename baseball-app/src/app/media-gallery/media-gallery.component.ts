@@ -59,10 +59,14 @@ export class MediaGalleryComponent implements OnInit, AfterViewInit {
             Breakpoints.Medium,
             Breakpoints.XLarge,
         ]);
-        this.breakpoints$.subscribe(results => console.log(results));
     }
 
     ngAfterViewInit(): void {
+        if (this.breakpointObserver.isMatched(Breakpoints.Medium) || this.breakpointObserver.isMatched(Breakpoints.Large)) {
+            this.thumbnailSize = ThumbnailSize.medium;
+        } else if (this.breakpointObserver.isMatched(Breakpoints.XLarge)) {
+            this.thumbnailSize = ThumbnailSize.large;
+        }
         this.registerLoad();
     }
 

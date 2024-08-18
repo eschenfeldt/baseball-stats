@@ -71,8 +71,8 @@ export class BoxScoreFieldersComponent implements AfterViewInit {
         number: '',
         games: 'G',
         errors: 'E',
-        errorsThrowing: 'Throwing E',
-        errorsFielding: 'Fielding E',
+        errorsThrowing: 'TE',
+        errorsFielding: 'FE',
         putouts: 'PO',
         assists: 'A',
         stolenBaseAttempts: 'SBA',
@@ -80,7 +80,7 @@ export class BoxScoreFieldersComponent implements AfterViewInit {
         doublePlays: 'DP',
         triplePlays: 'TP',
         passedBalls: 'PB',
-        pickoffFailed: 'Pickoff Failed',
-        pickoffSuccess: 'Pickoff Success'
+        pickoffFailed: 'PO F',
+        pickoffSuccess: 'PO S'
     };
 }

@@ -1,7 +1,7 @@
 @if (data$ | async; as data) {
 <div class="media-gallery">
     @for(file of data.results; track file.assetIdentifier) {
-    <span class="thumbnail">
+    <span class="thumbnail" [class.medium]="thumbnailSize === 'medium'" [class.large]="thumbnailSize === 'large'">
         <app-thumbnail [file]="file" [singleDayMode]="gameId != null" [queryParams]="mediaQueryParams"></app-thumbnail>
     </span>
     }
