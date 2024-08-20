@@ -1,41 +1,59 @@
-import { AfterViewInit, Component, ElementRef, Input, ViewChild } from '@angular/core';
-import * as LivePhotosKit from 'livephotoskit';
+import { Component, ElementRef, Input, ViewChild } from '@angular/core';
 import { RemoteOriginal } from '../contracts/remote-original';
 import { Utils } from '../utils';
+import { animate, state, style, transition, trigger } from '@angular/animations';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
     selector: 'app-live-photo',
     standalone: true,
-    imports: [],
+    imports: [
+        MatIconModule,
+        MatButtonModule
+    ],
     templateUrl: './live-photo.component.html',
-    styleUrl: './live-photo.component.scss'
+    styleUrl: './live-photo.component.scss',
+    animations: [
+        trigger('fade', [
+            state(
+                'visible',
+                style({ 'opacity': 1, 'z-index': 2 })
+            ),
+            state(
+                'hidden',
+                style({ 'opacity': 0, 'z-index': 1 })
+            ),
+            transition('visible => hidden, hidden => visible', [animate('0.5s')])
+        ])
+    ]
 })
-export class LivePhotoComponent implements AfterViewInit {
-
-    private _photo!: RemoteOriginal;
+export class LivePhotoComponent {
 
     @Input({ required: true })
-    set photo(val: RemoteOriginal) {
-        this._photo = val;
-        this.initPhoto();
-    }
-    get photo(): RemoteOriginal {
-        return this._photo;
-    }
+    photo!: RemoteOriginal
 
-    @ViewChild('livephoto')
-    photoDiv?: ElementRef
+    @ViewChild('video')
+    videoElement?: ElementRef
 
-    ngAfterViewInit(): void {
-        this.initPhoto();
+    showImage: boolean = true;
+
+    get imgSrc(): string {
+        return Utils.keyToUrl(this.photo.photo.key);
     }
-
-    private initPhoto(): void {
-        if (this.photoDiv && this.photo.photo && this.photo.video) {
-            LivePhotosKit.augmentElementAsPlayer(this.photoDiv.nativeElement, {
-                photoSrc: Utils.keyToUrl(this.photo.photo.key),
-                videoSrc: Utils.keyToUrl(this.photo.video.key)
-            });
+    get imgState(): string {
+        return this.showImage ? 'visible' : 'hidden';
+    }
+    get videoSrc(): string {
+        return Utils.keyToUrl(this.photo.video.key);
+    }
+    get videoState(): string {
+        return this.showImage ? 'hidden' : 'visible';
+    }
+    toggleImage(): void {
+        this.showImage = !this.showImage;
+        if (!this.showImage && this.videoElement) {
+            this.videoElement.nativeElement.play();
         }
     }
 }

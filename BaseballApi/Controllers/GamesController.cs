@@ -78,6 +78,7 @@ namespace BaseballApi.Controllers
                 .Include(g => g.Away)
                 .Include(g => g.Scorecard)
                     .ThenInclude(s => s.Files)
+                .Include(g => g.Media)
                 .Include(g => g.AwayBoxScore)
                     .ThenInclude(bs => bs.Batters)
                         .ThenInclude(p => p.Player)

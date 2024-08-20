@@ -1,20 +1,22 @@
-import { Component, OnInit } from '@angular/core';
+import { afterNextRender, afterRender, AfterRenderPhase, AfterViewChecked, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnInit, ViewChild, viewChild } from '@angular/core';
 import { InfiniteScrollDirective } from 'ngx-infinite-scroll';
 import { RemoteFileDetail } from '../contracts/remote-file-detail';
 import { ThumbnailComponent } from '../thumbnail/thumbnail.component';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { BaseballApiService } from '../baseball-api.service';
 import { PagedResult } from '../contracts/paged-result';
 import { MediaParams, ThumbnailParams } from '../media-gallery/media-gallery.component';
 import { ThumbnailSize } from '../contracts/thumbnail-size';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
     selector: 'app-thumbnail-scroll',
     standalone: true,
     imports: [
-        MatProgressSpinnerModule,
+        MatButtonModule,
+        MatIconModule,
         InfiniteScrollDirective,
         ThumbnailComponent
     ],
@@ -22,6 +24,9 @@ import { ThumbnailSize } from '../contracts/thumbnail-size';
     styleUrl: './thumbnail-scroll.component.scss'
 })
 export class ThumbnailScrollComponent implements OnInit {
+
+    @ViewChild('scroll')
+    scrollEl?: ElementRef
 
     gameId?: number;
     playerId?: number;
@@ -52,14 +57,33 @@ export class ThumbnailScrollComponent implements OnInit {
         });
     }
 
+    // ngAfterViewChecked(): void {
+    //     if (!this.isFillingSpace && !this.loading) {
+    //         console.log(`loading more thumbnails with ${this.data.length} loaded`);
+    //         this.loadData(false);
+    //     }
+    // }
+
     onScroll(): void {
         this.loadData(false);
     }
 
-    private loadData(reset: boolean): void {
+    get allDataLoaded(): boolean {
+        return this.data.length === this.totalCount;
+    }
+
+    // get isFillingSpace(): boolean {
+    //     if (this.scrollEl) {
+    //         return this.scrollEl.nativeElement.scrollWidth > this.scrollEl.nativeElement.clientWidth
+    //     } else {
+    //         return true;
+    //     }
+    // }
+
+    loadData(reset: boolean): void {
         if (reset && this.dataLoad) {
             this.clearLoad();
-        } else if (this.dataLoad || (!reset && this.data.length === this.totalCount)) {
+        } else if (this.dataLoad || (!reset && this.allDataLoaded)) {
             // already loading or nothing left to load
             return;
         }
@@ -86,8 +110,8 @@ export class ThumbnailScrollComponent implements OnInit {
             } else {
                 this.data.push(...newData.results);
             }
-            this.loading = false;
             this.clearLoad();
+            this.loading = false;
         });
     }
 

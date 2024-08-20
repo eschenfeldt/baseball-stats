@@ -1,1 +1,16 @@
-<div #livephoto class="live-photo" style="height: 500px;"></div>
+<!-- <div #livephoto class="live-photo" style="height: 500px;"></div> -->
+<div class="live-photo-container">
+    <div class="button">
+        <button type="button" (click)="toggleImage()" mat-fab extended>
+            <mat-icon>play_circle_outline</mat-icon>
+            Play
+        </button>
+    </div>
+    <div class="photo" [@fade]="imgState">
+        <img src="{{imgSrc}}" alt="Live photo still" [@fade]="imgState">
+    </div>
+    <div class="video" [@fade]="videoState">
+        <video #video src="{{videoSrc}}" muted controls preload="none" [@fade]="videoState"
+            (ended)="toggleImage()"></video>
+    </div>
+</div>

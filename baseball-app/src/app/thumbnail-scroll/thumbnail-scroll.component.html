@@ -1,6 +1,6 @@
 <div class="container" infiniteScroll [infiniteScrollDistance]="1" [infiniteScrollThrottle]="50" [horizontal]="true"
-    [scrollWindow]="false" (scrolled)="onScroll()">
-    <div class="scroll">
+    [scrollWindow]="false" [immediateCheck]="true" (scrolled)="onScroll()">
+    <div #scroll class="scroll">
         @for (file of data; track file.assetIdentifier) {
         <span class="item">
             <app-thumbnail [file]="file" [queryParams]="queryParams"></app-thumbnail>
@@ -13,6 +13,12 @@
                 <div></div>
                 <div></div>
             </div>
+        </span>
+        } @else if (!this.allDataLoaded) {
+        <span class="item">
+            <button mat-mini-fab aria-label="Load more thumbnails" (click)="loadData(false)">
+                <mat-icon>arrow_forward_ios</mat-icon>
+            </button>
         </span>
         }
     </div>
