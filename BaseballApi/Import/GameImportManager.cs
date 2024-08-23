@@ -10,6 +10,7 @@ public class GameImportManager
     GameMetadata Metadata => Data.Metadata;
     Dictionary<ImportFileType, CsvLoader> Files { get; }
     Dictionary<string, Player> NewPlayers { get; } = [];
+    public string? ScorecardFilePath { get; private set; }
     public GameImportManager(GameImportData data, BaseballContext context)
     {
         this.Context = context;
@@ -39,6 +40,7 @@ public class GameImportManager
             Home = await this.GetTeam(Metadata.Home.City, Metadata.Home.Name),
             AwayTeamName = awayTeamName,
             Away = await this.GetTeam(Metadata.Away.City, Metadata.Away.Name),
+            Scorecard = this.GetScorecard(),
             BoxScores = []
         };
     }
@@ -138,6 +140,37 @@ public class GameImportManager
         else
         {
             throw new ArgumentException($"No '{fileType.ExpectedFileName()}' file found");
+        }
+    }
+
+    private Scorecard? GetScorecard()
+    {
+        if (this.Data.FilePaths.TryGetValue(ImportFileType.Scorecard.ExpectedFileName(), out string? filePath))
+        {
+            var originalFileName = ImportFileType.Scorecard.ExpectedFileName();
+            var scorecard = new Scorecard
+            {
+                AssetIdentifier = Guid.NewGuid(),
+                OriginalFileName = originalFileName
+            };
+            if (this.Data.Metadata.End.HasValue)
+            {
+                scorecard.DateTime = this.Data.Metadata.End.Value.ToUniversalTime();
+            }
+            var extension = Path.GetExtension(originalFileName);
+            var file = new RemoteFile
+            {
+                Resource = scorecard,
+                Purpose = RemoteFilePurpose.Original,
+                Extension = extension
+            };
+            scorecard.Files.Add(file);
+            this.ScorecardFilePath = filePath;
+            return scorecard;
+        }
+        else
+        {
+            return null;
         }
     }
 }

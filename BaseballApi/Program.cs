@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using BaseballApi.Models;
 using BaseballApi;
 using Microsoft.AspNetCore.Identity;
+using BaseballApi.Import;
 
 var corsLocal = "_corsLocalPolicy";
 
@@ -23,6 +24,8 @@ builder.Services.AddDbContext<AppIdentityDbContext>(opt => opt.UseNpgsql(identit
 
 builder.Services.AddIdentityApiEndpoints<IdentityUser>()
     .AddEntityFrameworkStores<AppIdentityDbContext>();
+
+builder.Services.AddScoped<IRemoteFileManager, RemoteFileManager>();
 
 builder.Services.AddCors(options =>
 {

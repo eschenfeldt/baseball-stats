@@ -5,3 +5,20 @@
 **/.DS_Store
 xcuserdata/
 *.postgres_config
+*.bucket_config
+.Python
+[Bb]in
+[Ii]nclude
+[Ll]ib
+[Ll]ib64
+[Ll]ocal
+[Ss]cripts
+pyvenv.cfg
+.venv
+pip-selfcheck.json
+media-importer/exported
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class

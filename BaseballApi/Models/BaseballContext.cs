@@ -20,6 +20,9 @@ public class BaseballContext : DbContext
     public DbSet<AlternateParkName> AlternateParkNames { get; set; }
     public DbSet<AlternateTeamName> AlternateTeamNames { get; set; }
 
+    public DbSet<MediaResource> MediaResources { get; set; }
+    public DbSet<Scorecard> Scorecards { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

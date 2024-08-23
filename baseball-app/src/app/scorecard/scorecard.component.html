@@ -1,0 +1,33 @@
+@if (hasScorecard) {
+<div>
+    <mat-form-field>
+        <mat-label>Page</mat-label>
+        <mat-select [(ngModel)]="selectedPage">
+            @for (option of pageOptions; track option.index) {
+            <mat-option [value]="option.index">{{option.label}}</mat-option>
+            }
+        </mat-select>
+    </mat-form-field>
+    <a mat-icon-button aria-label="Open scorecard in a new tab" [href]="url" target="_blank">
+        <mat-icon>open_in_new</mat-icon>
+    </a>
+    <button mat-icon-button aria-label="Toggle scorecard zoom" (click)="zoomed = !zoomed">
+        @if (zoomed) {
+        <mat-icon>zoom_out</mat-icon>
+        } @else {
+        <mat-icon>zoom_in</mat-icon>
+        }
+    </button>
+</div>
+<pdf-viewer [src]="urlWithOrigin" [original-size]="false" [(page)]="selectedPage" [zoom-scale]="zoomScale">
+</pdf-viewer>
+} @else if (isLoggedIn$ | async) {
+<p>
+    <button mat-button color="accent" (click)="openImportDialog()">Import Scorecard
+    </button>
+</p>
+} @else {
+<p>
+    No scorecard uploaded
+</p>
+}

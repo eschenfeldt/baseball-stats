@@ -1,6 +1,4 @@
-using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Security.Permissions;
 using Microsoft.EntityFrameworkCore;
 
 namespace BaseballApi.Models;
@@ -35,4 +33,8 @@ public class Game
     public Player? WinningPitcher { get; set; }
     public Player? LosingPitcher { get; set; }
     public Player? SavingPitcher { get; set; }
+
+    public Scorecard? Scorecard { get; set; }
+    public long? ScorecardId { get; set; }
+    public ICollection<MediaResource> Media { get; set; } = [];
 }

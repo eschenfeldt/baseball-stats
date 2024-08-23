@@ -338,6 +338,9 @@ namespace BaseballApi.Migrations
                     b.Property<DateTimeOffset?>("ScheduledTime")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<long?>("ScorecardId")
+                        .HasColumnType("bigint");
+
                     b.Property<DateTimeOffset?>("StartTime")
                         .HasColumnType("timestamp with time zone");
 
@@ -369,11 +372,80 @@ namespace BaseballApi.Migrations
 
                     b.HasIndex("SavingPitcherId");
 
+                    b.HasIndex("ScorecardId")
+                        .IsUnique();
+
                     b.HasIndex("WinningPitcherId");
 
                     b.HasIndex("WinningTeamId");
 
                     b.ToTable("Games");
+                });
+
+            modelBuilder.Entity("BaseballApi.Models.RemoteFile", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Extension")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("NameModifier")
+                        .HasColumnType("text");
+
+                    b.Property<int>("Purpose")
+                        .HasColumnType("integer");
+
+                    b.Property<long>("ResourceId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ResourceId");
+
+                    b.HasIndex("ResourceId", "NameModifier", "Extension")
+                        .IsUnique();
+
+                    b.ToTable("RemoteFile");
+                });
+
+            modelBuilder.Entity("BaseballApi.Models.RemoteResource", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<Guid>("AssetIdentifier")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("DateTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Discriminator")
+                        .IsRequired()
+                        .HasMaxLength(21)
+                        .HasColumnType("character varying(21)");
+
+                    b.Property<string>("OriginalFileName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssetIdentifier")
+                        .IsUnique();
+
+                    b.ToTable("RemoteResource");
+
+                    b.HasDiscriminator<string>("Discriminator").HasValue("RemoteResource");
+
+                    b.UseTphMappingStrategy();
                 });
 
             modelBuilder.Entity("BaseballApi.Park", b =>
@@ -547,6 +619,9 @@ namespace BaseballApi.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("ColorHex")
+                        .HasColumnType("text");
+
                     b.Property<Guid>("ExternalId")
                         .HasColumnType("uuid");
 
@@ -562,6 +637,46 @@ namespace BaseballApi.Migrations
                     b.HasIndex("HomeParkId");
 
                     b.ToTable("Teams");
+                });
+
+            modelBuilder.Entity("MediaResourcePlayer", b =>
+                {
+                    b.Property<long>("MediaId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("PlayersId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("MediaId", "PlayersId");
+
+                    b.HasIndex("PlayersId");
+
+                    b.ToTable("MediaResourcePlayer");
+                });
+
+            modelBuilder.Entity("BaseballApi.Models.MediaResource", b =>
+                {
+                    b.HasBaseType("BaseballApi.Models.RemoteResource");
+
+                    b.Property<bool>("Favorite")
+                        .HasColumnType("boolean");
+
+                    b.Property<long?>("GameId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("ResourceType")
+                        .HasColumnType("integer");
+
+                    b.HasIndex("GameId");
+
+                    b.HasDiscriminator().HasValue("MediaResource");
+                });
+
+            modelBuilder.Entity("BaseballApi.Models.Scorecard", b =>
+                {
+                    b.HasBaseType("BaseballApi.Models.RemoteResource");
+
+                    b.HasDiscriminator().HasValue("Scorecard");
                 });
 
             modelBuilder.Entity("BaseballApi.AlternateParkName", b =>
@@ -673,6 +788,10 @@ namespace BaseballApi.Migrations
                         .WithMany()
                         .HasForeignKey("SavingPitcherId");
 
+                    b.HasOne("BaseballApi.Models.Scorecard", "Scorecard")
+                        .WithOne("Game")
+                        .HasForeignKey("BaseballApi.Models.Game", "ScorecardId");
+
                     b.HasOne("BaseballApi.Player", "WinningPitcher")
                         .WithMany()
                         .HasForeignKey("WinningPitcherId");
@@ -697,9 +816,22 @@ namespace BaseballApi.Migrations
 
                     b.Navigation("SavingPitcher");
 
+                    b.Navigation("Scorecard");
+
                     b.Navigation("WinningPitcher");
 
                     b.Navigation("WinningTeam");
+                });
+
+            modelBuilder.Entity("BaseballApi.Models.RemoteFile", b =>
+                {
+                    b.HasOne("BaseballApi.Models.RemoteResource", "Resource")
+                        .WithMany("Files")
+                        .HasForeignKey("ResourceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Resource");
                 });
 
             modelBuilder.Entity("BaseballApi.Pitcher", b =>
@@ -730,6 +862,30 @@ namespace BaseballApi.Migrations
                     b.Navigation("HomePark");
                 });
 
+            modelBuilder.Entity("MediaResourcePlayer", b =>
+                {
+                    b.HasOne("BaseballApi.Models.MediaResource", null)
+                        .WithMany()
+                        .HasForeignKey("MediaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BaseballApi.Player", null)
+                        .WithMany()
+                        .HasForeignKey("PlayersId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("BaseballApi.Models.MediaResource", b =>
+                {
+                    b.HasOne("BaseballApi.Models.Game", "Game")
+                        .WithMany("Media")
+                        .HasForeignKey("GameId");
+
+                    b.Navigation("Game");
+                });
+
             modelBuilder.Entity("BaseballApi.BoxScore", b =>
                 {
                     b.Navigation("Batters");
@@ -742,6 +898,13 @@ namespace BaseballApi.Migrations
             modelBuilder.Entity("BaseballApi.Models.Game", b =>
                 {
                     b.Navigation("BoxScores");
+
+                    b.Navigation("Media");
+                });
+
+            modelBuilder.Entity("BaseballApi.Models.RemoteResource", b =>
+                {
+                    b.Navigation("Files");
                 });
 
             modelBuilder.Entity("BaseballApi.Park", b =>
@@ -752,6 +915,11 @@ namespace BaseballApi.Migrations
             modelBuilder.Entity("BaseballApi.Team", b =>
                 {
                     b.Navigation("AlternateTeamNames");
+                });
+
+            modelBuilder.Entity("BaseballApi.Models.Scorecard", b =>
+                {
+                    b.Navigation("Game");
                 });
 #pragma warning restore 612, 618
         }

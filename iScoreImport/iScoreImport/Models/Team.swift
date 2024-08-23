@@ -13,17 +13,19 @@ struct Team : Codable {
     var Name: String?
     let CombinedName: String?
     let HomePark: Park?
+    let ColorHex: String?
     
-    init(ExternalId: UUID? = nil, City: String? = nil, Name: String? = nil, CombinedName: String? = nil, HomePark: Park? = nil) {
+    init(ExternalId: UUID? = nil, City: String? = nil, Name: String? = nil, CombinedName: String? = nil, HomePark: Park? = nil, ColorHex: String? = nil) {
         self.ExternalId = ExternalId
         self.City = City
         self.Name = Name
         self.CombinedName = CombinedName
         self.HomePark = HomePark
+        self.ColorHex = ColorHex
     }
     
     static let compoundCityStarts = Set<String>([
-        "Los", "Las", "San", "St.", "Great", "New", "Quad", "Lake", "Kane"
+        "Los", "Las", "San", "St.", "Great", "New", "Quad", "Lake", "Kane", "Tampa"
     ])
     
     static func withParsedName(team: Team) -> Team {
@@ -49,6 +51,6 @@ struct Team : Codable {
         } else {
             name = combinedName
         }
-        return Team(ExternalId: team.ExternalId, City: city, Name: name, CombinedName: combinedName, HomePark: team.HomePark)
+        return Team(ExternalId: team.ExternalId, City: city, Name: name, CombinedName: combinedName, HomePark: team.HomePark, ColorHex: team.ColorHex)
     }
 }

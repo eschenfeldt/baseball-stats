@@ -1,3 +1,9 @@
+.game {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
 .game-teams {
     display: flex;
     flex-wrap: wrap;
@@ -19,4 +25,26 @@ mat-spinner {
     position: absolute;
     left: calc(50% - 50px);
     top: calc(50% - 50px);
+}
+
+mat-tab-group {
+    flex: auto;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+
+    .mat-tab-body-wrapper {
+        height: 100%;
+    }
+}
+
+.mat-mdc-tab-body-wrapper {
+    flex: auto;
+}
+
+:host {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
 }

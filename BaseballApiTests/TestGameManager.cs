@@ -11,6 +11,7 @@ public class TestGameManager
     private Dictionary<int, Player> Batters { get; } = [];
     private Dictionary<int, Player> Pitchers { get; } = [];
     private Dictionary<int, Park> Parks { get; } = [];
+    private Dictionary<int, long> GameIds { get; } = [];
 
     public TestGameManager(BaseballContext context)
     {
@@ -36,6 +37,36 @@ public class TestGameManager
         else
         {
             Assert.Fail($"No test team defined with number {teamNumber}");
+            return 0;
+        }
+    }
+
+    public long GetGameId(int gameNumber)
+    {
+        if (GameIds.TryGetValue(gameNumber, out long gameId))
+        {
+            return gameId;
+        }
+        else
+        {
+            Assert.Fail($"No test game defined with number {gameNumber}");
+            return 0;
+        }
+    }
+
+    public long GetPlayerId(int? batterNumber = null, int? pitcherNumber = null)
+    {
+        if (pitcherNumber.HasValue && Pitchers.TryGetValue(pitcherNumber.Value, out Player? pitcher))
+        {
+            return pitcher.Id;
+        }
+        else if (batterNumber.HasValue && Batters.TryGetValue(batterNumber.Value, out Player? batter))
+        {
+            return batter.Id;
+        }
+        else
+        {
+            Assert.Fail($"No test player defined with pitcher number {pitcherNumber} or batter number {batterNumber}");
             return 0;
         }
     }
@@ -133,7 +164,7 @@ public class TestGameManager
 
     public void AddAllGames()
     {
-        foreach (var gameInfo in TestGames.Values)
+        foreach (var (gameNumber, gameInfo) in TestGames)
         {
             var home = Teams[gameInfo.Home.TeamNumber];
             var away = Teams[gameInfo.Away.TeamNumber];
@@ -182,6 +213,7 @@ public class TestGameManager
             Context.SaveChanges();
             PopulateBoxScore(homeBox, gameInfo.Home);
             PopulateBoxScore(awayBox, gameInfo.Away);
+            GameIds.Add(gameNumber, game.Id);
         }
     }
 

@@ -1,4 +1,5 @@
 ﻿using BaseballApi.Controllers;
+using BaseballApi.Import;
 
 namespace BaseballApiTests;
 
@@ -8,7 +9,8 @@ public class GameTests : BaseballTests
     private TestGameManager TestGameManager { get; }
     public GameTests(TestDatabaseFixture fixture) : base(fixture)
     {
-        Controller = new GamesController(Context);
+        RemoteFileManager remoteFileManager = new(nameof(GameTests));
+        Controller = new GamesController(Context, remoteFileManager);
         TestGameManager = new TestGameManager(Context);
     }
 

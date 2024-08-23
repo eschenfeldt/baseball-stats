@@ -9,7 +9,7 @@
                 </a>
             </mat-card-title>
         </mat-card-header>
-        <mat-card-content>
+        <mat-card-content [style.color]="color(game.away)">
             {{game.awayScore}}
         </mat-card-content>
         @if (boxScoresActive) {
@@ -31,7 +31,7 @@
                 </a>
             </mat-card-title>
         </mat-card-header>
-        <mat-card-content>
+        <mat-card-content [style.color]="color(game.home)">
             {{game.homeScore}}
         </mat-card-content>
         @if (boxScoresActive) {
@@ -49,22 +49,34 @@
 
 <mat-tab-group [(selectedIndex)]="tabIndex">
     <mat-tab label="Details">
-        <app-game-details [game]="game"></app-game-details>
+        <div class="mat-tab-body-wrapper">
+            <app-game-details [game]="game"></app-game-details>
+        </div>
     </mat-tab>
     <mat-tab label="Box Score">
-        @if (battersDataSource(game); as dataSource) {
-        <app-box-score-batters [dataSource]="dataSource" class="game-box"></app-box-score-batters>
-        }
-        @if (pitchersDataSource(game); as dataSource) {
-        <app-box-score-pitchers [dataSource]="dataSource" class="game-box"></app-box-score-pitchers>
-        }
-        @if (fieldersDataSource(game); as dataSource) {
-        <app-box-score-fielders [dataSource]="dataSource" class="game-box"></app-box-score-fielders>
-        }
+        <div class="mat-tab-body-wrapper">
+            @if (battersDataSource(game); as dataSource) {
+            <app-box-score-batters [dataSource]="dataSource" class="game-box"></app-box-score-batters>
+            }
+            @if (pitchersDataSource(game); as dataSource) {
+            <app-box-score-pitchers [dataSource]="dataSource" class="game-box"></app-box-score-pitchers>
+            }
+            @if (fieldersDataSource(game); as dataSource) {
+            <app-box-score-fielders [dataSource]="dataSource" class="game-box"></app-box-score-fielders>
+            }
+        </div>
     </mat-tab>
-    <mat-tab label="Scorecard">scorecard here!</mat-tab>
+    <mat-tab label="Scorecard">
+        <div class="mat-tab-body-wrapper">
+            <app-scorecard [game]="game"></app-scorecard>
+        </div>
+    </mat-tab>
     @if (hasMedia(game)) {
-    <mat-tab label="Media">Photos + videos here</mat-tab>
+    <mat-tab label="Media">
+        <div class="mat-tab-body-wrapper">
+            <app-media-gallery [gameId]="game.id"></app-media-gallery>
+        </div>
+    </mat-tab>
     }
 </mat-tab-group>
 } @else {

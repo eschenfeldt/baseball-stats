@@ -9,6 +9,7 @@ using BaseballApi.Models;
 using Microsoft.AspNetCore.Authorization;
 using Newtonsoft.Json;
 using BaseballApi.Contracts;
+using BaseballApi.Import;
 
 namespace BaseballApi.Controllers
 {
@@ -17,10 +18,12 @@ namespace BaseballApi.Controllers
     public class GamesController : ControllerBase
     {
         private readonly BaseballContext _context;
+        IRemoteFileManager RemoteFileManager { get; }
 
-        public GamesController(BaseballContext context)
+        public GamesController(BaseballContext context, IRemoteFileManager remoteFileManager)
         {
             _context = context;
+            RemoteFileManager = remoteFileManager;
         }
 
         // GET: api/Games
@@ -73,6 +76,9 @@ namespace BaseballApi.Controllers
                 .Include(g => g.Location)
                 .Include(g => g.Home)
                 .Include(g => g.Away)
+                .Include(g => g.Scorecard)
+                    .ThenInclude(s => s.Files)
+                .Include(g => g.Media)
                 .Include(g => g.AwayBoxScore)
                     .ThenInclude(bs => bs.Batters)
                         .ThenInclude(p => p.Player)
@@ -102,29 +108,6 @@ namespace BaseballApi.Controllers
             return new GameDetail(game);
         }
 
-        // [HttpGet("{gameId}/boxscore")]
-        // public async Task<ActionResult<BoxScoreDetail>> GetBoxScore(long gameId, bool home = true)
-        // {
-        //     var box = await _context.Games
-        //         .Where(g => g.Id == gameId)
-        //         .Select(g => home ? g.HomeBoxScore : g.AwayBoxScore)
-        //         .Include(b => b.Batters)
-        //             .ThenInclude(b => b.Player)
-        //         .Include(b => b.Pitchers)
-        //             .ThenInclude(p => p.Player)
-        //         .Include(b => b.Fielders)
-        //             .ThenInclude(f => f.Player)
-        //         .AsSplitQuery()
-        //         .SingleOrDefaultAsync();
-
-        //     if (box == null)
-        //     {
-        //         return NotFound();
-        //     }
-
-        //     return new BoxScoreDetail(box);
-        // }
-
         [HttpGet("years")]
         public async Task<ActionResult<List<int>>> GetGameYears(long? teamId = null)
         {
@@ -148,7 +131,6 @@ namespace BaseballApi.Controllers
             foreach (var formFile in files)
             {
                 var filePath = Path.GetTempFileName();
-                Console.WriteLine(filePath);
                 using (var stream = System.IO.File.Create(filePath))
                 {
                     await formFile.CopyToAsync(stream);
@@ -205,13 +187,23 @@ namespace BaseballApi.Controllers
                 existingGame.WinningPitcher = newGame.WinningPitcher;
                 existingGame.LosingPitcher = newGame.LosingPitcher;
                 existingGame.SavingPitcher = newGame.SavingPitcher;
-                // update box scores
-
+                // TODO: update box scores
+                if (existingGame.Scorecard != null)
+                {
+                    await this.RemoteFileManager.DeleteResource(existingGame.Scorecard);
+                    _context.Scorecards.Remove(existingGame.Scorecard);
+                }
+                existingGame.Scorecard = newGame.Scorecard;
             }
             else
             {
                 await _context.Games.AddAsync(newGame);
                 isNew = true;
+            }
+
+            if (newGame.Scorecard != null && newGame.Scorecard.Files.Count == 1 && importManager.ScorecardFilePath != null)
+            {
+                await this.RemoteFileManager.UploadFile(newGame.Scorecard.Files.Single(), importManager.ScorecardFilePath);
             }
 
             var changes = await _context.SaveChangesAsync();
@@ -224,7 +216,7 @@ namespace BaseballApi.Controllers
                 await _context.SaveChangesAsync();
             }
 
-            return Ok(new { count = files.Count, size, metadata, changes });
+            return Ok(new { id = newGame.Id, count = files.Count, size, metadata, changes });
         }
 
         // DELETE: api/Games/5

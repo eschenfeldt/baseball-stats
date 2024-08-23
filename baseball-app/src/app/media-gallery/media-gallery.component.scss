@@ -1,0 +1,40 @@
+.media-gallery {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-shrink: 1;
+    flex-grow: 1;
+    min-height: 0;
+    overflow: auto;
+
+    &::after {
+        content: '';
+        flex: auto
+    }
+}
+
+.thumbnail {
+    margin: 0.2em;
+
+    &.medium {
+        max-width: 23%;
+    }
+
+    &.large {
+        max-width: 19%;
+    }
+}
+
+mat-spinner {
+    position: absolute;
+    left: calc(50% - 50px);
+    top: calc(50% - 50px);
+}
+
+:host {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}

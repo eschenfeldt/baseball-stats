@@ -10,7 +10,7 @@
             <a mat-list-item [routerLink]="['/admin']" routerLinkActive="router-link-active">Admin</a>
         </mat-nav-list>
     </mat-sidenav>
-    <mat-sidenav-content>
+    <mat-sidenav-content class="sidenav-content">
         <mat-toolbar color="primary">
             @if (isHandset$ | async) {
             <button type="button" aria-label="Toggle sidenav" mat-icon-button (click)="drawer.toggle()">
@@ -19,6 +19,8 @@
             }
             <span>Eschenfeldt Baseball</span>
         </mat-toolbar>
-        <router-outlet />
+        <div class="content-wrapper">
+            <router-outlet />
+        </div>
     </mat-sidenav-content>
 </mat-sidenav-container>

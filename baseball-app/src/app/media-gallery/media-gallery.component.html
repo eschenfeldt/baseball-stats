@@ -1,0 +1,14 @@
+@if (data$ | async; as data) {
+<div class="media-gallery">
+    @for(file of data.results; track file.assetIdentifier) {
+    <span class="thumbnail" [class.medium]="thumbnailSize === 'medium'" [class.large]="thumbnailSize === 'large'">
+        <app-thumbnail [file]="file" [singleDayMode]="gameId != null" [queryParams]="mediaQueryParams"></app-thumbnail>
+    </span>
+    }
+</div>
+} @else {
+<mat-spinner></mat-spinner>
+}
+<mat-paginator #paginator [length]="(data$ | async)?.totalCount ?? 0" [pageIndex]="" [pageSize]="defaultPageSize"
+    [pageSizeOptions]="[5, 10, 20, 50, 100]" aria-label="Select page">
+</mat-paginator>

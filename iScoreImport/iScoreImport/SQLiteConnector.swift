@@ -27,6 +27,7 @@ struct SQLiteConnector: DbConnector {
         return try await db.select()
             .column("guid", as: "ExternalId")
             .column("team_nm", as: "CombinedName")
+            .column("team_color", as: "ColorHex")
             .from("team")
             .all(decoding: Team.self)
             .map() {

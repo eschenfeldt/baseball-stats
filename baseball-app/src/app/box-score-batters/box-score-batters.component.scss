@@ -7,3 +7,11 @@ td:nth-child(even),
 th:nth-child(even) {
     background-color: var(--mat-standard-button-toggle-selected-state-background-color);
 }
+
+:host {
+    height: 100%;
+}
+
+table {
+    max-height: 100%;
+}
