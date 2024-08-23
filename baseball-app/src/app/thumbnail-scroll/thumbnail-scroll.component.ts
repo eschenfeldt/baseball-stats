@@ -25,9 +25,6 @@ import { MatIconModule } from '@angular/material/icon';
 })
 export class ThumbnailScrollComponent implements OnInit {
 
-    @ViewChild('scroll')
-    scrollEl?: ElementRef
-
     gameId?: number;
     playerId?: number;
     get queryParams(): MediaParams {
@@ -57,13 +54,6 @@ export class ThumbnailScrollComponent implements OnInit {
         });
     }
 
-    // ngAfterViewChecked(): void {
-    //     if (!this.isFillingSpace && !this.loading) {
-    //         console.log(`loading more thumbnails with ${this.data.length} loaded`);
-    //         this.loadData(false);
-    //     }
-    // }
-
     onScroll(): void {
         this.loadData(false);
     }
@@ -71,14 +61,6 @@ export class ThumbnailScrollComponent implements OnInit {
     get allDataLoaded(): boolean {
         return this.data.length === this.totalCount;
     }
-
-    // get isFillingSpace(): boolean {
-    //     if (this.scrollEl) {
-    //         return this.scrollEl.nativeElement.scrollWidth > this.scrollEl.nativeElement.clientWidth
-    //     } else {
-    //         return true;
-    //     }
-    // }
 
     loadData(reset: boolean): void {
         if (reset && this.dataLoad) {
