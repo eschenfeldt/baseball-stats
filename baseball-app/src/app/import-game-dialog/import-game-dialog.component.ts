@@ -4,7 +4,7 @@ import { MatFormField, MatFormFieldModule, MatLabel, MatSuffix } from '@angular/
 import { MatInput, MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
-import { MatDialogActions, MatDialogClose, MatDialogContent, MatDialogTitle } from '@angular/material/dialog';
+import { MatDialogActions, MatDialogClose, MatDialogContent, MatDialogRef, MatDialogTitle } from '@angular/material/dialog';
 import { MtxDatetimepicker, MtxDatetimepickerInput, MtxDatetimepickerInputEvent, MtxDatetimepickerToggle } from '@ng-matero/extensions/datetimepicker';
 import { provideMomentDatetimeAdapter } from '@ng-matero/extensions-moment-adapter';
 import { NgFor, NgIf } from '@angular/common';
@@ -96,7 +96,8 @@ export class ImportGameDialogComponent implements OnInit {
     teams: Team[] = [];
 
     constructor(
-        private api: BaseballApiService
+        private api: BaseballApiService,
+        private dialogRef: MatDialogRef<ImportGameDialogComponent>
     ) { }
 
     ngOnInit(): void {
@@ -104,8 +105,6 @@ export class ImportGameDialogComponent implements OnInit {
     }
 
     onFileSelected(event: Event) {
-        console.log(event);
-
         this.files = Array.from((event.target as HTMLInputElement).files || []);
 
         if (this.files) {
@@ -120,7 +119,9 @@ export class ImportGameDialogComponent implements OnInit {
                 formData.append('files', f);
             });
             formData.append('serializedMetadata', JSON.stringify(this.metadata.value))
-            this.api.makeApiPost('Games/import', formData).subscribe();
+            this.api.makeApiPost<{ id: number }>('Games/import', formData).subscribe(result => {
+                this.dialogRef.close(result.id);
+            });
         }
     }
 

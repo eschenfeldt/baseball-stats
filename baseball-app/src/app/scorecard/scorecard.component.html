@@ -22,7 +22,10 @@
 <pdf-viewer [src]="urlWithOrigin" [original-size]="false" [(page)]="selectedPage" [zoom-scale]="zoomScale">
 </pdf-viewer>
 } @else if (isLoggedIn$ | async) {
-<p> Upload scorecard? </p>
+<p>
+    <button mat-button color="accent" (click)="openImportDialog()">Import Scorecard
+    </button>
+</p>
 } @else {
 <p>
     No scorecard uploaded

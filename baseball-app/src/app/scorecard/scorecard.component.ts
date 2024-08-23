@@ -9,6 +9,8 @@ import { Utils } from '../utils';
 import { BaseballApiService } from '../baseball-api.service';
 import { Observable } from 'rxjs';
 import { AsyncPipe } from '@angular/common';
+import { MatDialog } from '@angular/material/dialog';
+import { ImportScorecardDialogComponent } from '../import-scorecard-dialog/import-scorecard-dialog.component';
 
 @Component({
     selector: 'app-scorecard',
@@ -58,7 +60,8 @@ export class ScorecardComponent implements OnInit {
     }
 
     constructor(
-        private api: BaseballApiService
+        private api: BaseballApiService,
+        private importDialog: MatDialog
     ) { }
 
     ngOnInit(): void {
@@ -76,6 +79,13 @@ export class ScorecardComponent implements OnInit {
                 label: 'Pitchers'
             }
         ]
+    }
+
+    openImportDialog() {
+        this.importDialog.open(ImportScorecardDialogComponent, { data: this.game }).afterClosed()
+            .subscribe(newScorecard => {
+                this.game.scorecard = newScorecard;
+            });
     }
 }
 

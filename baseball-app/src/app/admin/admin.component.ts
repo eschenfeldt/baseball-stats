@@ -7,6 +7,8 @@ import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { EditTeamDialogComponent } from '../edit-team-dialog/edit-team-dialog.component';
+import { Router } from '@angular/router';
+import { BASEBALL_ROUTES } from '../app.routes';
 
 @Component({
     selector: 'app-admin',
@@ -29,6 +31,7 @@ export class AdminViewComponent implements OnInit {
 
     constructor(
         public importDialog: MatDialog,
+        private router: Router,
         private api: BaseballApiService
     ) {
         const formBuilder = new FormBuilder();
@@ -45,7 +48,11 @@ export class AdminViewComponent implements OnInit {
     }
 
     openImportDialog() {
-        this.importDialog.open(ImportGameDialogComponent);
+        this.importDialog.open(ImportGameDialogComponent).afterClosed().subscribe(newGameId => {
+            if (newGameId) {
+                this.router.navigate([BASEBALL_ROUTES.GAME, newGameId]);
+            }
+        });
     }
 
     openTeamDialog() {

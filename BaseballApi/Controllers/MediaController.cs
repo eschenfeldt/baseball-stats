@@ -1,23 +1,22 @@
 using BaseballApi.Contracts;
+using BaseballApi.Import;
 using BaseballApi.Models;
 using Humanizer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
 
 namespace BaseballApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class MediaController : ControllerBase
+    public class MediaController(BaseballContext context, IRemoteFileManager remoteFileManager) : ControllerBase
     {
-        private readonly BaseballContext _context;
-
-        public MediaController(BaseballContext context)
-        {
-            _context = context;
-        }
+        private readonly BaseballContext _context = context;
+        IRemoteFileManager RemoteFileManager { get; } = remoteFileManager;
 
         private static readonly HashSet<string> VIDEO_EXTENSIONS =
         [
@@ -111,6 +110,53 @@ namespace BaseballApi.Controllers
                 TotalCount = await allResults.CountAsync(),
                 Results = await allResults.Skip(skip).Take(take).ToListAsync()
             };
+        }
+
+
+        [HttpPost("import-scorecard")]
+        [Authorize]
+        public async Task<IActionResult> ImportScorecard([FromForm] IFormFile file, [FromForm] string serializedGameId)
+        {
+            long gameId = JsonConvert.DeserializeObject<long>(serializedGameId);
+
+            var filePath = Path.GetTempFileName();
+            using (var stream = System.IO.File.Create(filePath))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            Game? game = await _context.Games.FirstOrDefaultAsync(g => g.Id == gameId);
+
+            if (game == null)
+            {
+                return NotFound();
+            }
+
+            Scorecard scorecard = new()
+            {
+                AssetIdentifier = Guid.NewGuid(),
+                OriginalFileName = file.FileName
+            };
+            if (game.EndTime.HasValue)
+            {
+                scorecard.DateTime = game.EndTime.Value.ToUniversalTime();
+            }
+            var extension = Path.GetExtension(scorecard.OriginalFileName);
+            var remoteFile = new RemoteFile
+            {
+                Resource = scorecard,
+                Purpose = RemoteFilePurpose.Original,
+                Extension = extension
+            };
+            scorecard.Files.Add(remoteFile);
+            await RemoteFileManager.UploadFile(remoteFile, filePath);
+
+            game.Scorecard = scorecard;
+            await _context.SaveChangesAsync();
+
+            ScorecardDetail toReturn = new(scorecard);
+
+            return Ok(new { scorecard = toReturn });
         }
     }
 }

@@ -131,7 +131,6 @@ namespace BaseballApi.Controllers
             foreach (var formFile in files)
             {
                 var filePath = Path.GetTempFileName();
-                Console.WriteLine(filePath);
                 using (var stream = System.IO.File.Create(filePath))
                 {
                     await formFile.CopyToAsync(stream);
@@ -217,7 +216,7 @@ namespace BaseballApi.Controllers
                 await _context.SaveChangesAsync();
             }
 
-            return Ok(new { count = files.Count, size, metadata, changes });
+            return Ok(new { id = newGame.Id, count = files.Count, size, metadata, changes });
         }
 
         // DELETE: api/Games/5
