@@ -1,0 +1,20 @@
+<h2 mat-dialog-title>
+    Upload current FanGraphs constants
+</h2>
+<mat-dialog-content>
+    <p>
+        Download from <a href="https://www.fangraphs.com/guts.aspx?type=cn">here.</a>
+    </p>
+    <mat-form-field>
+        @if (fileUploaded) {
+        {{fileName}}
+        }
+        <input type="file" class="file-input" (change)="onFileSelected($event)" #fileUpload>
+        <input matInput>
+        <button mat-button (click)="fileUpload.click()">Upload</button>
+    </mat-form-field>
+</mat-dialog-content>
+<mat-dialog-actions>
+    <button mat-button [disabled]="!fileUploaded" (click)="import()">Import</button>
+    <button mat-button mat-dialog-close>Close</button>
+</mat-dialog-actions>

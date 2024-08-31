@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using BaseballApi.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace BaseballApi;
+namespace BaseballApi.Models;
 
 [Index(nameof(GameId))]
 [Index(nameof(GameId), nameof(TeamId), IsUnique = true)]

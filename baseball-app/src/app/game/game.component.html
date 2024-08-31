@@ -56,13 +56,16 @@
     <mat-tab label="Box Score">
         <div class="mat-tab-body-wrapper">
             @if (battersDataSource(game); as dataSource) {
-            <app-box-score-batters [dataSource]="dataSource" class="game-box"></app-box-score-batters>
+            <app-box-score-batters [dataSource]="dataSource" [stats]="game.stats"
+                class="game-box"></app-box-score-batters>
             }
             @if (pitchersDataSource(game); as dataSource) {
-            <app-box-score-pitchers [dataSource]="dataSource" class="game-box"></app-box-score-pitchers>
+            <app-box-score-pitchers [dataSource]="dataSource" [stats]="game.stats"
+                class="game-box"></app-box-score-pitchers>
             }
             @if (fieldersDataSource(game); as dataSource) {
-            <app-box-score-fielders [dataSource]="dataSource" class="game-box"></app-box-score-fielders>
+            <app-box-score-fielders [dataSource]="dataSource" [stats]="game.stats"
+                class="game-box"></app-box-score-fielders>
             }
         </div>
     </mat-tab>

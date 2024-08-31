@@ -218,27 +218,5 @@ namespace BaseballApi.Controllers
 
             return Ok(new { id = newGame.Id, count = files.Count, size, metadata, changes });
         }
-
-        // DELETE: api/Games/5
-        [HttpDelete("{id}")]
-        [Authorize]
-        public async Task<IActionResult> DeleteGame(long id)
-        {
-            var game = await _context.Games.FindAsync(id);
-            if (game == null)
-            {
-                return NotFound();
-            }
-
-            _context.Games.Remove(game);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        private bool GameExists(long id)
-        {
-            return _context.Games.Any(e => e.Id == id);
-        }
     }
 }

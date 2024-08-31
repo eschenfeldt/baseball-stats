@@ -5,6 +5,7 @@ import { MatTable, MatTableModule } from '@angular/material/table';
 import { RouterModule } from '@angular/router';
 import { TypeSafeMatCellDef } from '../type-safe-mat-cell-def.directive';
 import { TypeSafeMatRowDef } from '../type-safe-mat-row-def.directive';
+import { StatDefCollection } from '../contracts/stat-def';
 
 @Component({
     selector: 'app-box-score-fielders',
@@ -26,23 +27,29 @@ export class BoxScoreFieldersComponent implements AfterViewInit {
 
     @Input({ required: true })
     dataSource!: GameFielder[]
+    @Input({ required: true })
+    stats!: StatDefCollection
     displayedColumns = [
         'name',
-        'games',
-        'putouts',
-        'assists',
-        'errors',
-        'errorsThrowing',
-        'errorsFielding',
-        'stolenBaseAttempts',
-        'caughtStealing'
+        'Games',
+        'Putouts',
+        'Assists',
+        'Errors',
+        'ErrorsThrowing',
+        'ErrorsFielding',
+        'StolenBaseAttempts',
+        'CaughtStealing'
     ]
+
+    get statNames(): string[] {
+        return Object.keys(this.stats);
+    }
 
     ngAfterViewInit(): void {
         this.sort.sortChange.subscribe(() => {
-            const basicSort = this.sort.active as (keyof GameFielder);
+            const basicSort = this.sort.active as (keyof StatDefCollection);
             if (basicSort && basicSort != 'player') {
-                this.dataSource.sort((a, b) => a[basicSort] - b[basicSort]);
+                this.dataSource.sort((a, b) => a.stats[basicSort] - b.stats[basicSort]);
                 if (this.sort.direction === 'desc') {
                     this.dataSource.reverse();
                 }
@@ -50,37 +57,4 @@ export class BoxScoreFieldersComponent implements AfterViewInit {
             }
         });
     }
-    basicColumns: (keyof GameFielder)[] = [
-        'games',
-        'errors',
-        'errorsThrowing',
-        'errorsFielding',
-        'putouts',
-        'assists',
-        'stolenBaseAttempts',
-        'caughtStealing',
-        'doublePlays',
-        'triplePlays',
-        'passedBalls',
-        'pickoffFailed',
-        'pickoffSuccess',
-    ];
-
-    basicHeaders: { [key in keyof GameFielder]: string } = {
-        player: '',
-        number: '',
-        games: 'G',
-        errors: 'E',
-        errorsThrowing: 'TE',
-        errorsFielding: 'FE',
-        putouts: 'PO',
-        assists: 'A',
-        stolenBaseAttempts: 'SBA',
-        caughtStealing: 'CS',
-        doublePlays: 'DP',
-        triplePlays: 'TP',
-        passedBalls: 'PB',
-        pickoffFailed: 'PO F',
-        pickoffSuccess: 'PO S'
-    };
 }

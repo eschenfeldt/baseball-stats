@@ -12,7 +12,7 @@ public class MediaTests : BaseballTests
     TestGameManager TestGameManager { get; }
     public MediaTests(TestDatabaseFixture fixture) : base(fixture)
     {
-        Controller = new MediaController(Context);
+        Controller = new MediaController(Context, null);
         TestGameManager = new TestGameManager(Context);
     }
 

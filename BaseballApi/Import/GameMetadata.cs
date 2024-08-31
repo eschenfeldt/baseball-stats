@@ -1,4 +1,6 @@
-﻿namespace BaseballApi;
+﻿using BaseballApi.Models;
+
+namespace BaseballApi.Import;
 
 public struct GameMetadata
 {

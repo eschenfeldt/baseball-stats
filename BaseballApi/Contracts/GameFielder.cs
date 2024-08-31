@@ -1,23 +1,27 @@
 using System;
+using BaseballApi.Models;
 
 namespace BaseballApi.Contracts;
 
 public struct GameFielder(Fielder fielder)
 {
-    public Player Player { get; set; } = fielder.Player;
-
+    public PlayerInfo Player { get; set; } = new(fielder.Player);
     public int Number { get; set; } = fielder.Number;
-    public int Games { get; set; } = fielder.Games;
-    public int Errors { get; set; } = fielder.Errors;
-    public int ErrorsThrowing { get; set; } = fielder.ErrorsThrowing;
-    public int ErrorsFielding { get; set; } = fielder.ErrorsFielding;
-    public int Putouts { get; set; } = fielder.Putouts;
-    public int Assists { get; set; } = fielder.Assists;
-    public int StolenBaseAttempts { get; set; } = fielder.StolenBaseAttempts;
-    public int CaughtStealing { get; set; } = fielder.CaughtStealing;
-    public int DoublePlays { get; set; } = fielder.DoublePlays;
-    public int TriplePlays { get; set; } = fielder.TriplePlays;
-    public int PassedBalls { get; set; } = fielder.PassedBalls;
-    public int PickoffFailed { get; set; } = fielder.PickoffFailed;
-    public int PickoffSuccess { get; set; } = fielder.PickoffSuccess;
+
+    public Dictionary<string, int> Stats { get; } = new()
+    {
+        { Stat.Games.Name, fielder.Games },
+        { Stat.Errors.Name, fielder.Errors },
+        { Stat.ErrorsThrowing.Name, fielder.ErrorsThrowing },
+        { Stat.ErrorsFielding.Name, fielder.ErrorsFielding },
+        { Stat.Putouts.Name, fielder.Putouts },
+        { Stat.Assists.Name, fielder.Assists },
+        { Stat.StolenBaseAttempts.Name, fielder.StolenBaseAttempts },
+        { Stat.CaughtStealing.Name, fielder.CaughtStealing },
+        { Stat.DoublePlays.Name, fielder.DoublePlays },
+        { Stat.TriplePlays.Name, fielder.TriplePlays },
+        { Stat.PassedBalls.Name, fielder.PassedBalls },
+        { Stat.PickoffFailed.Name, fielder.PickoffFailed },
+        { Stat.PickoffSuccess.Name, fielder.PickoffSuccess },
+    };
 }

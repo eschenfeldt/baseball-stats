@@ -1,7 +1,4 @@
-﻿using System.Security.Policy;
-using BaseballApi.Models;
-
-namespace BaseballApi;
+﻿namespace BaseballApi.Models;
 
 public class Player
 {

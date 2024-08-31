@@ -6,6 +6,7 @@ import { RouterModule } from '@angular/router';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { TypeSafeMatCellDef } from '../type-safe-mat-cell-def.directive';
 import { TypeSafeMatRowDef } from '../type-safe-mat-row-def.directive';
+import { StatDefCollection } from '../contracts/stat-def';
 
 @Component({
     selector: 'app-box-score-pitchers',
@@ -28,7 +29,14 @@ export class BoxScorePitchersComponent {
     @Input({ required: true })
     dataSource!: GamePitcher[]
 
+    @Input({ required: true })
+    stats!: StatDefCollection
+
     displayedColumns = BoxScorePitchersComponent.fullSizeDisplayedColumns;
+
+    get statNames(): string[] {
+        return Object.keys(this.stats);
+    }
 
     constructor(
         private breakPointObserver: BreakpointObserver
@@ -49,9 +57,9 @@ export class BoxScorePitchersComponent {
 
     ngAfterViewInit(): void {
         this.sort.sortChange.subscribe(() => {
-            const basicSort = this.sort.active as (keyof GamePitcher);
+            const basicSort = this.sort.active as (keyof StatDefCollection);
             if (basicSort && basicSort != 'player') {
-                this.dataSource.sort((a, b) => a[basicSort] - b[basicSort]);
+                this.dataSource.sort((a, b) => a.stats[basicSort] - b.stats[basicSort]);
                 if (this.sort.direction === 'desc') {
                     this.dataSource.reverse();
                 }
@@ -61,15 +69,17 @@ export class BoxScorePitchersComponent {
     }
 
     fullInningsPitched(pitcher: GamePitcher): string {
-        const number = Math.floor(pitcher.thirdInningsPitched / 3);
+        const number = Math.floor(pitcher.stats.ThirdInningsPitched / 3);
         if (number > 0) {
             return number.toString();
+        } else if (this.partialInningsPitched(pitcher) === '') {
+            return '0';
         } else {
             return '';
         }
     }
     partialInningsPitched(pitcher: GamePitcher): string {
-        const numerator = pitcher.thirdInningsPitched % 3;
+        const numerator = pitcher.stats.ThirdInningsPitched % 3;
         if (numerator == 1) {
             return '&frac13;';
         } else if (numerator == 2) {
@@ -82,93 +92,30 @@ export class BoxScorePitchersComponent {
     private static readonly fullSizeDisplayedColumns: string[] = [
         'name',
         'inningsPitched',
-        'battersFaced',
-        'pitches',
-        'balls',
-        'strikes',
-        'runs',
-        'earnedRuns',
-        'strikeouts',
-        'strikeoutsCalled',
-        'strikeoutsSwinging',
-        'hits',
-        'walks',
-        'intentionalWalks',
-        'balks',
-        'wildPitches'
+        'BattersFaced',
+        'Pitches',
+        'Balls',
+        'Strikes',
+        'Runs',
+        'EarnedRuns',
+        'Strikeouts',
+        'StrikeoutsCalled',
+        'StrikeoutsSwinging',
+        'Hits',
+        'Walks',
+        'IntentionalWalks',
+        'Balks',
+        'WildPitches'
     ];
     private static readonly compactDisplayedColumns: string[] = [
         'name',
         'inningsPitched',
-        'battersFaced',
-        'pitches',
-        'runs',
-        'earnedRuns',
-        'strikeouts',
-        'hits',
-        'walks'
+        'BattersFaced',
+        'Pitches',
+        'Runs',
+        'EarnedRuns',
+        'Strikeouts',
+        'Hits',
+        'Walks'
     ]
-
-    basicColumns: (keyof GamePitcher)[] = [
-        'games',
-        'number',
-        'wins',
-        'losses',
-        'saves',
-        'battersFaced',
-        'balls',
-        'strikes',
-        'pitches',
-        'runs',
-        'earnedRuns',
-        'hits',
-        'walks',
-        'intentionalWalks',
-        'strikeouts',
-        'strikeoutsCalled',
-        'strikeoutsSwinging',
-        'hitByPitch',
-        'balks',
-        'wildPitches',
-        'homeruns',
-        'groundOuts',
-        'airOuts',
-        'firstPitchStrikes',
-        'firstPitchBalls',
-    ];
-
-    basicHeaders: { [key in keyof GamePitcher]: string } = {
-        player: '',
-        number: '',
-        games: 'G',
-        wins: 'W',
-        losses: 'L',
-        saves: 'S',
-        thirdInningsPitched: '',
-        battersFaced: 'BF',
-        balls: 'B',
-        strikes: 'S',
-        pitches: 'P',
-        runs: 'R',
-        earnedRuns: 'ER',
-        hits: 'H',
-        walks: 'BB',
-        intentionalWalks: 'IBB',
-        strikeouts: 'K',
-        strikeoutsCalled: 'Kc',
-        strikeoutsSwinging: 'Ks',
-        hitByPitch: 'HBP',
-        balks: 'Balks',
-        wildPitches: 'WP',
-        homeruns: 'HR',
-        groundOuts: 'GO',
-        airOuts: 'AO',
-        firstPitchStrikes: 'FPS',
-        firstPitchBalls: 'FPB'
-    };
-}
-
-interface InningsPitched {
-    full: number;
-    thirds: number;
 }

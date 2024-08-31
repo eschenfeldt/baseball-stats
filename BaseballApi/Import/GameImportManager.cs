@@ -1,7 +1,7 @@
 ﻿using BaseballApi.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace BaseballApi;
+namespace BaseballApi.Import;
 
 public class GameImportManager
 {

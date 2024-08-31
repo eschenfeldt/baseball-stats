@@ -21,9 +21,9 @@ public struct GameSummary(Game game)
     public int? AwayScore { get; set; } = game.AwayScore;
     public Team? WinningTeam { get; set; } = game.WinningTeam;
     public Team? LosingTeam { get; set; } = game.LosingTeam;
-    public Player? WinningPitcher { get; set; } = game.WinningPitcher;
-    public Player? LosingPitcher { get; set; } = game.LosingPitcher;
-    public Player? SavingPitcher { get; set; } = game.SavingPitcher;
+    public PlayerInfo? WinningPitcher { get; set; } = game.WinningPitcher == null ? null : new(game.WinningPitcher);
+    public PlayerInfo? LosingPitcher { get; set; } = game.LosingPitcher == null ? null : new(game.LosingPitcher);
+    public PlayerInfo? SavingPitcher { get; set; } = game.SavingPitcher == null ? null : new(game.SavingPitcher);
 }
 
 public enum GameOrder

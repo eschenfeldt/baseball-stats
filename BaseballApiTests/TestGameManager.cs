@@ -121,10 +121,10 @@ public class TestGameManager
         Assert.NotNull(game.HomeBoxScore);
         Assert.NotNull(game.AwayBoxScore);
 
-        var homeBatterRuns = game.HomeBoxScore.Value.Batters.Select(b => b.Runs).Sum();
-        var awayBatterRuns = game.AwayBoxScore.Value.Batters.Select(b => b.Runs).Sum();
-        var homePitcherRuns = game.HomeBoxScore.Value.Pitchers.Select(p => p.Runs).Sum();
-        var awayPitcherRuns = game.AwayBoxScore.Value.Pitchers.Select(p => p.Runs).Sum();
+        var homeBatterRuns = game.HomeBoxScore.Value.Batters.Select(b => b.Stats[Stat.Runs.Name]).Sum();
+        var awayBatterRuns = game.AwayBoxScore.Value.Batters.Select(b => b.Stats[Stat.Runs.Name]).Sum();
+        var homePitcherRuns = game.HomeBoxScore.Value.Pitchers.Select(p => p.Stats[Stat.Runs.Name]).Sum();
+        var awayPitcherRuns = game.AwayBoxScore.Value.Pitchers.Select(p => p.Stats[Stat.Runs.Name]).Sum();
 
         Assert.Equal(game.HomeScore, homeBatterRuns);
         Assert.Equal(game.HomeScore, awayPitcherRuns);

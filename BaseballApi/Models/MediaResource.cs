@@ -1,5 +1,3 @@
-using System;
-
 namespace BaseballApi.Models;
 
 public class MediaResource : RemoteResource

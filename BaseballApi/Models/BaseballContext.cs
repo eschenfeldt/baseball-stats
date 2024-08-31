@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using BaseballApi;
 
 namespace BaseballApi.Models;
 
@@ -22,6 +21,8 @@ public class BaseballContext : DbContext
 
     public DbSet<MediaResource> MediaResources { get; set; }
     public DbSet<Scorecard> Scorecards { get; set; }
+
+    public DbSet<FangraphsConstants> Constants { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

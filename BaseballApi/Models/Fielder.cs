@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace BaseballApi;
+namespace BaseballApi.Models;
 
 [Index(nameof(BoxScoreId))]
 [Index(nameof(BoxScoreId), nameof(PlayerId), IsUnique = true)]

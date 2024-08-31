@@ -1,4 +1,6 @@
-﻿namespace BaseballApi;
+﻿using BaseballApi.Models;
+
+namespace BaseballApi.Import;
 
 public class CsvLoader
 {
@@ -151,6 +153,35 @@ public class CsvLoader
         }
     }
 
+    public IEnumerable<FangraphsConstants> GetFangraphsConstants()
+    {
+        if (!this.IsLoaded)
+        {
+            this.LoadData();
+        }
+        foreach (var rawRow in this.Rows)
+        {
+            yield return new FangraphsConstants
+            {
+
+                Year = GetInt(rawRow, "Season"),
+                WOBA = GetDecimal(rawRow, "wOBA"),
+                WOBAScale = GetDecimal(rawRow, "wOBAScale"),
+                WBB = GetDecimal(rawRow, "wBB"),
+                WHBP = GetDecimal(rawRow, "wHBP"),
+                W1B = GetDecimal(rawRow, "w1B"),
+                W2B = GetDecimal(rawRow, "w2B"),
+                W3B = GetDecimal(rawRow, "w3B"),
+                WHR = GetDecimal(rawRow, "wHR"),
+                RunSB = GetDecimal(rawRow, "runSB"),
+                RunCS = GetDecimal(rawRow, "runCS"),
+                RPA = GetDecimal(rawRow, "R/PA"),
+                RW = GetDecimal(rawRow, "R/W"),
+                CFIP = GetDecimal(rawRow, "cFIP")
+            };
+        }
+    }
+
     private int GetInt(List<string> row, string colName)
     {
         string rawVal = row[HeaderIndices[colName]];
@@ -161,6 +192,18 @@ public class CsvLoader
         else
         {
             return Convert.ToInt32(rawVal);
+        }
+    }
+    private decimal GetDecimal(List<string> row, string colName)
+    {
+        string rawVal = row[HeaderIndices[colName]];
+        if (string.IsNullOrEmpty(rawVal))
+        {
+            return 0;
+        }
+        else
+        {
+            return Convert.ToDecimal(rawVal);
         }
     }
 

@@ -1,4 +1,4 @@
-﻿namespace BaseballApi;
+﻿namespace BaseballApi.Models;
 
 public class AlternateParkName
 {

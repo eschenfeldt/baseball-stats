@@ -9,6 +9,7 @@ import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } 
 import { EditTeamDialogComponent } from '../edit-team-dialog/edit-team-dialog.component';
 import { Router } from '@angular/router';
 import { BASEBALL_ROUTES } from '../app.routes';
+import { ImportConstantsDialogComponent } from '../import-constants-dialog/import-constants-dialog.component';
 
 @Component({
     selector: 'app-admin',
@@ -57,6 +58,10 @@ export class AdminViewComponent implements OnInit {
 
     openTeamDialog() {
         this.importDialog.open(EditTeamDialogComponent);
+    }
+
+    openConstantsRefreshDialog() {
+        this.importDialog.open(ImportConstantsDialogComponent);
     }
 
     login() {

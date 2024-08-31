@@ -7,6 +7,7 @@ import { TypeSafeMatRowDef } from '../type-safe-mat-row-def.directive';
 import { RouterModule } from '@angular/router';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { NgClass } from '@angular/common';
+import { StatDefCollection } from '../contracts/stat-def';
 
 @Component({
     selector: 'app-box-score-batters',
@@ -29,7 +30,14 @@ export class BoxScoreBattersComponent implements OnInit, AfterViewInit {
 
     @Input({ required: true })
     dataSource!: GameBatter[]
+
+    @Input({ required: true })
+    stats!: StatDefCollection
     displayedColumns = BoxScoreBattersComponent.fullSizeDisplayedColumns;
+
+    get statNames(): string[] {
+        return Object.keys(this.stats);
+    }
 
     constructor(
         private breakPointObserver: BreakpointObserver
@@ -50,9 +58,9 @@ export class BoxScoreBattersComponent implements OnInit, AfterViewInit {
 
     ngAfterViewInit(): void {
         this.sort.sortChange.subscribe(() => {
-            const basicSort = this.sort.active as (keyof GameBatter);
+            const basicSort = this.sort.active as (keyof StatDefCollection);
             if (basicSort && basicSort != 'player') {
-                this.dataSource.sort((a, b) => a[basicSort] - b[basicSort]);
+                this.dataSource.sort((a, b) => a.stats[basicSort] - b.stats[basicSort]);
                 if (this.sort.direction === 'desc') {
                     this.dataSource.reverse();
                 }
@@ -63,85 +71,32 @@ export class BoxScoreBattersComponent implements OnInit, AfterViewInit {
 
     private static readonly fullSizeDisplayedColumns: string[] = [
         'name',
-        'plateAppearances',
-        'atBats',
-        'hits',
-        'walks',
-        'singles',
-        'doubles',
-        'triples',
-        'homeruns',
-        'strikeouts',
-        'strikeoutsCalled',
-        'strikeoutsSwinging',
-        'runs',
-        'runsBattedIn',
-        'stolenBases',
-        'caughtStealing'
+        'PlateAppearances',
+        'AtBats',
+        'Hits',
+        'Walks',
+        'Singles',
+        'Doubles',
+        'Triples',
+        'Homeruns',
+        'Strikeouts',
+        'StrikeoutsCalled',
+        'StrikeoutsSwinging',
+        'Runs',
+        'RunsBattedIn',
+        'StolenBases',
+        'CaughtStealing'
     ];
     private static readonly compactDisplayedColumns: string[] = [
         'name',
-        'plateAppearances',
-        'atBats',
-        'hits',
-        'walks',
-        'homeruns',
-        'strikeouts',
-        'runs',
-        'runsBattedIn',
-        'stolenBases'
+        'PlateAppearances',
+        'AtBats',
+        'Hits',
+        'Walks',
+        'Homeruns',
+        'Strikeouts',
+        'Runs',
+        'RunsBattedIn',
+        'StolenBases'
     ]
-
-    basicColumns: (keyof GameBatter)[] = [
-        'games',
-        'atBats',
-        'plateAppearances',
-        'hits',
-        'singles',
-        'doubles',
-        'triples',
-        'homeruns',
-        'runs',
-        'runsBattedIn',
-        'stolenBases',
-        'caughtStealing',
-        'walks',
-        'strikeouts',
-        'strikeoutsCalled',
-        'strikeoutsSwinging',
-        'hitByPitch',
-    ];
-
-    basicHeaders: { [key in keyof GameBatter]: string } = {
-        player: '',
-        number: '',
-        games: 'G',
-        plateAppearances: 'PA',
-        atBats: 'AB',
-        runs: 'R',
-        hits: 'H',
-        buntSingles: 'Bunt 1B',
-        singles: '1B',
-        doubles: '2B',
-        triples: '3B',
-        homeruns: 'HR',
-        runsBattedIn: 'RBI',
-        walks: 'BB',
-        strikeouts: 'K',
-        strikeoutsCalled: 'Kc',
-        strikeoutsSwinging: 'Ks',
-        hitByPitch: 'HBP',
-        stolenBases: 'SB',
-        caughtStealing: 'CS',
-        sacrificeBunts: 'Sac Bunt',
-        sacrificeFlies: 'SF',
-        sacrifices: 'SAC',
-        reachedOnError: 'E',
-        fieldersChoices: 'FC',
-        catchersInterference: 'CI',
-        groundedIntoDoublePlay: 'GIDP',
-        groundedIntoTriplePlay: 'GITP',
-        atBatsWithRunnersInScoringPosition: 'AB RISP',
-        hitsWithRunnersInScoringPosition: 'H RISP'
-    };
 }

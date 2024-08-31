@@ -1,4 +1,6 @@
-﻿namespace BaseballApi.Contracts;
+﻿using BaseballApi.Models;
+
+namespace BaseballApi.Contracts;
 
 public struct BoxScoreDetail(BoxScore boxScore)
 {

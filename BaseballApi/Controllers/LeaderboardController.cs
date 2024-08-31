@@ -45,7 +45,7 @@ public class LeaderboardController : ControllerBase
         .Select(p => new LeaderboardBatter
         {
             // finally compute more complex stats
-            Player = p.Player,
+            Player = new(p.Player),
             Year = leaderboardParams.Year,
             Games = p.Games,
             AtBats = p.AtBats,
@@ -53,7 +53,7 @@ public class LeaderboardController : ControllerBase
             BattingAverage = p.AtBats > 0 ? decimal.Divide(p.Hits, p.AtBats) : null
         });
 
-        var sorted = GetSorted(query, leaderboardParams.Order, leaderboardParams.SortAscending);
+        var sorted = GetSorted(query, leaderboardParams.Order, leaderboardParams.Asc);
 
         return new PagedResult<LeaderboardBatter>
         {

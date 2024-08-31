@@ -1,8 +1,8 @@
 ﻿namespace BaseballApi.Contracts;
 
-public class LeaderboardBatter
+public struct LeaderboardBatter
 {
-    public required Player Player { get; set; }
+    public required PlayerInfo Player { get; set; }
     public int? Year { get; set; }
     public int Games { get; set; }
     public int AtBats { get; set; }
