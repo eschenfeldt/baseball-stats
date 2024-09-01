@@ -3,6 +3,7 @@ using BaseballApi.Contracts;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace BaseballApi.Controllers;
 
@@ -18,72 +19,45 @@ public class LeaderboardController : ControllerBase
     }
 
     [HttpPost("batting")]
-    public async Task<ActionResult<PagedResult<LeaderboardBatter>>> GetBattingLeaders(BatterLeaderboardParams leaderboardParams)
+    public async Task<ActionResult<Leaderboard<LeaderboardBatter>>> GetBattingLeaders(BatterLeaderboardParams leaderboardParams)
     {
-        IQueryable<Batter> batters = _context.Batters;
-        if (leaderboardParams.Year.HasValue)
+        var calculator = new StatCalculator(_context)
         {
-            batters = batters.Where(b => b.BoxScore.Game.Date.Year == leaderboardParams.Year);
-        }
-        var query = _context.Players.GroupJoin(
-            batters,
-            p => p.Id,
-            b => b.PlayerId,
-            (p, b) => new { Player = p, Batters = b }
-        )
-        .Where(p => p.Batters.Any())
-        .Select(p => new
-        {
-            // now compute sums
-            p.Player,
-            Games = p.Batters.Select(b => b.Games).Sum(),
-            Hits = p.Batters.Select(b => b.Hits).Sum(),
-            AtBats = p.Batters.Select(b => b.AtBats).Sum(),
-            PlateAppearances = p.Batters.Select(b => b.PlateAppearances).Sum()
-        })
-        .Where(p => p.PlateAppearances > leaderboardParams.MinPlateAppearances)
-        .Select(p => new LeaderboardBatter
-        {
-            // finally compute more complex stats
-            Player = new(p.Player),
             Year = leaderboardParams.Year,
-            Games = p.Games,
-            AtBats = p.AtBats,
-            Hits = p.Hits,
-            BattingAverage = p.AtBats > 0 ? decimal.Divide(p.Hits, p.AtBats) : null
-        });
-
-        var sorted = GetSorted(query, leaderboardParams.Order, leaderboardParams.Asc);
-
-        return new PagedResult<LeaderboardBatter>
-        {
-            TotalCount = await query.CountAsync(),
-            Results = await sorted.Skip(leaderboardParams.Skip)
-                            .Take(leaderboardParams.Take)
-                            .ToListAsync()
+            PlayerSearch = leaderboardParams.PlayerSearch,
+            MinPlateAppearances = leaderboardParams.MinPlateAppearances,
+            OrderBy = leaderboardParams.Sort,
+            OrderAscending = leaderboardParams.Asc
         };
 
-    }
+        var stats = calculator.GetBattingStats();
+        var query = stats
+        .Skip(leaderboardParams.Skip)
+        .Take(leaderboardParams.Take)
+        .Select(s => new LeaderboardBatter
+        {
+            // finally compute more complex stats
+            Player = new(_context.Players.Single(p => s.PlayerId!.Value == p.Id)),
+            Year = s.Year,
+            Stats = new Dictionary<string, decimal?>{
+                {Stat.Games.Name, s.Games},
+                {Stat.PlateAppearances.Name, s.PlateAppearances},
+                {Stat.BattingAverage.Name, s.AVG},
+                {Stat.OnBasePercentage.Name, s.OBP},
+                {Stat.WeightedOnBaseAverage.Name, s.WOBA}
+            }
+        }).AsEnumerable();
 
-    private static IOrderedQueryable<LeaderboardBatter> GetSorted(IQueryable<LeaderboardBatter> query, BatterLeaderboardOrder order, bool asc)
-    {
-        if (asc)
+        // sorting in postgres is working for skip/take but not final result order, so do that in-memory
+        Func<LeaderboardBatter, decimal?> selector = b => b.Stats[leaderboardParams.Sort];
+        IOrderedEnumerable<LeaderboardBatter> sorted = leaderboardParams.Asc ? query.OrderBy(selector) : query.OrderByDescending(selector);
+
+        return new Leaderboard<LeaderboardBatter>
         {
-            return order switch
-            {
-                BatterLeaderboardOrder.Games => query.OrderBy(k => k.Games),
-                BatterLeaderboardOrder.BattingAverage => query.OrderBy(k => k.BattingAverage),
-                _ => query.OrderBy(k => k.Games),
-            };
-        }
-        else
-        {
-            return order switch
-            {
-                BatterLeaderboardOrder.Games => query.OrderByDescending(k => k.Games),
-                BatterLeaderboardOrder.BattingAverage => query.OrderByDescending(k => k.BattingAverage),
-                _ => query.OrderByDescending(k => k.Games),
-            };
-        }
+            Stats = StatCalculator.GetBattingStats(),
+            TotalCount = await stats.CountAsync(),
+            Results = sorted.ToList()
+        };
+
     }
 }

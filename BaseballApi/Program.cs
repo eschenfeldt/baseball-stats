@@ -46,7 +46,7 @@ if (app.Environment.IsDevelopment())
     // Allow user setup endpoints only in development
     app.MapGroup("/api/Admin/Dev").MapIdentityApi<IdentityUser>();
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(options => options.EnableTryItOutByDefault());
 }
 
 app.UseHttpsRedirection();

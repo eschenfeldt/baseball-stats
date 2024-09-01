@@ -51,7 +51,7 @@ export class AdminViewComponent implements OnInit {
     openImportDialog() {
         this.importDialog.open(ImportGameDialogComponent).afterClosed().subscribe(newGameId => {
             if (newGameId) {
-                this.router.navigate([BASEBALL_ROUTES.GAME, newGameId]);
+                this.router.navigate(['game', newGameId]);
             }
         });
     }

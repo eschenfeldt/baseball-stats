@@ -7,6 +7,8 @@ import { PagedApiParameters } from './paged-api-parameters';
 import { PagedResult } from './contracts/paged-result';
 import { BaseballApiFilter, BaseballFilterService } from './baseball-filter.service';
 import { v4 as uuidv4 } from 'uuid';
+import { StatDefCollection } from './contracts/stat-def';
+import { Leaderboard } from './contracts/leaderboard';
 
 export abstract class BaseballDataSource<ArgType extends PagedApiParameters, ReturnType> extends DataSource<ReturnType> {
 
@@ -15,12 +17,14 @@ export abstract class BaseballDataSource<ArgType extends PagedApiParameters, Ret
     protected updateOnFilterChanges: boolean = true;
 
     private dataSubject = new BehaviorSubject<ReturnType[]>([]);
+    private statsSubject = new BehaviorSubject<StatDefCollection>({});
     private loadingSubject = new BehaviorSubject<boolean>(false);
     private totalCountSubject = new BehaviorSubject<number>(0);
     private activeSortSubject = new BehaviorSubject<Sort | null>(null);
 
     public uniqueIdentifier: string;
     public loading$ = this.loadingSubject.asObservable();
+    public stats$ = this.statsSubject.asObservable();
     public totalCount$ = this.totalCountSubject.asObservable();
     public activeSort$ = this.activeSortSubject.asObservable();
 
@@ -84,6 +88,10 @@ export abstract class BaseballDataSource<ArgType extends PagedApiParameters, Ret
         this.executingQuery = queryBase.subscribe(result => {
             this.dataSubject.next(result.results);
             this.totalCountSubject.next(result.totalCount);
+            const leaderboard = result as Leaderboard<ReturnType>;
+            if (leaderboard) {
+                this.statsSubject.next(leaderboard.stats);
+            }
         });
     }
 

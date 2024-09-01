@@ -10,6 +10,7 @@ import { TypeSafeMatRowDef } from '../type-safe-mat-row-def.directive';
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { BaseballApiFilter, BaseballFilterService } from '../baseball-filter.service';
+import { StatDefCollection } from '../contracts/stat-def';
 
 @Component({
     selector: 'app-leaderboard-batters',
@@ -34,13 +35,22 @@ export class LeaderboardBattersComponent extends BaseballTableComponent<BatterLe
 
     dataSource: LeaderboardBattersDataSource;
     displayedColumns: string[] = [
-        'name',
-        'games',
-        'atBats',
-        'hits',
-        'battingAverage'
+        'name'
     ];
     protected override defaultFilters?: BaseballApiFilter = {};
+
+    stats: StatDefCollection = {};
+    get statNames(): string[] {
+        return Object.keys(this.stats);
+    }
+    formatString(statName: string): string {
+        const format = this.stats[statName].format;
+        if (format.name === 'Decimal') {
+            return `0.3`; // TODO: rework the format object to get this to actually work
+        } else {
+            return '';
+        }
+    }
 
     constructor(
         api: BaseballApiService,
@@ -55,5 +65,12 @@ export class LeaderboardBattersComponent extends BaseballTableComponent<BatterLe
             true,
             this.defaultFilters
         );
+        this.dataSource.stats$.subscribe(stats => {
+            this.stats = stats;
+            this.displayedColumns = [
+                'name',
+                ...this.statNames
+            ]
+        })
     }
 }

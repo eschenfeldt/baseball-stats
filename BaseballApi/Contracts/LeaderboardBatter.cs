@@ -4,10 +4,7 @@ public struct LeaderboardBatter
 {
     public required PlayerInfo Player { get; set; }
     public int? Year { get; set; }
-    public int Games { get; set; }
-    public int AtBats { get; set; }
-    public int Hits { get; set; }
-    public decimal? BattingAverage { get; set; }
+    public Dictionary<string, decimal?> Stats { get; set; }
 }
 
 public enum BatterLeaderboardOrder

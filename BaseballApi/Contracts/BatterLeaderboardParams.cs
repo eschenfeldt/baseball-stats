@@ -11,6 +11,6 @@ public struct BatterLeaderboardParams : ILeaderboardParams
     public int Skip { get; set; } = 0;
     public int Take { get; set; } = 10;
     public int MinPlateAppearances { get; set; } = 0;
-    public BatterLeaderboardOrder Order { get; set; } = BatterLeaderboardOrder.Games;
+    public string Sort { get; set; } = Stat.Games.Name;
     public bool Asc { get; set; } = false;
 }
