@@ -41,9 +41,13 @@ class Thumbnailer:
             dir = os.path.dirname(path)
             filename, ext = os.path.splitext(os.path.basename(path))
             image = Image.open(path)
+            alt_ext = '.jpeg'
+            if ext != alt_ext:
+                alt_name = os.path.join(dir, f"{filename}{alt_ext}")
+                image.save(alt_name)
             for size in self.sizes:
                 image.thumbnail((size.max_size, size.max_size))
-                new_name = os.path.join(dir, f"{filename}_{size.name_modifier}{ext}")
+                new_name = os.path.join(dir, f"{filename}_{size.name_modifier}{alt_ext}")
                 image.save(new_name)
         except Exception as e:
             return e

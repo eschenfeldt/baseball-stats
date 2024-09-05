@@ -116,7 +116,7 @@ class DbConnector:
         FROM "RemoteResource"
         JOIN "RemoteFile" ON "RemoteResource"."Id" = "RemoteFile"."ResourceId"
         WHERE "RemoteResource"."AssetIdentifier" = %s
-            AND "RemoteFile"."NameModifier" = %s
+            AND COALESCE("RemoteFile"."NameModifier", 'null') = COALESCE(%s, 'null')
             AND "RemoteFile"."Extension" = %s
         """
         with psycopg.connect(self.__config.connection_info()) as connection:
@@ -145,25 +145,33 @@ class DbConnector:
             photo.favorite
         )
 
-    def get_file_purpose(self, name_modifier: str | None, ext: str, photo: PhotoInfo) -> int:
+    def get_file_purpose(self, name_modifier: str | None, ext: str, photo: PhotoInfo, has_alternate_formats: bool) -> int:
         if photo.ismovie and ext == '.jpeg':
             return 2 # Thumbnail
         elif name_modifier is not None:
             return 2 # Thumbnail
+        elif has_alternate_formats and ext == '.jpeg':
+            return 3 # Alternate Format
         else:
             return 1 # Original
 
     def get_file_params(self, resourceId: int, game: Game, photo: PhotoInfo) -> list[tuple]:
         out_dir = self._path_manager.temp_dir(game, photo)
         results = []
+        original_formats_count = 0
         for file in os.listdir(out_dir):
             name, ext = os.path.splitext(os.path.basename(file))
             name_modifier = self._path_manager.get_name_modifier(name)
-            file_purpose = self.get_file_purpose(name_modifier, ext, photo)
+            if name_modifier is None:
+                original_formats_count += 1
+
+        for file in os.listdir(out_dir):
+            name, ext = os.path.splitext(os.path.basename(file))
+            name_modifier = self._path_manager.get_name_modifier(name)
+            file_purpose = self.get_file_purpose(name_modifier, ext, photo, original_formats_count > 1)
             
             results.append((resourceId, file_purpose, name_modifier, ext))
         return results
-    
 
     def import_files(self, resourceId: int, game: Game, photo: PhotoInfo, cursor):
         statement = """

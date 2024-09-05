@@ -44,6 +44,17 @@ namespace BaseballApi.Controllers
                             Purpose = f.Purpose,
                             Extension = f.Extension
                         }).SingleOrDefault() : null,
+                        AlternatePhoto = r.ResourceType == MediaResourceType.Photo || r.ResourceType == MediaResourceType.LivePhoto ? r.Files.Where(f => f.Purpose == RemoteFilePurpose.AlternateFormat && !VIDEO_EXTENSIONS.Contains(f.Extension))
+                        .Select(f => new RemoteFileDetail
+                        {
+                            AssetIdentifier = r.AssetIdentifier,
+                            DateTime = r.DateTime,
+                            FileType = r.ResourceType.Humanize(),
+                            OriginalFileName = r.OriginalFileName,
+                            NameModifier = f.NameModifier,
+                            Purpose = f.Purpose,
+                            Extension = f.Extension
+                        } as RemoteFileDetail?).FirstOrDefault() : null,
                         Video = r.ResourceType == MediaResourceType.Video || r.ResourceType == MediaResourceType.LivePhoto ? r.Files.Where(f => f.Purpose == RemoteFilePurpose.Original && VIDEO_EXTENSIONS.Contains(f.Extension))
                         .Select(f => new RemoteFileDetail
                         {
@@ -54,7 +65,18 @@ namespace BaseballApi.Controllers
                             NameModifier = f.NameModifier,
                             Purpose = f.Purpose,
                             Extension = f.Extension
-                        }).SingleOrDefault() : null
+                        }).SingleOrDefault() : null,
+                        AlternateVideo = r.ResourceType == MediaResourceType.Video || r.ResourceType == MediaResourceType.LivePhoto ? r.Files.Where(f => f.Purpose == RemoteFilePurpose.AlternateFormat && VIDEO_EXTENSIONS.Contains(f.Extension))
+                        .Select(f => new RemoteFileDetail
+                        {
+                            AssetIdentifier = r.AssetIdentifier,
+                            DateTime = r.DateTime,
+                            FileType = r.ResourceType.Humanize(),
+                            OriginalFileName = r.OriginalFileName,
+                            NameModifier = f.NameModifier,
+                            Purpose = f.Purpose,
+                            Extension = f.Extension
+                        } as RemoteFileDetail?).FirstOrDefault() : null
                     }).SingleOrDefaultAsync();
         }
 
@@ -62,7 +84,7 @@ namespace BaseballApi.Controllers
         public async Task<ActionResult<PagedResult<RemoteFileDetail>>> GetThumbnails(
             int skip = 0,
             int take = 50,
-            bool asc = false,
+            bool asc = true,
             string size = "small",
             long? gameId = null,
             long? playerId = null

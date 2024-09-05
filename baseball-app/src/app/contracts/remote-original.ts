@@ -7,5 +7,6 @@ export interface RemoteOriginal {
     gameName?: string;
     photo: RemoteFileDetail;
     video: RemoteFileDetail;
-
+    alternatePhoto?: RemoteFileDetail;
+    alternateVideo?: RemoteFileDetail;
 }

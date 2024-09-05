@@ -48,9 +48,33 @@ export class MediaCarouselComponent implements OnInit {
         }
     }
 
+    photoType(focusedItem: RemoteOriginal): string | null {
+        if (focusedItem.photo) {
+            return `image/${focusedItem.photo.extension.substring(1)}`;
+        } else {
+            return null;
+        }
+    }
+
+    altPhotoUrl(focusedItem: RemoteOriginal): string | null {
+        if (focusedItem.alternatePhoto) {
+            return Utils.keyToUrl(focusedItem.alternatePhoto.key);
+        } else {
+            return null;
+        }
+    }
+
     videoUrl(focusedItem: RemoteOriginal): string | null {
         if (focusedItem.video) {
             return Utils.keyToUrl(focusedItem.video.key);
+        } else {
+            return null;
+        }
+    }
+
+    alternateVideoUrl(focusedItem: RemoteOriginal): string | null {
+        if (focusedItem.alternateVideo) {
+            return Utils.keyToUrl(focusedItem.alternateVideo.key);
         } else {
             return null;
         }

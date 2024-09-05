@@ -5,7 +5,10 @@
         @if (focusedItem.fileType === 'Live photo') {
         <app-live-photo [photo]="focusedItem"></app-live-photo>
         } @else if (focusedItem.fileType === 'Photo') {
-        <img src="{{photoUrl(focusedItem)}}" alt="{{altText(focusedItem)}}">
+        <picture>
+            <source src="{{photoUrl(focusedItem)}}" type="{{photoType(focusedItem)}}">
+            <img src="{{altPhotoUrl(focusedItem) || photoUrl(focusedItem)}}" alt="{{altText(focusedItem)}}">
+        </picture>
         } @else if (focusedItem.fileType === 'Video') {
         <video controls src="{{videoUrl(focusedItem)}}"></video>
         }

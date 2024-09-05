@@ -41,6 +41,23 @@ export class LivePhotoComponent {
     get imgSrc(): string {
         return Utils.keyToUrl(this.photo.photo.key);
     }
+    get imgType(): string {
+        return `image/${this.photo.photo.extension.substring(1)}`;
+    }
+    get altImgSrc(): string | null {
+        if (this.photo.alternatePhoto) {
+            return Utils.keyToUrl(this.photo.alternatePhoto.key);
+        } else {
+            return null;
+        }
+    }
+    get altImgType(): string | null {
+        if (this.photo.alternatePhoto) {
+            return `image/${this.photo.alternatePhoto.extension.substring(1)}`;
+        } else {
+            return null;
+        }
+    }
     get imgState(): string {
         return this.showImage ? 'visible' : 'hidden';
     }
@@ -54,6 +71,14 @@ export class LivePhotoComponent {
         this.showImage = !this.showImage;
         if (!this.showImage && this.videoElement) {
             this.videoElement.nativeElement.play();
+        }
+    }
+
+    get altText(): string {
+        if (this.photo) {
+            return `${this.photo.fileType} taken ${Utils.formatDateTime(this.photo.photo.dateTime)}`;
+        } else {
+            return "Unknown file";
         }
     }
 }

@@ -31,22 +31,24 @@ class BucketConnector:
                               aws_access_key_id=self.__config.access_key,
                               aws_secret_access_key=self.__config.secret_key)
 
-    def get_file_purpose(self, name_modifier: str | None, ext: str, photo: PhotoInfo) -> str:
+    def get_file_purpose(self, name_modifier: str | None, ext: str, photo: PhotoInfo, has_alternate_formats: bool) -> str:
         if photo.ismovie and ext == '.jpeg':
             return 'thumbnail'
         elif name_modifier is not None:
             return 'thumbnail'
+        elif has_alternate_formats and ext == '.jpeg':
+            return 'alt'
         else:
             return 'original'
 
-    def get_key(self, photo: PhotoInfo, name_modifier: str | None, ext: str) -> str:
-        base = self.get_file_purpose(name_modifier, ext, photo)
+    def get_key(self, photo: PhotoInfo, name_modifier: str | None, ext: str, has_alternate_formats: bool) -> str:
+        base = self.get_file_purpose(name_modifier, ext, photo, has_alternate_formats)
         if name_modifier:
             base = f'{base}_{name_modifier}'
         return f'{photo.uuid}/{base}{ext}'
 
-    def file_exists(self, photo: PhotoInfo, name_modifier: str, ext: str) -> bool:
-        key = self.get_key(photo, name_modifier, ext)
+    def file_exists(self, photo: PhotoInfo, name_modifier: str, ext: str, has_alternate_formats: bool) -> bool:
+        key = self.get_key(photo, name_modifier, ext, has_alternate_formats)
         return self.file_exists_by_key(key)
     
     def file_exists_by_key(self, key: str) -> bool:
@@ -58,14 +60,23 @@ class BucketConnector:
         client = self.get_client()
         client.upload_file(path, self.__config.bucket, key, ExtraArgs={'ACL':'public-read'})
 
-    def upload_file(self, path: str, photo: PhotoInfo, name_modifier: str, ext: str):
-        key = self.get_key(photo, name_modifier, ext)
+    def upload_file(self, path: str, photo: PhotoInfo, name_modifier: str, ext: str, has_alternate_formats: bool):
+        key = self.get_key(photo, name_modifier, ext, has_alternate_formats)
         self.upload_by_key(path, key)
 
     def upload_all_files(self, root_path: str, photo: PhotoInfo):
+        original_formats_count = 0
         for file in os.listdir(root_path):
             name, ext = os.path.splitext(file)
             name_modifier = self.path_manager.get_name_modifier(name)
-            if not self.file_exists(photo, name_modifier, ext):
+            if name_modifier is None:
+                original_formats_count += 1
+
+        has_alternate_formats = original_formats_count > 1
+
+        for file in os.listdir(root_path):
+            name, ext = os.path.splitext(file)
+            name_modifier = self.path_manager.get_name_modifier(name)
+            if not self.file_exists(photo, name_modifier, ext, has_alternate_formats):
                 full_path = os.path.join(root_path, file)
-                self.upload_file(full_path, photo, name_modifier, ext)
+                self.upload_file(full_path, photo, name_modifier, ext, has_alternate_formats)

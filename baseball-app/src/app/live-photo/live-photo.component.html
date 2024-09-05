@@ -7,10 +7,13 @@
         </button>
     </div>
     <div class="photo" [@fade]="imgState">
-        <img src="{{imgSrc}}" alt="Live photo still" [@fade]="imgState">
+        <picture [@fade]="imgState">
+            <source srcset="{{imgSrc}}" type="{{imgType}}">
+            <img src="{{altImgSrc || imgSrc}}" alt="{{altText}}">
+        </picture>
     </div>
     <div class="video" [@fade]="videoState">
-        <video #video src="{{videoSrc}}" muted controls preload="none" [@fade]="videoState"
+        <video #video src="{{videoSrc}}" muted controls preload="none" [@fade]="videoState" crossorigin="anonymous"
             (ended)="toggleImage()"></video>
     </div>
 </div>
