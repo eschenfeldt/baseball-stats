@@ -1,11 +1,11 @@
 <mat-expansion-panel (opened)="filterOpenState.set(true)" (closed)="filterOpenState.set(false)">
     <mat-expansion-panel-header>
-        <mat-panel-title>Batter Filters</mat-panel-title>
+        <mat-panel-title>Pitcher Filters</mat-panel-title>
         <mat-panel-description>{{filterSummary}}</mat-panel-description>
     </mat-expansion-panel-header>
     <mat-form-field>
-        <mat-label>Min PA</mat-label>
-        <input type="number" matInput step="1" [(ngModel)]="minPA">
+        <mat-label>Min IP</mat-label>
+        <input type="number" matInput step="1" [(ngModel)]="minIP">
     </mat-form-field>
 </mat-expansion-panel>
 
@@ -16,17 +16,25 @@
             <th mat-header-cell *matHeaderCellDef>
                 Name
             </th>
-            <td mat-cell *matCellDef="let batter; table: table">
-                <a [routerLink]="['/player', batter.player.id]" routerLinkActive="router-link-active">
-                    {{batter.player.name}}
+            <td mat-cell *matCellDef="let pitcher; table: table">
+                <a [routerLink]="['/player', pitcher.player.id]" routerLinkActive="router-link-active">
+                    {{pitcher.player.name}}
                 </a>
+            </td>
+        </ng-container>
+
+        <ng-container matColumnDef="inningsPitched">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header="ThirdInningsPitched">IP</th>
+            <td mat-cell *matCellDef="let pitcher; table: table">
+                {{fullInningsPitched(pitcher)}}
+                <span innerHtml={{partialInningsPitched(pitcher)}}></span>
             </td>
         </ng-container>
 
         @for (statName of statNames; track statName) {
         <ng-container matColumnDef="{{statName}}">
             <th mat-header-cell mat-sort-header *matHeaderCellDef>{{stats[statName].shortName}}</th>
-            <td mat-cell *matCellDef="let batter; table: table">{{batter.stats[statName] | number :
+            <td mat-cell *matCellDef="let pitcher; table: table">{{pitcher.stats[statName] | number :
                 formatString(statName)}}</td>
         </ng-container>
         }

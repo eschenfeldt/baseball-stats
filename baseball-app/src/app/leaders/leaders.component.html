@@ -1,3 +1,11 @@
-<h4>Leaders</h4>
+<mat-form-field>
+    <mat-label>Search</mat-label>
+    <input type="text" matInput placeholder="Player Name" [(ngModel)]="search">
+</mat-form-field>
+<mat-button-toggle-group name="type" aria-label="Player Type" multiple [(ngModel)]="showTables">
+    <mat-button-toggle value="batters">Batters</mat-button-toggle>
+    <mat-button-toggle value="pitchers">Pitchers</mat-button-toggle>
+</mat-button-toggle-group>
 
-<app-leaderboard-batters></app-leaderboard-batters>
+<app-leaderboard-batters [hidden]="!showBatters"></app-leaderboard-batters>
+<app-leaderboard-pitchers [hidden]="!showPitchers"></app-leaderboard-pitchers>

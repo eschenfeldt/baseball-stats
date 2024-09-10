@@ -357,4 +357,16 @@ public struct Stat
         ShortName = "wOBA",
         Format = new Decimal(3)
     };
+    public static readonly Stat EarnedRunAverage = new()
+    {
+        Name = "EarnedRunAverage",
+        ShortName = "ERA",
+        Format = new Decimal(2)
+    };
+    public static readonly Stat FieldingIndependentPitching = new()
+    {
+        Name = "FieldingIndependentPitching",
+        ShortName = "FIP",
+        Format = new Decimal(2)
+    };
 }

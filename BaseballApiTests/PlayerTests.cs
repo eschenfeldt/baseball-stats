@@ -35,10 +35,10 @@ public class PlayerTests : BaseballTests
     static readonly string Batter1Name = "Test Batter 1";
     static readonly string Batter2Name = "Test Batter 2";
     static readonly string Batter3Name = "Test Batter 3";
-    static readonly Func<LeaderboardBatter, int> GetGames = (lb) => lb.Games;
-    static readonly Func<LeaderboardBatter, int> GetAb = (lb) => lb.AtBats;
-    static readonly Func<LeaderboardBatter, int> GetH = (lb) => lb.Hits;
-    static readonly Func<LeaderboardBatter, decimal?> GetBattingAverage = (lb) =>
+    static readonly Func<LeaderboardPlayer, int> GetGames = (lb) => lb.Games;
+    static readonly Func<LeaderboardPlayer, int> GetAb = (lb) => lb.AtBats;
+    static readonly Func<LeaderboardPlayer, int> GetH = (lb) => lb.Hits;
+    static readonly Func<LeaderboardPlayer, decimal?> GetBattingAverage = (lb) =>
     {
         if (lb.BattingAverage.HasValue)
         {
@@ -50,7 +50,7 @@ public class PlayerTests : BaseballTests
         }
     };
 
-    public static TheoryData<Func<LeaderboardBatter, decimal?>, string, int?, decimal?> DecimalStats => new()
+    public static TheoryData<Func<LeaderboardPlayer, decimal?>, string, int?, decimal?> DecimalStats => new()
     {
         { GetBattingAverage, Batter1Name, null, 0.333M },
         { GetBattingAverage, Batter1Name, 2022, 0.333M },
@@ -62,7 +62,7 @@ public class PlayerTests : BaseballTests
         { GetBattingAverage, Batter3Name, 2023, 0.333M },
     };
 
-    public static TheoryData<Func<LeaderboardBatter, int>, string, int?, int> IntegerStats => new()
+    public static TheoryData<Func<LeaderboardPlayer, int>, string, int?, int> IntegerStats => new()
     {
         { GetGames, Batter1Name, null, 2 },
         { GetGames, Batter1Name, 2022, 1 },
@@ -72,7 +72,7 @@ public class PlayerTests : BaseballTests
 
     [Theory]
     [MemberData(nameof(DecimalStats))]
-    public async Task TestDecimalStat(Func<LeaderboardBatter, decimal?> selectValue, string name, int? year, decimal? expected)
+    public async Task TestDecimalStat(Func<LeaderboardPlayer, decimal?> selectValue, string name, int? year, decimal? expected)
     {
         var player = await GetBattingLeader(name, year);
         Assert.Equal(name, player.Player.Name);
@@ -82,14 +82,14 @@ public class PlayerTests : BaseballTests
 
     [Theory]
     [MemberData(nameof(IntegerStats))]
-    public async Task TestIntegerStat(Func<LeaderboardBatter, int> selectValue, string name, int? year, int expected)
+    public async Task TestIntegerStat(Func<LeaderboardPlayer, int> selectValue, string name, int? year, int expected)
     {
         var player = await GetBattingLeader(name, year);
         Assert.Equal(name, player.Player.Name);
         Assert.Equal(expected, selectValue(player));
     }
 
-    private async Task<LeaderboardBatter> GetBattingLeader(string name, int? year)
+    private async Task<LeaderboardPlayer> GetBattingLeader(string name, int? year)
     {
         var leaders = await LeaderController.GetBattingLeaders(new BatterLeaderboardParams
         {
