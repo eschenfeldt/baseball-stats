@@ -1,0 +1,89 @@
+import { Component, Input, OnInit, ViewChild } from '@angular/core';
+import { BaseballTableComponent } from '../baseball-table-component';
+import { BatterLeaderboardParams, LeaderboardBattersDataSource } from '../leaderboard-batters/leaderboard-batters-datasource';
+import { LeaderboardPlayer } from '../contracts/leaderboard-player';
+import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { MatSort, MatSortModule } from '@angular/material/sort';
+import { BaseballApiFilter, BaseballFilterService } from '../baseball-filter.service';
+import { ApiMethod, BaseballApiService } from '../baseball-api.service';
+import { LeaderboardBattersComponent } from '../leaderboard-batters/leaderboard-batters.component';
+import { StatDefCollection } from '../contracts/stat-def';
+import { CommonModule } from '@angular/common';
+import { MatTableModule } from '@angular/material/table';
+import { TypeSafeMatCellDef } from '../type-safe-mat-cell-def.directive';
+import { TypeSafeMatRowDef } from '../type-safe-mat-row-def.directive';
+
+@Component({
+    selector: 'app-player-batting-stats',
+    standalone: true,
+    imports: [
+        MatTableModule,
+        TypeSafeMatCellDef,
+        TypeSafeMatRowDef,
+        MatPaginatorModule,
+        MatSortModule,
+        CommonModule
+    ],
+    templateUrl: './player-batting-stats.component.html',
+    styleUrl: './player-batting-stats.component.scss'
+})
+export class PlayerBattingStatsComponent extends BaseballTableComponent<BatterLeaderboardParams, LeaderboardPlayer> implements OnInit {
+
+    @Input({ required: true })
+    playerId!: number;
+
+    @ViewChild(MatPaginator)
+    protected paginator!: MatPaginator;
+    @ViewChild(MatSort)
+    protected sort!: MatSort;
+
+    dataSource: LeaderboardBattersDataSource;
+    displayedColumns: string[] = [
+        'year'
+    ];
+    protected override get defaultFilters(): BaseballApiFilter {
+        return {
+            playerId: this.playerId,
+            sort: 'year'
+        };
+    }
+
+    stats: StatDefCollection = {};
+    get statNames(): string[] {
+        return Object.keys(this.stats);
+    }
+    formatString(statName: string): string {
+        const format = this.stats[statName].format;
+        if (format.name === 'Decimal') {
+            return `0.3`; // TODO: rework the format object to get this to actually work
+        } else {
+            return '';
+        }
+    }
+
+    constructor(
+        api: BaseballApiService,
+        private filterService: BaseballFilterService
+    ) {
+        super();
+        this.dataSource = new LeaderboardBattersDataSource(
+            LeaderboardBattersComponent.endpoint,
+            ApiMethod.POST,
+            api,
+            filterService,
+            false,
+            this.defaultFilters
+        );
+    }
+
+    public override ngOnInit(): void {
+        this.filterService.setFilterValue<BatterLeaderboardParams>(this.uniqueIdentifier, 'playerId', this.playerId);
+        this.dataSource.stats$.subscribe(stats => {
+            this.stats = stats;
+            this.displayedColumns = [
+                'year',
+                ...this.statNames
+            ]
+        })
+    }
+}

@@ -147,11 +147,19 @@ internal class StatCalculator
 
     private string GetBattingOrderBy()
     {
-        if (!BattingStatSelectors.TryGetValue(OrderBy, out Expression<Func<BattingStat, decimal?>>? selector))
+        string name;
+        if (string.Equals(OrderBy, "year", StringComparison.OrdinalIgnoreCase))
+        {
+            name = "Year";
+        }
+        else if (!BattingStatSelectors.TryGetValue(OrderBy, out Expression<Func<BattingStat, decimal?>>? selector))
         {
             throw new ArgumentException($"Stat {OrderBy} is not configured for batting leaders");
         }
-        var name = selector.GetMemberName();
+        else
+        {
+            name = selector.GetMemberName();
+        }
         var order = OrderAscending ? "ASC" : "DESC";
         return $"ORDER BY \"{name}\" {order}";
     }

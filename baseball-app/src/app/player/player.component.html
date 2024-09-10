@@ -1,7 +1,9 @@
 @if (player$ | async; as player) {
 <h3>
-    {{player.name}}
+    {{player.info.name}}
 </h3>
+
+<app-player-batting-stats [playerId]="player.info.id"></app-player-batting-stats>
 } @else {
 loading...
 }

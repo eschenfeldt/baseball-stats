@@ -3,6 +3,7 @@ import { LeaderboardPlayer } from '../contracts/leaderboard-player';
 import { PagedApiParameters } from '../paged-api-parameters'
 
 export interface BatterLeaderboardParams extends PagedApiParameters {
+    playerId?: number,
     playerSearch?: string,
     minPlateAppearances?: number
 }

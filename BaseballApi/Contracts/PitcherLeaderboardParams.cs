@@ -7,6 +7,7 @@ public struct PitcherLeaderboardParams : ILeaderboardParams
     }
 
     public int? Year { get; set; }
+    public long? PlayerId { get; set; }
     public string? PlayerSearch { get; set; }
     public int Skip { get; set; } = 0;
     public int Take { get; set; } = 10;
