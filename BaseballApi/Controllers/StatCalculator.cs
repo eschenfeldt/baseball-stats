@@ -76,6 +76,17 @@ internal class StatCalculator
         {
             return CompiledBattingStatSelectors.ToDictionary(sel => sel.Key, sel => sel.Value(this));
         }
+        public void AddAsSummaryStats(List<SummaryStat> summaryStats)
+        {
+            foreach (var selectorKvp in CompiledBattingStatSelectors)
+            {
+                summaryStats.Add(new SummaryStat
+                {
+                    Definition = StatCollection.Instance.Stats[selectorKvp.Key],
+                    Value = selectorKvp.Value(this)
+                });
+            }
+        }
     }
 
     internal IQueryable<BattingStat> GetBattingStats()
@@ -190,6 +201,17 @@ internal class StatCalculator
         public Dictionary<string, decimal?> ToDictionary()
         {
             return CompiledPitchingStatSelectors.ToDictionary(sel => sel.Key, sel => sel.Value(this));
+        }
+        public void AddAsSummaryStats(List<SummaryStat> summaryStats)
+        {
+            foreach (var selectorKvp in CompiledPitchingStatSelectors)
+            {
+                summaryStats.Add(new SummaryStat
+                {
+                    Definition = StatCollection.Instance.Stats[selectorKvp.Key],
+                    Value = selectorKvp.Value(this)
+                });
+            }
         }
     }
 

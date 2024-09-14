@@ -1,5 +1,5 @@
 <div class="header-stats">
-    @for (stat of player.summaryStats; track stat.definition.name) {
+    @for (stat of stats; track stat.definition.name) {
     <mat-card appearance="raised">
         <mat-card-header>
             <mat-card-title>
@@ -8,6 +8,19 @@
         </mat-card-header>
         <mat-card-content>
             {{stat.definition.shortName}}
+        </mat-card-content>
+    </mat-card>
+    }
+    @if (fullInningsPitched) {
+    <mat-card appearance="raised">
+        <mat-card-header>
+            <mat-card-title>
+                {{fullInningsPitched}}
+                <span innerHtml={{partialInningsPitched}}></span>
+            </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+            IP
         </mat-card-content>
     </mat-card>
     }

@@ -2,6 +2,7 @@ import { environment } from "../environments/environment";
 import { LeaderboardPlayer } from './contracts/leaderboard-player';
 import { StatDef } from './contracts/stat-def';
 import { StatFormat } from './contracts/stat-format';
+import { SummaryStat } from './contracts/summary-stat';
 import { Team } from "./contracts/team";
 
 export class Utils {
@@ -27,17 +28,39 @@ export class Utils {
     }
 
     public static fullInningsPitched(stats: { [statName: string]: number }): string {
-        const number = Math.floor(stats['ThirdInningsPitched'] / 3);
+        return Utils.fullIP(stats['ThirdInningsPitched']);
+    }
+    public static fullSummaryInningsPitched(summaryStats: SummaryStat[]): string | null {
+        const thirds = summaryStats.find(s => s.definition.name === 'ThirdInningsPitched');
+        if (thirds && thirds.value) {
+            return Utils.fullIP(thirds.value);
+        } else {
+            return null;
+        }
+    }
+    private static fullIP(thirds: number): string {
+        const number = Math.floor(thirds / 3);
         if (number > 0) {
             return number.toString();
-        } else if (Utils.partialInningsPitched(stats) === '') {
+        } else if (Utils.partialIP(thirds) === '') {
             return '0';
         } else {
             return '';
         }
     }
     public static partialInningsPitched(stats: { [statName: string]: number }): string {
-        const numerator = stats['ThirdInningsPitched'] % 3;
+        return Utils.partialIP(stats['ThirdInningsPitched']);
+    }
+    public static partialSummaryInningsPitched(summaryStats: SummaryStat[]): string | null {
+        const thirds = summaryStats.find(s => s.definition.name === 'ThirdInningsPitched');
+        if (thirds && thirds.value) {
+            return Utils.partialIP(thirds.value);
+        } else {
+            return null;
+        }
+    }
+    private static partialIP(thirds: number): string {
+        const numerator = thirds % 3;
         if (numerator == 1) {
             return '&frac13;';
         } else if (numerator == 2) {
