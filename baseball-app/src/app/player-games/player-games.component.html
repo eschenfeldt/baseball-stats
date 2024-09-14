@@ -52,8 +52,8 @@
         @for (statName of statNames; track statName) {
         <ng-container matColumnDef="{{statName}}">
             <th mat-header-cell *matHeaderCellDef>{{stats[statName].shortName}}</th>
-            <td mat-cell *matCellDef="let playerGame; table: table">{{getStat(playerGame, statName) | number :
-                formatString(statName)}}</td>
+            <td mat-cell *matCellDef="let playerGame; table: table">{{getStat(playerGame, statName) | stat :
+                stats[statName]}}</td>
         </ng-container>
         }
 

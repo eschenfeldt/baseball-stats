@@ -1,9 +1,6 @@
-export enum Format {
-    integer = 'Integer',
-    decimal = 'Decimal'
-}
-
-export interface StatFormat {
-    name: Format,
-    decimalPoints?: number
+export enum StatFormat {
+    integer,
+    decimal2,
+    decimal3,
+    percentage1
 }

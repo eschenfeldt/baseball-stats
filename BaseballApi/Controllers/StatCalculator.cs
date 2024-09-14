@@ -43,6 +43,8 @@ internal class StatCalculator
         {Stat.PlateAppearances.Name, b => b.PlateAppearances},
         {Stat.BattingAverage.Name, b => b.AVG},
         {Stat.OnBasePercentage.Name, b => b.OBP},
+        {Stat.SluggingPercentage.Name, b => b.SLG},
+        {Stat.OnBasePlusSlugging.Name, b => b.OPS},
         {Stat.WeightedOnBaseAverage.Name, b => b.WOBA }
     };
     private static readonly Dictionary<string, Func<BattingStat, decimal?>> CompiledBattingStatSelectors = BattingStatSelectors.ToDictionary(
@@ -65,6 +67,8 @@ internal class StatCalculator
         public int Games { get; set; }
         public int PlateAppearances { get; set; }
         public decimal? WOBA { get; set; }
+        public decimal? OPS { get; set; }
+        public decimal? SLG { get; set; }
         public decimal? OBP { get; set; }
         public decimal? AVG { get; set; }
 
@@ -92,7 +96,13 @@ internal class StatCalculator
                 SUM(c.""WBB"" * b.""Walks"" + c.""WHBP"" * b.""HitByPitch"" + c.""W1B"" * b.""Singles""
                     + c.""W2B"" * b.""Doubles"" + c.""W3B"" * b.""Triples"" + c.""WHR"" * b.""Homeruns"")
                     / NULLIF(SUM(b.""AtBats"" + b.""Walks"" + b.""SacrificeFlies"" + b.""HitByPitch""), 0) AS ""WOBA"",
-                SUM(b.""Hits"")::decimal / NULLIF(SUM(b.""AtBats""), 0) AS ""AVG""
+                SUM(b.""Hits"")::decimal / NULLIF(SUM(b.""AtBats""), 0) AS ""AVG"",
+                SUM(b.""Singles"" + 2 * b.""Doubles"" + 3 * b.""Triples"" + 4 * b.""Homeruns"")::decimal 
+                    / NULLIF(SUM(b.""AtBats""), 0) AS ""SLG"",
+                SUM(b.""Hits"" + b.""Walks"" + b.""HitByPitch"")::decimal
+                    / NULLIF(SUM(b.""AtBats"" + b.""Walks"" + b.""HitByPitch"" + b.""SacrificeFlies""), 0)
+                + SUM(b.""Singles"" + 2 * b.""Doubles"" + 3 * b.""Triples"" + 4 * b.""Homeruns"")::decimal 
+                    / NULLIF(SUM(b.""AtBats""), 0) AS ""OPS""
             FROM ""Batters"" b
             JOIN ""Players"" p ON b.""PlayerId"" = p.""Id""
             JOIN ""BoxScores"" bs ON b.""BoxScoreId"" = bs.""Id""
@@ -173,6 +183,9 @@ internal class StatCalculator
         public int ThirdInningsPitched { get; set; }
         public decimal? ERA { get; set; }
         public decimal? FIP { get; set; }
+        public decimal? HR { get; set; }
+        public decimal? KRate { get; set; }
+        public decimal? BBRate { get; set; }
 
         public Dictionary<string, decimal?> ToDictionary()
         {
@@ -184,7 +197,10 @@ internal class StatCalculator
         {Stat.Games.Name, p => p.Games},
         {Stat.ThirdInningsPitched.Name, p => p.ThirdInningsPitched},
         {Stat.EarnedRunAverage.Name, p => p.ERA},
-        {Stat.FieldingIndependentPitching.Name, p => p.FIP}
+        {Stat.FieldingIndependentPitching.Name, p => p.FIP},
+        {Stat.HomerunsAllowed.Name, p => p.HR},
+        {Stat.StrikeoutRate.Name, p => p.KRate},
+        {Stat.WalkRate.Name, p => p.BBRate}
     };
     private static readonly Dictionary<string, Func<PitchingStat, decimal?>> CompiledPitchingStatSelectors = PitchingStatSelectors.ToDictionary(
         kvp => kvp.Key,
@@ -210,13 +226,16 @@ internal class StatCalculator
                 {teamCol ?? "NULL"} AS ""TeamId"",
                 {playerCol ?? "NULL"} AS ""PlayerId"",
                 SUM(pi.""Games"") AS ""Games"",
+                SUM(pi.""Homeruns"") AS ""HR"",
                 SUM(pi.""ThirdInningsPitched"") AS ""ThirdInningsPitched"",
                 9 * SUM(pi.""EarnedRuns"")::decimal
                     / NULLIF(SUM(pi.""ThirdInningsPitched"") / 3.0, 0) AS ""ERA"",
                 SUM(c.""CFIP"" * pi.""ThirdInningsPitched"") / NULLIF(SUM(pi.""ThirdInningsPitched""), 0)
                 + SUM(13 * pi.""Homeruns"" + 3 * pi.""HitByPitch"" + 3 * pi.""Walks""
                     - 2 * pi.""Strikeouts"")
-                    / NULLIF(SUM(pi.""ThirdInningsPitched"") / 3.0, 0) AS ""FIP""
+                    / NULLIF(SUM(pi.""ThirdInningsPitched"") / 3.0, 0) AS ""FIP"",
+                SUM(pi.""Strikeouts"")::decimal / NULLIF(SUM(pi.""BattersFaced""), 0) AS ""KRate"",
+                SUM(pi.""Walks"")::decimal / NULLIF(SUM(pi.""BattersFaced""), 0) AS ""BBRate""
             FROM ""Pitchers"" pi
             JOIN ""Players"" p ON pi.""PlayerId"" = p.""Id""
             JOIN ""BoxScores"" bs ON pi.""BoxScoreId"" = bs.""Id""

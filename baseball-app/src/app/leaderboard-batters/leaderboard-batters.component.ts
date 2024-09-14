@@ -16,6 +16,7 @@ import { LeaderboardPlayer } from '../contracts/leaderboard-player';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { StatPipe } from '../stat.pipe';
 
 @Component({
     selector: 'app-leaderboard-batters',
@@ -28,6 +29,7 @@ import { MatInputModule } from '@angular/material/input';
         MatSortModule,
         MatExpansionModule,
         AsyncPipe,
+        StatPipe,
         CommonModule,
         RouterModule,
         FormsModule,
@@ -55,14 +57,6 @@ export class LeaderboardBattersComponent extends BaseballTableComponent<BatterLe
     stats: StatDefCollection = {};
     get statNames(): string[] {
         return Object.keys(this.stats);
-    }
-    formatString(statName: string): string {
-        const format = this.stats[statName].format;
-        if (format.name === 'Decimal') {
-            return `0.3`; // TODO: rework the format object to get this to actually work
-        } else {
-            return '';
-        }
     }
 
     constructor(

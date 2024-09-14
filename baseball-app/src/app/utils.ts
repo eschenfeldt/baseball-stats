@@ -1,6 +1,7 @@
 import { environment } from "../environments/environment";
 import { LeaderboardPlayer } from './contracts/leaderboard-player';
 import { StatDef } from './contracts/stat-def';
+import { StatFormat } from './contracts/stat-format';
 import { Team } from "./contracts/team";
 
 export class Utils {
@@ -24,15 +25,6 @@ export class Utils {
             return '';
         }
     }
-
-    public static formatString(statDef: StatDef): string {
-        if (statDef.format.name === 'Decimal') {
-            return `0.3`; // TODO: rework the format object to get this to actually work
-        } else {
-            return '';
-        }
-    }
-
 
     public static fullInningsPitched(stats: { [statName: string]: number }): string {
         const number = Math.floor(stats['ThirdInningsPitched'] / 3);

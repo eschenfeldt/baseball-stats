@@ -13,8 +13,7 @@
         @for (statName of statNames; track statName) {
         <ng-container matColumnDef="{{statName}}">
             <th mat-header-cell mat-sort-header *matHeaderCellDef>{{stats[statName].shortName}}</th>
-            <td mat-cell *matCellDef="let batter; table: table">{{batter.stats[statName] | number :
-                formatString(statName)}}</td>
+            <td mat-cell *matCellDef="let batter; table: table">{{batter.stats[statName] | stat : stats[statName]}}</td>
         </ng-container>
         }
 

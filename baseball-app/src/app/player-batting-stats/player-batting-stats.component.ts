@@ -8,10 +8,11 @@ import { BaseballApiFilter, BaseballFilterService } from '../baseball-filter.ser
 import { ApiMethod, BaseballApiService } from '../baseball-api.service';
 import { LeaderboardBattersComponent } from '../leaderboard-batters/leaderboard-batters.component';
 import { StatDefCollection } from '../contracts/stat-def';
-import { CommonModule } from '@angular/common';
+import { AsyncPipe, CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { TypeSafeMatCellDef } from '../type-safe-mat-cell-def.directive';
 import { TypeSafeMatRowDef } from '../type-safe-mat-row-def.directive';
+import { StatPipe } from '../stat.pipe';
 
 @Component({
     selector: 'app-player-batting-stats',
@@ -22,7 +23,8 @@ import { TypeSafeMatRowDef } from '../type-safe-mat-row-def.directive';
         TypeSafeMatRowDef,
         MatPaginatorModule,
         MatSortModule,
-        CommonModule
+        AsyncPipe,
+        StatPipe
     ],
     templateUrl: './player-batting-stats.component.html',
     styleUrl: './player-batting-stats.component.scss'
@@ -51,14 +53,6 @@ export class PlayerBattingStatsComponent extends BaseballTableComponent<BatterLe
     stats: StatDefCollection = {};
     get statNames(): string[] {
         return Object.keys(this.stats);
-    }
-    formatString(statName: string): string {
-        const format = this.stats[statName].format;
-        if (format.name === 'Decimal') {
-            return `0.3`; // TODO: rework the format object to get this to actually work
-        } else {
-            return '';
-        }
     }
 
     constructor(

@@ -18,6 +18,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { RouterModule } from '@angular/router';
 import { StatDefCollection } from '../contracts/stat-def';
 import { Utils } from '../utils';
+import { StatPipe } from '../stat.pipe';
 
 @Component({
     selector: 'app-player-games',
@@ -35,6 +36,7 @@ import { Utils } from '../utils';
         MatSelectModule,
         CommonModule,
         RouterModule,
+        StatPipe
     ],
     templateUrl: './player-games.component.html',
     styleUrl: './player-games.component.scss'
@@ -102,9 +104,6 @@ export class PlayerGamesComponent extends BaseballTableComponent<PlayerGamesPara
         }
     }
 
-    public formatString(statName: string): string {
-        return Utils.formatString(this.stats[statName]);
-    }
     public fullInningsPitched(playerGame: PlayerGame): string {
         if (playerGame.pitcher) {
             return Utils.fullInningsPitched(playerGame.pitcher.stats);
