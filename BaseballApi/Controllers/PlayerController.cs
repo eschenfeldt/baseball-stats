@@ -140,16 +140,7 @@ namespace BaseballApi.Controllers
             bool asc = false,
             int? year = null)
         {
-            var query = _context.Games
-                .Where(g => g.AwayBoxScore != null && (
-                    g.AwayBoxScore.Batters.Any(b => b.PlayerId == playerId)
-                    || g.AwayBoxScore.Pitchers.Any(p => p.PlayerId == playerId)
-                    || g.AwayBoxScore.Fielders.Any(f => f.PlayerId == playerId)
-                ) || g.HomeBoxScore != null && (
-                    g.HomeBoxScore.Batters.Any(b => b.PlayerId == playerId)
-                    || g.HomeBoxScore.Pitchers.Any(p => p.PlayerId == playerId)
-                    || g.HomeBoxScore.Fielders.Any(f => f.PlayerId == playerId)
-                ))
+            var query = this.GetPlayerGamesQuery(playerId)
                 .Include(g => g.Home)
                 .Include(g => g.Away)
                 .Include(g => g.AwayBoxScore)
@@ -190,6 +181,28 @@ namespace BaseballApi.Controllers
                     .ToListAsync(),
                 Stats = StatCollection.GameStats
             };
+        }
+
+        [HttpGet("years")]
+        public async Task<ActionResult<List<int>>> GetGameYears(long playerId)
+        {
+            IQueryable<Game> query = this.GetPlayerGamesQuery(playerId);
+
+            return await query.Select(g => g.Date.Year).Distinct().OrderBy(i => i).ToListAsync();
+        }
+
+        private IQueryable<Game> GetPlayerGamesQuery(long playerId)
+        {
+            return _context.Games
+                .Where(g => g.AwayBoxScore != null && (
+                    g.AwayBoxScore.Batters.Any(b => b.PlayerId == playerId)
+                    || g.AwayBoxScore.Pitchers.Any(p => p.PlayerId == playerId)
+                    || g.AwayBoxScore.Fielders.Any(f => f.PlayerId == playerId)
+                ) || g.HomeBoxScore != null && (
+                    g.HomeBoxScore.Batters.Any(b => b.PlayerId == playerId)
+                    || g.HomeBoxScore.Pitchers.Any(p => p.PlayerId == playerId)
+                    || g.HomeBoxScore.Fielders.Any(f => f.PlayerId == playerId)
+                ));
         }
     }
 }

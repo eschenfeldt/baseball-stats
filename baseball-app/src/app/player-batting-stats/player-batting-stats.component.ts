@@ -13,6 +13,7 @@ import { MatTableModule } from '@angular/material/table';
 import { TypeSafeMatCellDef } from '../type-safe-mat-cell-def.directive';
 import { TypeSafeMatRowDef } from '../type-safe-mat-row-def.directive';
 import { StatPipe } from '../stat.pipe';
+import { PlayerGamesParameters } from '../player-games/player-games-datasource';
 
 @Component({
     selector: 'app-player-batting-stats',
@@ -33,6 +34,8 @@ export class PlayerBattingStatsComponent extends BaseballTableComponent<BatterLe
 
     @Input({ required: true })
     playerId!: number;
+    @Input()
+    gamesIdentifier?: string;
 
     @ViewChild(MatPaginator)
     protected paginator!: MatPaginator;
@@ -79,5 +82,11 @@ export class PlayerBattingStatsComponent extends BaseballTableComponent<BatterLe
                 ...this.statNames
             ]
         })
+    }
+
+    public setYear(year: number | undefined): void {
+        if (this.gamesIdentifier) {
+            this.filterService.setFilterValue<PlayerGamesParameters>(this.gamesIdentifier, 'year', year);
+        }
     }
 }

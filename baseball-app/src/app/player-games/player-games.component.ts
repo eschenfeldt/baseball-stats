@@ -58,6 +58,7 @@ export class PlayerGamesComponent extends BaseballTableComponent<PlayerGamesPara
     protected override get defaultFilters(): BaseballApiFilter {
         return {};
     }
+    override defaultPageSize: number = 5;
 
     public yearOptions$?: Observable<number[]>;
 
@@ -85,11 +86,12 @@ export class PlayerGamesComponent extends BaseballTableComponent<PlayerGamesPara
         this.dataSource.stats$.subscribe(stats => {
             this.stats = stats;
             this.getDisplayedColumns();
-        })
+        });
     }
 
     public override ngOnInit(): void {
         this.filterService.setFilterValue<PlayerGamesParameters>(this.uniqueIdentifier, 'playerId', this.playerId);
+        this.yearOptions$ = this.api.makeApiGet<number[]>('player/years', { playerId: this.playerId }, false, false);
     }
 
     public getStat(playerGame: PlayerGame, statName: string): number | null {

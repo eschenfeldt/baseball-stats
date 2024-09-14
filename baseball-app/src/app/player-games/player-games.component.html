@@ -26,18 +26,18 @@
         <!-- Away Team -->
         <ng-container matColumnDef="awayTeam">
             <th mat-header-cell *matHeaderCellDef>Away</th>
-            <td mat-cell *matCellDef="let playerGame">
-                <a [routerLink]="['/team', playerGame.game.away.id]" routerLinkActive="router-link-active">
-                    {{playerGame.game.away.abbreviation}}</a>&nbsp;<small>{{playerGame.game.awayScore}}</small>
+            <td mat-cell *matCellDef="let playerGame" [ngClass]="{'player-team': playerGame.isAway}">
+                <a [routerLink]="['/team', playerGame.game.away.id]"
+                    routerLinkActive="router-link-active">{{playerGame.game.away.abbreviation}}</a>&nbsp;<small>{{playerGame.game.awayScore}}</small>
             </td>
         </ng-container>
 
         <!-- Home Team -->
         <ng-container matColumnDef="homeTeam">
             <th mat-header-cell *matHeaderCellDef>Home</th>
-            <td mat-cell *matCellDef="let playerGame">
-                <a [routerLink]="['/team', playerGame.game.home.id]" routerLinkActive="router-link-active">
-                    {{playerGame.game.home.abbreviation}}</a>&nbsp;<small>{{playerGame.game.homeScore}}</small>
+            <td mat-cell *matCellDef="let playerGame" [ngClass]="{'player-team': playerGame.isHome}">
+                <a [routerLink]="['/team', playerGame.game.home.id]"
+                    routerLinkActive="router-link-active">{{playerGame.game.home.abbreviation}}</a>&nbsp;<small>{{playerGame.game.homeScore}}</small>
             </td>
         </ng-container>
 

@@ -4,7 +4,7 @@
 </h3>
 <app-player-summary-stats [player]="player"></app-player-summary-stats>
 <app-player-games [playerId]="player.info.id"></app-player-games>
-<app-player-batting-stats [playerId]="player.info.id"></app-player-batting-stats>
+<app-player-batting-stats [playerId]="player.info.id" [gamesIdentifier]="gamesIdentifier"></app-player-batting-stats>
 } @else {
 loading...
 }

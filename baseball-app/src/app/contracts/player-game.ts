@@ -5,6 +5,8 @@ import { GameSummary } from './game-summary';
 
 export interface PlayerGame {
     game: GameSummary;
+    isHome: boolean;
+    isAway: boolean;
     batter?: GameBatter;
     pitcher?: GamePitcher;
     fielder?: GameFielder;

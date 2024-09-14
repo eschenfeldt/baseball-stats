@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { BaseballApiService } from '../baseball-api.service';
 import { first, Observable, switchMap } from 'rxjs';
 import { Player } from '../contracts/player';
@@ -30,6 +30,16 @@ export class PlayerComponent implements OnInit {
     @param<typeof BASEBALL_ROUTES.PLAYER>('playerId')
     playerId$!: Observable<number>
     player$?: Observable<PlayerSummary>;
+
+    @ViewChild(PlayerGamesComponent) gamesComponent?: PlayerGamesComponent;
+
+    public get gamesIdentifier(): string | undefined {
+        if (this.gamesComponent) {
+            return this.gamesComponent.dataSource.uniqueIdentifier;
+        } else {
+            return undefined;
+        }
+    }
 
     constructor(
         private api: BaseballApiService
