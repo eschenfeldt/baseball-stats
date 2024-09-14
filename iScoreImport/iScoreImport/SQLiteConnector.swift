@@ -28,6 +28,7 @@ struct SQLiteConnector: DbConnector {
             .column("guid", as: "ExternalId")
             .column("team_nm", as: "CombinedName")
             .column("team_color", as: "ColorHex")
+            .column("team_short_nm", as: "Abbreviation")
             .from("team")
             .all(decoding: Team.self)
             .map() {

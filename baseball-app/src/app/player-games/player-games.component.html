@@ -28,8 +28,7 @@
             <th mat-header-cell *matHeaderCellDef>Away</th>
             <td mat-cell *matCellDef="let playerGame">
                 <a [routerLink]="['/team', playerGame.game.away.id]" routerLinkActive="router-link-active">
-                    {{playerGame.game.away.name}}
-                </a>
+                    {{playerGame.game.away.abbreviation}}</a>&nbsp;<small>{{playerGame.game.awayScore}}</small>
             </td>
         </ng-container>
 
@@ -38,21 +37,8 @@
             <th mat-header-cell *matHeaderCellDef>Home</th>
             <td mat-cell *matCellDef="let playerGame">
                 <a [routerLink]="['/team', playerGame.game.home.id]" routerLinkActive="router-link-active">
-                    {{playerGame.game.home.name}}
-                </a>
+                    {{playerGame.game.home.abbreviation}}</a>&nbsp;<small>{{playerGame.game.homeScore}}</small>
             </td>
-        </ng-container>
-
-        <!-- Away Score -->
-        <ng-container matColumnDef="awayScore">
-            <th mat-header-cell *matHeaderCellDef></th>
-            <td mat-cell *matCellDef="let playerGame"> {{playerGame.game.awayScore}} </td>
-        </ng-container>
-
-        <!-- Home Score -->
-        <ng-container matColumnDef="homeScore">
-            <th mat-header-cell *matHeaderCellDef></th>
-            <td mat-cell *matCellDef="let playerGame"> {{playerGame.game.homeScore}} </td>
         </ng-container>
 
         <ng-container matColumnDef="inningsPitched">

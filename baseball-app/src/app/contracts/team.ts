@@ -3,4 +3,5 @@ export interface Team {
     city: string;
     name: string;
     colorHex?: string;
+    abbreviation?: string;
 }

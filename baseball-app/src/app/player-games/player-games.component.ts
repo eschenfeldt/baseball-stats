@@ -51,9 +51,7 @@ export class PlayerGamesComponent extends BaseballTableComponent<PlayerGamesPara
     displayedColumns: string[] = [
         'date',
         'awayTeam',
-        'awayScore',
         'homeTeam',
-        'homeScore'
     ];
     protected override get defaultFilters(): BaseballApiFilter {
         return {};
@@ -126,9 +124,7 @@ export class PlayerGamesComponent extends BaseballTableComponent<PlayerGamesPara
         this.displayedColumns = [
             'date',
             'awayTeam',
-            'awayScore',
             'homeTeam',
-            'homeScore',
             'inningsPitched',
             ...this.statNames
         ];

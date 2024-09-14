@@ -14,14 +14,16 @@ struct Team : Codable {
     let CombinedName: String?
     let HomePark: Park?
     let ColorHex: String?
+    let Abbreviation: String?
     
-    init(ExternalId: UUID? = nil, City: String? = nil, Name: String? = nil, CombinedName: String? = nil, HomePark: Park? = nil, ColorHex: String? = nil) {
+    init(ExternalId: UUID? = nil, City: String? = nil, Name: String? = nil, CombinedName: String? = nil, HomePark: Park? = nil, ColorHex: String? = nil, Abbreviation: String? = nil) {
         self.ExternalId = ExternalId
         self.City = City
         self.Name = Name
         self.CombinedName = CombinedName
         self.HomePark = HomePark
         self.ColorHex = ColorHex
+        self.Abbreviation = Abbreviation
     }
     
     static let compoundCityStarts = Set<String>([
@@ -51,6 +53,6 @@ struct Team : Codable {
         } else {
             name = combinedName
         }
-        return Team(ExternalId: team.ExternalId, City: city, Name: name, CombinedName: combinedName, HomePark: team.HomePark, ColorHex: team.ColorHex)
+        return Team(ExternalId: team.ExternalId, City: city, Name: name, CombinedName: combinedName, HomePark: team.HomePark, ColorHex: team.ColorHex, Abbreviation: team.Abbreviation)
     }
 }

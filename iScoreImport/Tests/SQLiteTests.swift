@@ -62,6 +62,7 @@ final class SQLiteTests {
             #expect(bandits.Name == "River Bandits")
             #expect(bandits.ExternalId == UUID(uuidString: "6EFA1F3C-2282-4945-8972-28CF51FAC8A1"))
             #expect(bandits.ColorHex == "E10F00")
+            #expect(bandits.Abbreviation == "QC")
         } catch {
             #expect(error == nil)
         }
