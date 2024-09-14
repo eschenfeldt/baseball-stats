@@ -8,6 +8,8 @@ import { BASEBALL_ROUTES } from '../app.routes';
 import { AsyncPipe } from '@angular/common';
 import { PlayerBattingStatsComponent } from '../player-batting-stats/player-batting-stats.component';
 import { PlayerSummary } from '../contracts/player-summary';
+import { MatCardModule } from '@angular/material/card';
+import { PlayerSummaryStatsComponent } from '../player-summary-stats/player-summary-stats.component';
 
 @Component({
     selector: 'app-player',
@@ -15,6 +17,7 @@ import { PlayerSummary } from '../contracts/player-summary';
     imports: [
         AsyncPipe,
         RouterModule,
+        PlayerSummaryStatsComponent,
         PlayerBattingStatsComponent
     ],
     templateUrl: './player.component.html',

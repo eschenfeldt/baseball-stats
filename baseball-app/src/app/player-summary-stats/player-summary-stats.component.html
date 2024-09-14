@@ -1,0 +1,14 @@
+<div class="header-stats">
+    @for (stat of player.summaryStats; track stat.definition.name) {
+    <mat-card appearance="raised">
+        <mat-card-header>
+            <mat-card-title>
+                {{stat.value | number: formatString(stat.definition)}}
+            </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+            {{stat.definition.shortName}}
+        </mat-card-content>
+    </mat-card>
+    }
+</div>

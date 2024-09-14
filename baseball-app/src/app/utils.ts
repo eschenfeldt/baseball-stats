@@ -1,4 +1,5 @@
 import { environment } from "../environments/environment";
+import { StatDef } from './contracts/stat-def';
 import { Team } from "./contracts/team";
 
 export class Utils {
@@ -18,6 +19,14 @@ export class Utils {
     public static formatTime(datetime?: string): string {
         if (datetime) {
             return new Date(datetime).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+        } else {
+            return '';
+        }
+    }
+
+    public static formatString(statDef: StatDef): string {
+        if (statDef.format.name === 'Decimal') {
+            return `0.3`; // TODO: rework the format object to get this to actually work
         } else {
             return '';
         }

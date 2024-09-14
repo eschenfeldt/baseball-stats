@@ -2,7 +2,7 @@
 <h3>
     {{player.info.name}}
 </h3>
-
+<app-player-summary-stats [player]="player"></app-player-summary-stats>
 <app-player-batting-stats [playerId]="player.info.id"></app-player-batting-stats>
 } @else {
 loading...

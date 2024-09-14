@@ -3,5 +3,5 @@ import { SummaryStat } from './summary-stat';
 
 export interface PlayerSummary {
     info: Player;
-    stats: SummaryStat[]
+    summaryStats: SummaryStat[]
 }
