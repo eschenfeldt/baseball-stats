@@ -131,5 +131,61 @@ namespace BaseballApi.Controllers
 
             return summary;
         }
+
+        [HttpGet("games/{playerId}")]
+        public async Task<ActionResult<PagedResult<PlayerGame>>> GetGames(long playerId,
+            int skip = 0,
+            int take = 10,
+            bool asc = false,
+            int? year = null)
+        {
+            var query = _context.Games
+                .Where(g => g.AwayBoxScore != null && (
+                    g.AwayBoxScore.Batters.Any(b => b.PlayerId == playerId)
+                    || g.AwayBoxScore.Pitchers.Any(p => p.PlayerId == playerId)
+                    || g.AwayBoxScore.Fielders.Any(f => f.PlayerId == playerId)
+                ) || g.HomeBoxScore != null && (
+                    g.HomeBoxScore.Batters.Any(b => b.PlayerId == playerId)
+                    || g.HomeBoxScore.Pitchers.Any(p => p.PlayerId == playerId)
+                    || g.HomeBoxScore.Fielders.Any(f => f.PlayerId == playerId)
+                ))
+                .Include(g => g.AwayBoxScore)
+                    .ThenInclude(bs => bs.Batters)
+                        .ThenInclude(p => p.Player)
+                .Include(g => g.AwayBoxScore)
+                    .ThenInclude(bs => bs.Pitchers)
+                        .ThenInclude(p => p.Player)
+                .Include(g => g.AwayBoxScore)
+                    .ThenInclude(bs => bs.Fielders)
+                        .ThenInclude(p => p.Player)
+                .Include(g => g.HomeBoxScore)
+                    .ThenInclude(bs => bs.Batters)
+                        .ThenInclude(p => p.Player)
+                .Include(g => g.HomeBoxScore)
+                    .ThenInclude(bs => bs.Pitchers)
+                        .ThenInclude(p => p.Player)
+                .Include(g => g.HomeBoxScore)
+                    .ThenInclude(bs => bs.Fielders)
+                        .ThenInclude(p => p.Player)
+                .AsSplitQuery();
+
+            if (year.HasValue)
+            {
+                query = query.Where(g => g.Date.Year == year);
+            }
+
+            var sorted = asc ? query.OrderBy(g => g.StartTime ?? g.ScheduledTime ?? g.Date.ToDateTime(TimeOnly.MinValue))
+                : query.OrderByDescending(g => g.StartTime ?? g.ScheduledTime ?? g.Date.ToDateTime(TimeOnly.MinValue));
+
+            return new PagedResult<PlayerGame>
+            {
+                TotalCount = await query.CountAsync(),
+                Results = await sorted
+                    .Select(g => new PlayerGame(g, playerId))
+                    .Skip(skip)
+                    .Take(take)
+                    .ToListAsync()
+            };
+        }
     }
 }
