@@ -10,6 +10,7 @@ import { PlayerBattingStatsComponent } from '../player-batting-stats/player-batt
 import { PlayerSummary } from '../contracts/player-summary';
 import { MatCardModule } from '@angular/material/card';
 import { PlayerSummaryStatsComponent } from '../player-summary-stats/player-summary-stats.component';
+import { PlayerGamesComponent } from '../player-games/player-games.component';
 
 @Component({
     selector: 'app-player',
@@ -18,7 +19,8 @@ import { PlayerSummaryStatsComponent } from '../player-summary-stats/player-summ
         AsyncPipe,
         RouterModule,
         PlayerSummaryStatsComponent,
-        PlayerBattingStatsComponent
+        PlayerBattingStatsComponent,
+        PlayerGamesComponent
     ],
     templateUrl: './player.component.html',
     styleUrl: './player.component.scss'

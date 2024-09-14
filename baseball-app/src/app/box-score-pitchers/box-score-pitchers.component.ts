@@ -7,6 +7,7 @@ import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { TypeSafeMatCellDef } from '../type-safe-mat-cell-def.directive';
 import { TypeSafeMatRowDef } from '../type-safe-mat-row-def.directive';
 import { StatDefCollection } from '../contracts/stat-def';
+import { Utils } from '../utils';
 
 @Component({
     selector: 'app-box-score-pitchers',
@@ -69,24 +70,10 @@ export class BoxScorePitchersComponent {
     }
 
     fullInningsPitched(pitcher: GamePitcher): string {
-        const number = Math.floor(pitcher.stats.ThirdInningsPitched / 3);
-        if (number > 0) {
-            return number.toString();
-        } else if (this.partialInningsPitched(pitcher) === '') {
-            return '0';
-        } else {
-            return '';
-        }
+        return Utils.fullInningsPitched(pitcher.stats);
     }
     partialInningsPitched(pitcher: GamePitcher): string {
-        const numerator = pitcher.stats.ThirdInningsPitched % 3;
-        if (numerator == 1) {
-            return '&frac13;';
-        } else if (numerator == 2) {
-            return '&frac23;';
-        } else {
-            return '';
-        }
+        return Utils.partialInningsPitched(pitcher.stats);
     }
 
     private static readonly fullSizeDisplayedColumns: string[] = [

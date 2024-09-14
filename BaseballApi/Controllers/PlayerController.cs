@@ -132,8 +132,9 @@ namespace BaseballApi.Controllers
             return summary;
         }
 
-        [HttpGet("games/{playerId}")]
-        public async Task<ActionResult<PagedResult<PlayerGame>>> GetGames(long playerId,
+        [HttpGet("games")]
+        public async Task<ActionResult<PlayerGameResults>> GetGames(
+            long playerId,
             int skip = 0,
             int take = 10,
             bool asc = false,
@@ -149,6 +150,8 @@ namespace BaseballApi.Controllers
                     || g.HomeBoxScore.Pitchers.Any(p => p.PlayerId == playerId)
                     || g.HomeBoxScore.Fielders.Any(f => f.PlayerId == playerId)
                 ))
+                .Include(g => g.Home)
+                .Include(g => g.Away)
                 .Include(g => g.AwayBoxScore)
                     .ThenInclude(bs => bs.Batters)
                         .ThenInclude(p => p.Player)
@@ -177,14 +180,15 @@ namespace BaseballApi.Controllers
             var sorted = asc ? query.OrderBy(g => g.StartTime ?? g.ScheduledTime ?? g.Date.ToDateTime(TimeOnly.MinValue))
                 : query.OrderByDescending(g => g.StartTime ?? g.ScheduledTime ?? g.Date.ToDateTime(TimeOnly.MinValue));
 
-            return new PagedResult<PlayerGame>
+            return new PlayerGameResults
             {
                 TotalCount = await query.CountAsync(),
                 Results = await sorted
                     .Select(g => new PlayerGame(g, playerId))
                     .Skip(skip)
                     .Take(take)
-                    .ToListAsync()
+                    .ToListAsync(),
+                Stats = StatCollection.GameStats
             };
         }
     }

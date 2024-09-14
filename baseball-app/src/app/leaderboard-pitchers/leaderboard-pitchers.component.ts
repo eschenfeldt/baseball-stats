@@ -16,6 +16,7 @@ import { FormsModule } from '@angular/forms';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { Utils } from '../utils';
 
 @Component({
     selector: 'app-leaderboard-pitchers',
@@ -91,24 +92,10 @@ export class LeaderboardPitchersComponent extends BaseballTableComponent<Pitcher
 
 
     fullInningsPitched(pitcher: LeaderboardPlayer): string {
-        const number = Math.floor(pitcher.stats['ThirdInningsPitched'] / 3);
-        if (number > 0) {
-            return number.toString();
-        } else if (this.partialInningsPitched(pitcher) === '') {
-            return '0';
-        } else {
-            return '';
-        }
+        return Utils.fullInningsPitched(pitcher.stats);
     }
     partialInningsPitched(pitcher: LeaderboardPlayer): string {
-        const numerator = pitcher.stats['ThirdInningsPitched'] % 3;
-        if (numerator == 1) {
-            return '&frac13;';
-        } else if (numerator == 2) {
-            return '&frac23;';
-        } else {
-            return '';
-        }
+        return Utils.partialInningsPitched(pitcher.stats);
     }
 
     readonly filterOpenState = signal(false);
