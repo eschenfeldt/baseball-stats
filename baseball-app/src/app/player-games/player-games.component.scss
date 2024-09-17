@@ -2,6 +2,11 @@
     width: 100%;
 }
 
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+}
+
 td.player-team {
     font-weight: bold;
 }

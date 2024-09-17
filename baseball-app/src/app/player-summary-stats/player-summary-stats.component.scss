@@ -1,5 +1,9 @@
 .header-stats {
     display: flex;
     justify-content: space-evenly;
-    margin: 1em;
+    margin-bottom: 1em;
+    padding-bottom: 1em;
+
+    width: 100%;
+    overflow-x: auto;
 }

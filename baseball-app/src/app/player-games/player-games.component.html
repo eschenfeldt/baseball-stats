@@ -14,7 +14,7 @@
     <table mat-table [dataSource]="dataSource" #table="matTable" matSort class="mat-elevation-z8">
 
         <!-- Date Column -->
-        <ng-container matColumnDef="date">
+        <ng-container matColumnDef="date" sticky>
             <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by date">
                 Date
             </th>

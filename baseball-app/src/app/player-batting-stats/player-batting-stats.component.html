@@ -1,7 +1,7 @@
-<div>
+<div class="table-container">
     <table mat-table [dataSource]="dataSource" #table="matTable" matSort class="mat-elevation-z8">
 
-        <ng-container matColumnDef="year">
+        <ng-container matColumnDef="year" sticky>
             <th mat-header-cell *matHeaderCellDef mat-sort-header>
                 Year
             </th>
