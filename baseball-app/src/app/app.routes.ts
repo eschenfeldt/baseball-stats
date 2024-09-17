@@ -1,13 +1,13 @@
 import { Routes } from '@angular/router';
-import { AdminViewComponent } from './admin/admin.component';
+import { AdminViewComponent } from './admin-components/admin/admin.component';
 import { HomeComponent } from './home/home.component';
 import { GamesComponent } from './games/games.component';
 import { LeadersComponent } from './leaders/leaders.component';
-import { GameComponent } from './game/game.component';
+import { GameComponent } from './game-components/game/game.component';
 import { TeamsComponent } from './teams/teams.component';
 import { TeamComponent } from './team/team.component';
-import { PlayerComponent } from './player/player.component';
-import { MediaCarouselComponent } from './media-carousel/media-carousel.component';
+import { PlayerComponent } from './player-components/player/player.component';
+import { MediaCarouselComponent } from './media-components/media-carousel/media-carousel.component';
 
 export const BASEBALL_ROUTES = <const>{
     HOME: 'home',
