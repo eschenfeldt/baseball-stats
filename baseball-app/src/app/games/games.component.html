@@ -6,6 +6,7 @@
 <mat-form-field>
     <mat-label>Year</mat-label>
     <mat-select [(ngModel)]="selectedYear">
+        <mat-option [value]=""></mat-option>
         @for (year of yearOptions; track year) {
         <mat-option [value]="year">{{year}}</mat-option>
         }
