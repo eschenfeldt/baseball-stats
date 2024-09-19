@@ -4,6 +4,7 @@ import { PagedApiParameters } from '../paged-api-parameters'
 
 export interface PitcherLeaderboardParams extends PagedApiParameters {
     playerSearch?: string,
+    playerId?: number,
     minInningsPitched?: number
 }
 

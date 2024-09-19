@@ -81,6 +81,11 @@ public class LeaderboardController : ControllerBase
             OrderAscending = leaderboardParams.Asc
         };
 
+        if (leaderboardParams.PlayerId.HasValue)
+        {
+            calculator.GroupByYear = true;
+        }
+
         var stats = calculator.GetPitchingStats();
         var query = stats
         .Skip(leaderboardParams.Skip)
@@ -93,8 +98,16 @@ public class LeaderboardController : ControllerBase
         }).AsEnumerable();
 
         // sorting in postgres is working for skip/take but not final result order, so do that in-memory
-        decimal? selector(LeaderboardPlayer b) => b.Stats[leaderboardParams.Sort];
-        IOrderedEnumerable<LeaderboardPlayer> sorted = leaderboardParams.Asc ? query.OrderBy(selector) : query.OrderByDescending(selector);
+        IOrderedEnumerable<LeaderboardPlayer> sorted;
+        if (leaderboardParams.Sort.Equals("Year", StringComparison.OrdinalIgnoreCase))
+        {
+            sorted = leaderboardParams.Asc ? query.OrderBy(p => p.Year) : query.OrderByDescending(p => p.Year);
+        }
+        else
+        {
+            decimal? selector(LeaderboardPlayer p) => p.Stats[leaderboardParams.Sort];
+            sorted = leaderboardParams.Asc ? query.OrderBy(selector) : query.OrderByDescending(selector);
+        }
 
         return new Leaderboard<LeaderboardPlayer>
         {

@@ -312,11 +312,19 @@ internal class StatCalculator
 
     private string GetPitchingOrderBy()
     {
-        if (!PitchingStatSelectors.TryGetValue(OrderBy, out Expression<Func<PitchingStat, decimal?>>? selector))
+        string name;
+        if (string.Equals(OrderBy, "year", StringComparison.OrdinalIgnoreCase))
+        {
+            name = "Year";
+        }
+        else if (!PitchingStatSelectors.TryGetValue(OrderBy, out Expression<Func<PitchingStat, decimal?>>? selector))
         {
             throw new ArgumentException($"Stat {OrderBy} is not configured for pitching leaders");
         }
-        var name = selector.GetMemberName();
+        else
+        {
+            name = selector.GetMemberName();
+        }
         var order = OrderAscending ? "ASC" : "DESC";
         return $"ORDER BY \"{name}\" {order}";
     }

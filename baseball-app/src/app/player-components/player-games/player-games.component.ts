@@ -1,4 +1,4 @@
-import { Component, Input, ViewChild } from '@angular/core';
+import { Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
 import { BaseballTableComponent } from '../../baseball-table-component';
 import { PlayerGamesDataSource, PlayerGamesParameters } from './player-games-datasource';
 import { PlayerGame } from '../../contracts/player-game';
@@ -6,7 +6,7 @@ import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { BaseballApiFilter, BaseballFilterService } from '../../baseball-filter.service';
 import { BaseballApiService } from '../../baseball-api.service';
-import { Observable } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { MatTableModule } from '@angular/material/table';
 import { TypeSafeMatCellDef } from '../../type-safe-mat-cell-def.directive';
 import { TypeSafeMatRowDef } from '../../type-safe-mat-row-def.directive';
@@ -48,6 +48,9 @@ export class PlayerGamesComponent extends BaseballTableComponent<PlayerGamesPara
 
     @ViewChild(MatPaginator) paginator!: MatPaginator;
     @ViewChild(MatSort) sort!: MatSort;
+
+    @Output()
+    public uniqueIdentifierSet = new EventEmitter<string>();
 
     dataSource: PlayerGamesDataSource;
     displayedColumns: string[] = [
@@ -92,6 +95,7 @@ export class PlayerGamesComponent extends BaseballTableComponent<PlayerGamesPara
     public override ngOnInit(): void {
         this.filterService.setFilterValue<PlayerGamesParameters>(this.uniqueIdentifier, 'playerId', this.playerId);
         this.yearOptions$ = this.api.makeApiGet<number[]>('player/years', { playerId: this.playerId }, false, false);
+        this.uniqueIdentifierSet.emit(this.uniqueIdentifier);
     }
 
     public getStat(playerGame: PlayerGame, statName: string): number | null {

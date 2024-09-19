@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { AfterContentInit, AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
 import { BaseballApiService } from '../../baseball-api.service';
 import { first, Observable, switchMap } from 'rxjs';
 import { Player } from '../../contracts/player';
@@ -11,6 +11,7 @@ import { PlayerSummary } from '../../contracts/player-summary';
 import { MatCardModule } from '@angular/material/card';
 import { PlayerSummaryStatsComponent } from '../player-summary-stats/player-summary-stats.component';
 import { PlayerGamesComponent } from '../player-games/player-games.component';
+import { PlayerPitchingStatsComponent } from '../player-pitching-stats/player-pitching-stats.component';
 
 @Component({
     selector: 'app-player',
@@ -20,6 +21,7 @@ import { PlayerGamesComponent } from '../player-games/player-games.component';
         RouterModule,
         PlayerSummaryStatsComponent,
         PlayerBattingStatsComponent,
+        PlayerPitchingStatsComponent,
         PlayerGamesComponent
     ],
     templateUrl: './player.component.html',
@@ -31,15 +33,7 @@ export class PlayerComponent implements OnInit {
     playerId$!: Observable<number>
     player$?: Observable<PlayerSummary>;
 
-    @ViewChild(PlayerGamesComponent) gamesComponent?: PlayerGamesComponent;
-
-    public get gamesIdentifier(): string | undefined {
-        if (this.gamesComponent) {
-            return this.gamesComponent.dataSource.uniqueIdentifier;
-        } else {
-            return undefined;
-        }
-    }
+    gamesIdentifier?: string;
 
     constructor(
         private api: BaseballApiService
@@ -50,5 +44,9 @@ export class PlayerComponent implements OnInit {
             switchMap((playerId) => {
                 return this.api.makeApiGet<PlayerSummary>(`player/${playerId}`);
             }));
+    }
+
+    setGamesIdentifier(value: string): void {
+        this.gamesIdentifier = value;
     }
 }

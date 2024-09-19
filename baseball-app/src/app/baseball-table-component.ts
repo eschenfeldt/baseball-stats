@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, Inject, OnInit, ViewChild } from "@angular/core";
+import { AfterViewInit, Component, Inject, OnInit, Output, ViewChild } from "@angular/core";
 import { BaseballDataSource } from "./baseball-data-source";
 import { PagedApiParameters } from "./paged-api-parameters";
 import { MatPaginator } from "@angular/material/paginator";
