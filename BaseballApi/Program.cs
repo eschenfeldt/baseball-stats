@@ -37,6 +37,7 @@ builder.Services.AddCors(options =>
                             .AllowCredentials();
                       });
 });
+builder.Host.UseSystemd();
 
 var app = builder.Build();
 
