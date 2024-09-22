@@ -1,16 +1,14 @@
-# FROM node:alpine as serve
+FROM node:alpine AS build
 
-# WORKDIR /usr/src/app
-# COPY . /usr/src/app/
-# RUN npm install -g @angular/cli
-# RUN npm install
+WORKDIR /usr/src/app
+COPY . .
+RUN npm install
+RUN npm run build
 
-# CMD ["ng", "serve", "--host", "0.0.0.0"]
-
-FROM nginx:latest as prod
+FROM nginx:latest AS prod
 
 EXPOSE 80
 EXPOSE 443
 
-COPY /dist/baseball-app/browser /usr/share/nginx/html
+COPY --from=build /usr/src/app/dist/baseball-app/browser /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/nginx.conf
