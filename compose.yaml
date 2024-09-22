@@ -1,0 +1,25 @@
+services:
+  api:
+    build:
+      context: BaseballApi
+    ports:
+      - "8081:8080"
+    restart: unless-stopped
+    image: baseball-api
+
+  app:
+    build:
+      context: baseball-app
+    restart: always
+    image: baseball-app
+    depends_on:
+      - api
+
+  proxy:
+    build: proxy
+    ports:
+      - 80:80
+    depends_on:
+      - api
+      - app
+    image: baseball-gateway
