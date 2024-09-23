@@ -9,7 +9,7 @@ services:
     build:
       context: baseball-app
     restart: always
-    image: eschenfeldt/baseball-app
+    image: baseball-app
     depends_on:
       - baseball-api
 
