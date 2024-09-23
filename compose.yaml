@@ -4,6 +4,8 @@ services:
       context: BaseballApi
     restart: unless-stopped
     image: baseball-api
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   app:
     build:
