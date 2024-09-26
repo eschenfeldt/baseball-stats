@@ -38,7 +38,7 @@ services:
             - certbot-var:/var/lib/letsencrypt:rw
             - web-root:/var/www/html:rw
         depends_on:
-            - webserver
+            - proxy
 
 volumes:
     certbot-etc:
