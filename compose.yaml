@@ -2,7 +2,7 @@ services:
     baseball-api:
         build:
             context: BaseballApi
-        restart: unless-stopped
+        restart: always
         image: baseball-api
         extra_hosts:
             - "host.docker.internal:host-gateway"
@@ -29,9 +29,11 @@ services:
             - certbot-etc:/etc/letsencrypt:ro
             - certbot-var:/var/lib/letsencrypt:ro
             - web-root:/var/www/html:ro
+        command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
 
     certbot:
         image: certbot/certbot
+        restart: unless-stopped
         container_name: certbot
         volumes:
             - certbot-etc:/etc/letsencrypt:rw
@@ -39,6 +41,7 @@ services:
             - web-root:/var/www/html:rw
         depends_on:
             - proxy
+        entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
 
 volumes:
     certbot-etc:

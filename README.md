@@ -12,6 +12,10 @@ docker buildx bake --set "*.platform=linux/amd64,linux/arm64"
 docker push eschenfeldt/baseball-app
 ```
 3. SSH into server and pull latest on `~/source/baseball-stats`
-4. Run `docker compose up`, which will pull `baseball-app` from docker hub and build the other two containers. Trying to build the angular project on the server has overloaded it.
+4. Run `docker compose down` to stop running containers
+5. Remove any images that need to be updated: `docker image rm <image name> --force`
+6. Run `docker compose up -d`, which will pull `baseball-app` from docker hub and build the other two containers. Trying to build the angular project on the server has overloaded it. (Omit the `-d` to remain attached and see logs.)
 
-TODO: figure out correct way to set the DB path on the server so it's pointing to localhost rather than the dns entry. At the same time probably try to figure out a better way to handle the actual secrets.
+#### TODO build/run steps
+
+- Better secret management and/or CD
