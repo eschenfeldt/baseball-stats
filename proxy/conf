@@ -43,6 +43,8 @@ http {
 
         root /usr/share/nginx/html;
 
+        server_name baseball.eschenfeldt.me;
+
         index index.html;
 
         # To allow POST on static pages
@@ -69,8 +71,13 @@ http {
         }
 
         location /health-check {
-          return 200;
-          access_log off;
+            return 200;
+            access_log off;
+        }
+
+        location ~ /.well-known/acme-challenge {
+            allow all;
+            root /var/www/html;
         }
     }
 

@@ -1,25 +1,41 @@
 services:
-  baseball-api:
-    build:
-      context: BaseballApi
-    restart: unless-stopped
-    image: baseball-api
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+    baseball-api:
+        build:
+            context: BaseballApi
+        restart: unless-stopped
+        image: baseball-api
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
 
-  app:
-    build:
-      context: baseball-app
-    restart: always
-    image: eschenfeldt/baseball-app
-    depends_on:
-      - baseball-api
+    app:
+        build:
+            context: baseball-app
+        restart: always
+        image: eschenfeldt/baseball-app
+        depends_on:
+            - baseball-api
 
-  proxy:
-    build: proxy
-    ports:
-      - 80:80
-    depends_on:
-      - baseball-api
-      - app
-    image: baseball-gateway
+    proxy:
+        build: proxy
+        restart: always
+        ports:
+            - 80:80
+            - 443:443
+        depends_on:
+            - baseball-api
+            - app
+        image: baseball-gateway
+        volumes:
+            - certbot-etc:/etc/letsencrypt:ro
+            - certbot-var:/var/lib/letsencrypt:ro
+            - web-root:/var/www/html:ro
+
+    certbot:
+        image: certbot/certbot
+        container_name: certbot
+        volumes:
+            - certbot-etc:/etc/letsencrypt:rw
+            - certbot-var:/var/lib/letsencrypt:rw
+            - web-root:/var/www/html:rw
+        depends_on:
+            - webserver
