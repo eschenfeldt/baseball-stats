@@ -1,0 +1,98 @@
+worker_processes  1;
+
+events {
+    worker_connections  1024;
+}
+
+http {
+
+    sendfile             on;
+    keepalive_timeout    65;
+    client_max_body_size 5M;
+
+    gzip on;
+    gzip_disable "msie6";
+
+    gzip_vary on;
+    gzip_proxied any;
+    gzip_comp_level 6;
+    gzip_buffers 16 8k;
+    gzip_http_version 1.1;
+    gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
+
+    # Block alihack
+    deny 23.27.103.106/32;
+
+    upstream api {
+        least_conn;
+        server baseball-api:8080 max_fails=3 fail_timeout=30s;
+    }
+
+    upstream app {
+        least_conn;
+        server app:80 max_fails=3 fail_timeout=30s;
+    }
+
+    server {
+        listen 80 default_server;
+        listen [::]:80 default_server;
+
+        if ($request_method = 'OPTIONS') {
+          return 200;
+        }
+
+        root /usr/share/nginx/html;
+
+        server_name baseball.eschenfeldt.me;
+
+        location /health-check {
+            return 200;
+            access_log off;
+        }
+
+        location ~ /.well-known/acme-challenge/ {
+            allow all;
+            root /var/www/html;
+        }
+
+        location / {
+            return 301 https://$host$request_uri;
+        }
+    }
+
+    server {
+        listen 443 ssl;
+        listen [::]:443 ssl;
+
+        server_name baseball.eschenfeldt.me;
+
+        ssl_certificate /etc/letsencrypt/live/baseball.eschenfeldt.me/fullchain.pem;
+        ssl_certificate_key /etc/letsencrypt/live/baseball.eschenfeldt.me/privkey.pem;
+
+        index index.html;
+
+        if ($request_method = 'OPTIONS') {
+          return 200;
+        }
+
+        location / {
+            proxy_pass http://app;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection $http_connection;
+            proxy_set_header Host $host;
+            proxy_cache_bypass $http_upgrade;
+            break;
+        }
+
+        location ~ /api/(?<url>.*) {
+            proxy_pass http://api/api/$url$is_args$args;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection $http_connection;
+            proxy_set_header Host $host;
+            proxy_set_header X-NginX-Proxy true;
+            proxy_cache_bypass $http_upgrade;
+        }
+    }
+}

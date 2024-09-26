@@ -1,4 +1,3 @@
-using System;
 using Amazon.S3;
 using Amazon.S3.Model;
 using BaseballApi.Contracts;
@@ -12,11 +11,9 @@ public class RemoteFileManager : IRemoteFileManager
     string BucketName { get; }
     string? KeyPrefix { get; }
 
-    public RemoteFileManager(string? keyPrefix = null)
+    public RemoteFileManager(IConfiguration configuration, string? keyPrefix = null)
     {
         this.KeyPrefix = keyPrefix;
-        var builder = new ConfigurationBuilder().AddUserSecrets<RemoteFileManager>();
-        IConfiguration configuration = builder.Build();
         var accessKey = configuration["Spaces:AccessKey"];
         var secretKey = configuration["Spaces:SecretKey"];
 
