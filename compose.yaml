@@ -41,6 +41,6 @@ services:
             - webserver
 
 volumes:
-    - certbot-etc:
-    - certbot-var:
-    - web-root:
+    certbot-etc:
+    certbot-var:
+    web-root:
