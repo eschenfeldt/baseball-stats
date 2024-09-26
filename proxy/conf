@@ -50,6 +50,16 @@ http {
         # To allow POST on static pages
         error_page  405     =200 $uri;
 
+        location /health-check {
+            return 200;
+            access_log off;
+        }
+
+        location ~ /.well-known/acme-challenge {
+            allow all;
+            root /var/www/html;
+        }
+
         location / {
             proxy_pass http://app;
             proxy_http_version 1.1;
@@ -70,15 +80,6 @@ http {
             proxy_cache_bypass $http_upgrade;
         }
 
-        location /health-check {
-            return 200;
-            access_log off;
-        }
-
-        location ~ /.well-known/acme-challenge {
-            allow all;
-            root /var/www/html;
-        }
     }
 
 }
