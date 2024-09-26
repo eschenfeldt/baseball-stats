@@ -39,3 +39,8 @@ services:
             - web-root:/var/www/html:rw
         depends_on:
             - webserver
+
+volumes:
+    - certbot-etc:
+    - certbot-var:
+    - web-root:
