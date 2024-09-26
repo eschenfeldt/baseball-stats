@@ -72,12 +72,12 @@ http {
 
     server {
         listen 443 ssl;
-        listen [::]:443 ssl http2;
+        listen [::]:443 ssl;
 
         server_name baseball.eschenfeldt.me;
 
-        ssl_certificate /etc/letsencrypt/live/baseball.eschenfeldt.me/fullchain.pem
-        ssl_certificate_key /etc/letsencrypt/live/baseball.eschenfeldt.me/privkey.pem
+        ssl_certificate /etc/letsencrypt/live/baseball.eschenfeldt.me/fullchain.pem;
+        ssl_certificate_key /etc/letsencrypt/live/baseball.eschenfeldt.me/privkey.pem;
 
         index index.html;
 
