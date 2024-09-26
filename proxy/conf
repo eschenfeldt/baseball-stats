@@ -55,7 +55,7 @@ http {
             access_log off;
         }
 
-        location /.well-known/acme-challenge/ {
+        location ~ /.well-known/acme-challenge/ {
             allow all;
             root /var/www/html;
         }
