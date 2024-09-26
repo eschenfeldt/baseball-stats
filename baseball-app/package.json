@@ -20,7 +20,7 @@
     "@angular/platform-browser": "^18.2.6",
     "@angular/platform-browser-dynamic": "^18.2.6",
     "@angular/router": "^18.2.6",
-    "@ng-matero/extensions": "^17.3.2",
+    "@ng-matero/extensions": "^18.2.1",
     "@ng-matero/extensions-moment-adapter": "^17.1.2",
     "ng2-pdf-viewer": "^10.2.2",
     "ngx-infinite-scroll": "^18.0.0",
