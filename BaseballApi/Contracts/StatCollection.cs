@@ -84,5 +84,62 @@ public class StatCollection
         Stat.PickoffFailed.Name,
         Stat.PickoffSuccess.Name
     ];
+    private static readonly List<string> GamePitchingStatNames = [
+        Stat.Wins.Name,
+        Stat.Losses.Name,
+        Stat.Saves.Name,
+        Stat.ThirdInningsPitched.Name,
+        Stat.BattersFaced.Name,
+        Stat.Balls.Name,
+        Stat.Strikes.Name,
+        Stat.Pitches.Name,
+        Stat.Runs.Name,
+        Stat.EarnedRuns.Name,
+        Stat.Hits.Name,
+        Stat.Walks.Name,
+        Stat.IntentionalWalks.Name,
+        Stat.Strikeouts.Name,
+        Stat.StrikeoutsCalled.Name,
+        Stat.StrikeoutsSwinging.Name,
+        Stat.HitByPitch.Name,
+        Stat.Balks.Name,
+        Stat.WildPitches.Name,
+        Stat.Homeruns.Name,
+        Stat.GroundOuts.Name,
+        Stat.AirOuts.Name,
+        Stat.FirstPitchStrikes.Name,
+        Stat.FirstPitchBalls.Name
+    ];
+    private static readonly List<string> GameBattingStatNames = [
+        Stat.PlateAppearances.Name,
+        Stat.AtBats.Name,
+        Stat.Runs.Name,
+        Stat.Hits.Name,
+        Stat.BuntSingles.Name,
+        Stat.Singles.Name,
+        Stat.Doubles.Name,
+        Stat.Triples.Name,
+        Stat.Homeruns.Name,
+        Stat.RunsBattedIn.Name,
+        Stat.Walks.Name,
+        Stat.Strikeouts.Name,
+        Stat.StrikeoutsCalled.Name,
+        Stat.StrikeoutsSwinging.Name,
+        Stat.HitByPitch.Name,
+        Stat.StolenBases.Name,
+        Stat.CaughtStealing.Name,
+        Stat.SacrificeBunts.Name,
+        Stat.SacrificeFlies.Name,
+        Stat.Sacrifices.Name,
+        Stat.ReachedOnError.Name,
+        Stat.FieldersChoices.Name,
+        Stat.CatchersInterference.Name,
+        Stat.GroundedIntoDoublePlay.Name,
+        Stat.GroundedIntoTriplePlay.Name,
+        Stat.AtBatsWithRunnersInScoringPosition.Name,
+        Stat.HitsWithRunnersInScoringPosition.Name
+    ];
     public static readonly IReadOnlyDictionary<string, Stat> GameStats = Instance.Stats.Where(kvp => GameStatNames.Contains(kvp.Key)).ToDictionary();
+    public static readonly IReadOnlyDictionary<string, Stat> GamePitchingStats = Instance.Stats.Where(kvp => GamePitchingStatNames.Contains(kvp.Key)).ToDictionary();
+    public static readonly IReadOnlyDictionary<string, Stat> GameBattingStats = Instance.Stats.Where(kvp => GameBattingStatNames.Contains(kvp.Key)).ToDictionary();
 }

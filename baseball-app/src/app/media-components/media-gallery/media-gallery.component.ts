@@ -1,6 +1,6 @@
-import { AfterViewChecked, AfterViewInit, Component, Input, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, Input, OnInit, ViewChild } from '@angular/core';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
-import { combineLatest, merge, Observable, startWith, switchMap } from 'rxjs';
+import { combineLatest, Observable, startWith, switchMap } from 'rxjs';
 import { PagedResult } from '../../contracts/paged-result';
 import { RemoteFileDetail } from '../../contracts/remote-file-detail';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
