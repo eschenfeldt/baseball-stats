@@ -1,18 +1,8 @@
+<h5>{{categoryLabel}}</h5>
 <div class="header-stats">
     @for (stat of stats; track stat.definition.name) {
     <mat-card appearance="raised">
-        <mat-card-header>
-            <mat-card-title>
-                {{stat.value | stat: stat.definition}}
-            </mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-            {{stat.definition.shortName}}
-        </mat-card-content>
-    </mat-card>
-    }
-    @if (fullInningsPitched) {
-    <mat-card appearance="raised">
+        @if (stat.definition.name === 'ThirdInningsPitched') {
         <mat-card-header>
             <mat-card-title>
                 {{fullInningsPitched}}
@@ -22,6 +12,16 @@
         <mat-card-content>
             IP
         </mat-card-content>
+        } @else {
+        <mat-card-header>
+            <mat-card-title>
+                {{stat.value | stat: stat.definition}}
+            </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+            {{stat.definition.shortName}}
+        </mat-card-content>
+        }
     </mat-card>
     }
 </div>

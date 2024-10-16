@@ -12,6 +12,7 @@ import { MatCardModule } from '@angular/material/card';
 import { PlayerSummaryStatsComponent } from '../player-summary-stats/player-summary-stats.component';
 import { PlayerGamesComponent } from '../player-games/player-games.component';
 import { PlayerPitchingStatsComponent } from '../player-pitching-stats/player-pitching-stats.component';
+import { StatCategory } from '../../contracts/stat-category';
 
 @Component({
     selector: 'app-player',
@@ -48,5 +49,20 @@ export class PlayerComponent implements OnInit {
 
     setGamesIdentifier(value: string): void {
         this.gamesIdentifier = value;
+    }
+
+    hasStatCategory(player: PlayerSummary, category: StatCategory): boolean {
+        return player.summaryStats.some(s => s.category === category);
+    }
+
+    orderedCategories(player: PlayerSummary): StatCategory[] {
+        return player.summaryStats
+            .filter(s => s.value != null && s.definition.name === 'Games')
+            .sort((a, b) => b.value! - a.value!) // descending sort
+            .map(s => s.category);
+    }
+
+    get StatCategory() {
+        return StatCategory;
     }
 }

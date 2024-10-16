@@ -52,6 +52,7 @@ export class PlayerBattingStatsComponent extends BaseballTableComponent<BatterLe
             sort: 'year'
         };
     }
+    override defaultPageSize: number = 5;
 
     stats: StatDefCollection = {};
     get statNames(): string[] {
