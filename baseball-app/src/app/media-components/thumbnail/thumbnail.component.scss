@@ -2,3 +2,9 @@ img {
     max-width: 100%;
     max-height: 100%;
 }
+
+// https://github.com/angular/components/issues/25566
+.mat-mdc-tooltip-trigger {
+    touch-action: auto !important;
+    -webkit-user-drag: auto !important;
+}
