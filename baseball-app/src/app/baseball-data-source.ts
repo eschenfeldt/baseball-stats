@@ -15,6 +15,9 @@ export abstract class BaseballDataSource<ArgType extends PagedApiParameters, Ret
     public static readonly defaultPageSize = 10;
 
     protected updateOnFilterChanges: boolean = true;
+    protected postProcess(data: PagedResult<ReturnType>): void {
+        // optional post-processing when data is loaded
+    }
 
     private dataSubject = new BehaviorSubject<ReturnType[]>([]);
     private statsSubject = new BehaviorSubject<StatDefCollection>({});
@@ -92,6 +95,7 @@ export abstract class BaseballDataSource<ArgType extends PagedApiParameters, Ret
             if (leaderboard) {
                 this.statsSubject.next(leaderboard.stats);
             }
+            this.postProcess(result);
         });
     }
 

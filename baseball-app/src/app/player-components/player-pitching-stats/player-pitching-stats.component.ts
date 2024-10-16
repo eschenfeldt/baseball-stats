@@ -53,6 +53,7 @@ export class PlayerPitchingStatsComponent extends BaseballTableComponent<Pitcher
             sort: 'year'
         };
     }
+    override defaultPageSize: number = 5;
 
     stats: StatDefCollection = {};
     get statNames(): string[] {

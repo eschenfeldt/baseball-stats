@@ -82,6 +82,7 @@ internal class StatCalculator
             {
                 summaryStats.Add(new SummaryStat
                 {
+                    Category = StatCategory.Batting,
                     Definition = StatCollection.Instance.Stats[selectorKvp.Key],
                     Value = selectorKvp.Value(this)
                 });
@@ -208,6 +209,7 @@ internal class StatCalculator
             {
                 summaryStats.Add(new SummaryStat
                 {
+                    Category = StatCategory.Pitching,
                     Definition = StatCollection.Instance.Stats[selectorKvp.Key],
                     Value = selectorKvp.Value(this)
                 });

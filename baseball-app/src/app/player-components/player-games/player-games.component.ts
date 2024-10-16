@@ -6,7 +6,7 @@ import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { BaseballApiFilter, BaseballFilterService } from '../../baseball-filter.service';
 import { BaseballApiService } from '../../baseball-api.service';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { combineLatest, Observable } from 'rxjs';
 import { MatTableModule } from '@angular/material/table';
 import { TypeSafeMatCellDef } from '../../type-safe-mat-cell-def.directive';
 import { TypeSafeMatRowDef } from '../../type-safe-mat-row-def.directive';
@@ -15,10 +15,19 @@ import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatChipsModule } from '@angular/material/chips';
 import { RouterModule } from '@angular/router';
 import { StatDefCollection } from '../../contracts/stat-def';
 import { Utils } from '../../utils';
 import { StatPipe } from '../../stat.pipe';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
+
+enum ColumnGroup {
+    general = 'general',
+    pitching = 'pitching',
+    batting = 'batting',
+    fielding = 'fielding'
+}
 
 @Component({
     selector: 'app-player-games',
@@ -34,6 +43,7 @@ import { StatPipe } from '../../stat.pipe';
         MatInputModule,
         MatFormFieldModule,
         MatSelectModule,
+        MatButtonToggleModule,
         CommonModule,
         RouterModule,
         StatPipe
@@ -58,6 +68,9 @@ export class PlayerGamesComponent extends BaseballTableComponent<PlayerGamesPara
         'awayTeam',
         'homeTeam',
     ];
+    displayedColumnGroups: ColumnGroup[] = [ColumnGroup.general];
+    optionalColumnGroupSelection: ColumnGroup[] = [ColumnGroup.pitching, ColumnGroup.batting];
+
     protected override get defaultFilters(): BaseballApiFilter {
         return {};
     }
@@ -72,9 +85,13 @@ export class PlayerGamesComponent extends BaseballTableComponent<PlayerGamesPara
         this.filterService.setFilterValue<PlayerGamesParameters>(this.uniqueIdentifier, 'year', value);
     }
 
-    stats: StatDefCollection = {};
-    get statNames(): string[] {
-        return Object.keys(this.stats).filter(n => n !== 'ThirdInningsPitched');
+    battingStats: StatDefCollection = {};
+    pitchingStats: StatDefCollection = {};
+    get pitchingStatNames(): string[] {
+        return Object.keys(this.pitchingStats).filter(n => n !== 'ThirdInningsPitched');
+    }
+    get battingStatNames(): string[] {
+        return Object.keys(this.battingStats);
     }
 
     public constructor(
@@ -86,10 +103,12 @@ export class PlayerGamesComponent extends BaseballTableComponent<PlayerGamesPara
             this.api,
             this.filterService
         );
-        this.dataSource.stats$.subscribe(stats => {
-            this.stats = stats;
-            this.getDisplayedColumns();
-        });
+        combineLatest([this.dataSource.battingStats$, this.dataSource.pitchingStats$])
+            .subscribe(([battingStats, pitchingStats]) => {
+                this.battingStats = battingStats;
+                this.pitchingStats = pitchingStats;
+                this.updateColumns();
+            });
     }
 
     public override ngOnInit(): void {
@@ -98,12 +117,18 @@ export class PlayerGamesComponent extends BaseballTableComponent<PlayerGamesPara
         this.uniqueIdentifierSet.emit(this.uniqueIdentifier);
     }
 
-    public getStat(playerGame: PlayerGame, statName: string): number | null {
-        if (playerGame.batter && playerGame.batter.stats[statName] != null) {
+    public getStat(playerGame: PlayerGame, statName: string, statGroup: ColumnGroup): number | null {
+        if (statGroup === ColumnGroup.batting
+            && playerGame.batter
+            && playerGame.batter.stats[statName] != null) {
             return playerGame.batter.stats[statName];
-        } else if (playerGame.pitcher && playerGame.pitcher.stats[statName] != null) {
+        } else if (statGroup === ColumnGroup.pitching
+            && playerGame.pitcher
+            && playerGame.pitcher.stats[statName] != null) {
             return playerGame.pitcher.stats[statName];
-        } else if (playerGame.fielder && playerGame.fielder.stats[statName] != null) {
+        } else if (statGroup === ColumnGroup.fielding
+            && playerGame.fielder
+            && playerGame.fielder.stats[statName] != null) {
             return playerGame.fielder.stats[statName];
         } else {
             return null;
@@ -125,13 +150,61 @@ export class PlayerGamesComponent extends BaseballTableComponent<PlayerGamesPara
         }
     }
 
+    private get shouldShowPitching(): boolean {
+        return this.dataSource.hasPitchingStats && this.optionalColumnGroupSelection.includes(ColumnGroup.pitching);
+    }
+    private get shouldShowHitting(): boolean {
+        return this.dataSource.hasBattingStats && this.optionalColumnGroupSelection.includes(ColumnGroup.batting);
+    }
+
+    private updateColumns(): void {
+        this.getDisplayedColumnGroups();
+        this.getDisplayedColumns();
+    }
+
+    private getDisplayedColumnGroups(): void {
+        const colGroups = [ColumnGroup.general];
+        if (this.shouldShowPitching) {
+            colGroups.push(ColumnGroup.pitching);
+        }
+        if (this.shouldShowHitting) {
+            colGroups.push(ColumnGroup.batting);
+        }
+        this.displayedColumnGroups = colGroups;
+    }
+
     private getDisplayedColumns(): void {
-        this.displayedColumns = [
+        const cols = [
             'date',
             'awayTeam',
-            'homeTeam',
-            'inningsPitched',
-            ...this.statNames
+            'homeTeam'
         ];
+        if (this.shouldShowPitching) {
+            cols.push('inningsPitched');
+            cols.push(...this.pitchingStatNames.map(n => `pitching_${n}`));
+        }
+        if (this.shouldShowHitting) {
+            cols.push(...this.battingStatNames.map(n => `batting_${n}`));
+        }
+        this.displayedColumns = cols;
+    }
+
+    public get ColumnGroup() {
+        return ColumnGroup;
+    }
+
+    public groupHidden(group: ColumnGroup): boolean {
+        return !this.optionalColumnGroupSelection.includes(group);
+    }
+
+    public setOptionalColumnGroups(optionalGroups: ColumnGroup[]): void {
+        this.optionalColumnGroupSelection = optionalGroups;
+        this.updateColumns();
+    }
+
+    public hideGroup(group: ColumnGroup) {
+        this.optionalColumnGroupSelection = this.optionalColumnGroupSelection.filter(g => g !== group);
+        this.updateColumns();
     }
 }
+

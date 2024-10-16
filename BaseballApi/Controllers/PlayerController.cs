@@ -113,7 +113,8 @@ namespace BaseballApi.Controllers
                     .Skip(skip)
                     .Take(take)
                     .ToListAsync(),
-                Stats = StatCollection.GameStats
+                PitchingStats = StatCollection.GamePitchingStats,
+                BattingStats = StatCollection.GameBattingStats
             };
         }
 
