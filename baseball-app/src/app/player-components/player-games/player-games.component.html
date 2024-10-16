@@ -53,16 +53,16 @@
         @for (statName of pitchingStatNames; track statName) {
         <ng-container matColumnDef="pitching_{{statName}}">
             <th mat-header-cell *matHeaderCellDef>{{pitchingStats[statName].shortName}}</th>
-            <td mat-cell *matCellDef="let playerGame; table: table">{{getStat(playerGame, statName, true) | stat :
-                pitchingStats[statName]}}</td>
+            <td mat-cell *matCellDef="let playerGame; table: table">{{getStat(playerGame, statName,
+                ColumnGroup.pitching) | stat : pitchingStats[statName]}}</td>
         </ng-container>
         }
 
         @for (statName of battingStatNames; track statName) {
         <ng-container matColumnDef="batting_{{statName}}">
             <th mat-header-cell *matHeaderCellDef>{{battingStats[statName].shortName}}</th>
-            <td mat-cell *matCellDef="let playerGame; table: table">{{getStat(playerGame, statName, false) | stat :
-                battingStats[statName]}}</td>
+            <td mat-cell *matCellDef="let playerGame; table: table">{{getStat(playerGame, statName, ColumnGroup.batting)
+                | stat : battingStats[statName]}}</td>
         </ng-container>
         }
 

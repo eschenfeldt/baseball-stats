@@ -25,7 +25,8 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 enum ColumnGroup {
     general = 'general',
     pitching = 'pitching',
-    batting = 'batting'
+    batting = 'batting',
+    fielding = 'fielding'
 }
 
 @Component({
@@ -116,12 +117,18 @@ export class PlayerGamesComponent extends BaseballTableComponent<PlayerGamesPara
         this.uniqueIdentifierSet.emit(this.uniqueIdentifier);
     }
 
-    public getStat(playerGame: PlayerGame, statName: string, pitcher: boolean): number | null {
-        if (!pitcher && playerGame.batter && playerGame.batter.stats[statName] != null) {
+    public getStat(playerGame: PlayerGame, statName: string, statGroup: ColumnGroup): number | null {
+        if (statGroup === ColumnGroup.batting
+            && playerGame.batter
+            && playerGame.batter.stats[statName] != null) {
             return playerGame.batter.stats[statName];
-        } else if (playerGame.pitcher && playerGame.pitcher.stats[statName] != null) {
+        } else if (statGroup === ColumnGroup.pitching
+            && playerGame.pitcher
+            && playerGame.pitcher.stats[statName] != null) {
             return playerGame.pitcher.stats[statName];
-        } else if (playerGame.fielder && playerGame.fielder.stats[statName] != null) {
+        } else if (statGroup === ColumnGroup.fielding
+            && playerGame.fielder
+            && playerGame.fielder.stats[statName] != null) {
             return playerGame.fielder.stats[statName];
         } else {
             return null;
