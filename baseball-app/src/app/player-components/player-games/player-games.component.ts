@@ -15,10 +15,12 @@ import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatChipsModule } from '@angular/material/chips';
 import { RouterModule } from '@angular/router';
 import { StatDefCollection } from '../../contracts/stat-def';
 import { Utils } from '../../utils';
 import { StatPipe } from '../../stat.pipe';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 
 enum ColumnGroup {
     general = 'general',
@@ -40,6 +42,7 @@ enum ColumnGroup {
         MatInputModule,
         MatFormFieldModule,
         MatSelectModule,
+        MatButtonToggleModule,
         CommonModule,
         RouterModule,
         StatPipe
@@ -64,17 +67,9 @@ export class PlayerGamesComponent extends BaseballTableComponent<PlayerGamesPara
         'awayTeam',
         'homeTeam',
     ];
-    displayedColumnGroups: ColumnGroup[] = PlayerGamesComponent.allColumnGroups;
-    private static readonly allColumnGroups = [
-        ColumnGroup.general,
-        ColumnGroup.pitching,
-        ColumnGroup.batting
-    ];
-    private columnGroupToggles = {
-        [ColumnGroup.general]: true,
-        [ColumnGroup.pitching]: true,
-        [ColumnGroup.batting]: true
-    }
+    displayedColumnGroups: ColumnGroup[] = [ColumnGroup.general];
+    optionalColumnGroupSelection: ColumnGroup[] = [ColumnGroup.pitching, ColumnGroup.batting];
+
     protected override get defaultFilters(): BaseballApiFilter {
         return {};
     }
@@ -111,7 +106,7 @@ export class PlayerGamesComponent extends BaseballTableComponent<PlayerGamesPara
             .subscribe(([battingStats, pitchingStats]) => {
                 this.battingStats = battingStats;
                 this.pitchingStats = pitchingStats;
-                this.getDisplayedColumns();
+                this.updateColumns();
             });
     }
 
@@ -148,24 +143,61 @@ export class PlayerGamesComponent extends BaseballTableComponent<PlayerGamesPara
         }
     }
 
+    private get shouldShowPitching(): boolean {
+        return this.dataSource.hasPitchingStats && this.optionalColumnGroupSelection.includes(ColumnGroup.pitching);
+    }
+    private get shouldShowHitting(): boolean {
+        return this.dataSource.hasBattingStats && this.optionalColumnGroupSelection.includes(ColumnGroup.batting);
+    }
+
+    private updateColumns(): void {
+        this.getDisplayedColumnGroups();
+        this.getDisplayedColumns();
+    }
+
+    private getDisplayedColumnGroups(): void {
+        const colGroups = [ColumnGroup.general];
+        if (this.shouldShowPitching) {
+            colGroups.push(ColumnGroup.pitching);
+        }
+        if (this.shouldShowHitting) {
+            colGroups.push(ColumnGroup.batting);
+        }
+        this.displayedColumnGroups = colGroups;
+    }
+
     private getDisplayedColumns(): void {
-        this.displayedColumns = [
+        const cols = [
             'date',
             'awayTeam',
-            'homeTeam',
-            'inningsPitched',
-            ...this.pitchingStatNames.map(n => `pitching_${n}`),
-            ...this.battingStatNames.map(n => `batting_${n}`)
+            'homeTeam'
         ];
+        if (this.shouldShowPitching) {
+            cols.push('inningsPitched');
+            cols.push(...this.pitchingStatNames.map(n => `pitching_${n}`));
+        }
+        if (this.shouldShowHitting) {
+            cols.push(...this.battingStatNames.map(n => `batting_${n}`));
+        }
+        this.displayedColumns = cols;
     }
 
     public get ColumnGroup() {
         return ColumnGroup;
     }
 
-    public toggleGroup(group: ColumnGroup) {
-        this.columnGroupToggles[group] = !this.columnGroupToggles[group];
-        this.displayedColumnGroups = PlayerGamesComponent.allColumnGroups.filter(g => this.columnGroupToggles[g]);
+    public groupHidden(group: ColumnGroup): boolean {
+        return !this.optionalColumnGroupSelection.includes(group);
+    }
+
+    public setOptionalColumnGroups(optionalGroups: ColumnGroup[]): void {
+        this.optionalColumnGroupSelection = optionalGroups;
+        this.updateColumns();
+    }
+
+    public hideGroup(group: ColumnGroup) {
+        this.optionalColumnGroupSelection = this.optionalColumnGroupSelection.filter(g => g !== group);
+        this.updateColumns();
     }
 }
 

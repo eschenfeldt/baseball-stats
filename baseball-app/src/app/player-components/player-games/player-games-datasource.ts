@@ -22,6 +22,9 @@ export class PlayerGamesDataSource extends BaseballDataSource<PlayerGamesParamet
     public pitchingStats$ = this.pitchingStatsSubject.asObservable();
     public battingStats$ = this.battingStatsSubject.asObservable();
 
+    public hasPitchingStats: boolean = false;
+    public hasBattingStats: boolean = false;
+
     public constructor(
         api: BaseballApiService,
         filterService: BaseballFilterService
@@ -43,6 +46,8 @@ export class PlayerGamesDataSource extends BaseballDataSource<PlayerGamesParamet
     protected override postProcess(data: PagedResult<PlayerGame>): void {
         const results = data as PlayerGameResults;
         if (results) {
+            this.hasBattingStats = results.results.some(r => r.batter != null);
+            this.hasPitchingStats = results.results.some(r => r.pitcher != null);
             this.battingStatsSubject.next(results.battingStats);
             this.pitchingStatsSubject.next(results.pitchingStats);
         }

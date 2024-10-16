@@ -69,18 +69,31 @@
 
         <ng-container matColumnDef="general">
             <th mat-header-cell *matHeaderCellDef [attr.colspan]="3">
+                <mat-button-toggle-group name="columnGroups" aria-label="Stat Group Selections"
+                    (ngModelChange)="setOptionalColumnGroups($event)" [ngModel]="optionalColumnGroupSelection"
+                    [hideMultipleSelectionIndicator]="true" multiple>
+                    @if (dataSource.hasPitchingStats) {
+                    <mat-button-toggle value="{{ColumnGroup.pitching}}">P</mat-button-toggle>
+                    }
+                    @if (dataSource.hasBattingStats) {
+                    <mat-button-toggle value="{{ColumnGroup.batting}}">B</mat-button-toggle>
+                    }
+                </mat-button-toggle-group>
             </th>
         </ng-container>
 
         <ng-container matColumnDef="pitching">
             <th mat-header-cell *matHeaderCellDef [attr.colspan]="pitchingStatNames.length + 1"
-                (click)="toggleGroup(ColumnGroup.pitching)">
+                (click)="hideGroup(ColumnGroup.pitching)">
                 Pitching
             </th>
         </ng-container>
 
         <ng-container matColumnDef="batting">
-            <th mat-header-cell *matHeaderCellDef [attr.colspan]="battingStatNames.length"> Batting </th>
+            <th mat-header-cell *matHeaderCellDef [attr.colspan]="battingStatNames.length"
+                (click)="hideGroup(ColumnGroup.batting)">
+                Batting
+            </th>
         </ng-container>
 
         <tr mat-header-row *matHeaderRowDef="displayedColumnGroups"></tr>
