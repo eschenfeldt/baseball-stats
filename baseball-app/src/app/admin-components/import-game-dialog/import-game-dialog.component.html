@@ -35,28 +35,28 @@
                 </mat-select>
             </mat-form-field>
             <mat-form-field>
-                <mat-label>Scheduled Start</mat-label>
-                <mtx-datetimepicker #scheduledPicker type="datetime" timeInput="true">
-                </mtx-datetimepicker>
-                <input [mtxDatetimepicker]="scheduledPicker" formControlName="scheduledStart"
-                    (dateChange)="dateChangePatch('scheduledStart', $event)" matInput>
-                <mtx-datetimepicker-toggle [for]="scheduledPicker" matSuffix></mtx-datetimepicker-toggle>
+                <mat-label>Scheduled Start Date</mat-label>
+                <input type="date" formControlName="scheduledStartDate" matInput>
             </mat-form-field>
             <mat-form-field>
-                <mat-label>Actual Start</mat-label>
-                <mtx-datetimepicker #startPicker type="datetime" timeInput="true">
-                </mtx-datetimepicker>
-                <input [mtxDatetimepicker]="startPicker" formControlName="actualStart"
-                    (dateChange)="dateChangePatch('actualStart', $event)" matInput>
-                <mtx-datetimepicker-toggle [for]="startPicker" matSuffix></mtx-datetimepicker-toggle>
+                <mat-label>Time</mat-label>
+                <input type="time" formControlName="scheduledStartTime" matInput>
             </mat-form-field>
             <mat-form-field>
-                <mat-label>End</mat-label>
-                <mtx-datetimepicker #endPicker type="datetime" timeInput="true">
-                </mtx-datetimepicker>
-                <input [mtxDatetimepicker]="endPicker" formControlName="end"
-                    (dateChange)="dateChangePatch('end', $event)" matInput>
-                <mtx-datetimepicker-toggle [for]="endPicker" matSuffix></mtx-datetimepicker-toggle>
+                <mat-label>Actual Start Date</mat-label>
+                <input type="date" formControlName="actualStartDate" matInput>
+            </mat-form-field>
+            <mat-form-field>
+                <mat-label>Time</mat-label>
+                <input type="time" formControlName="actualStartTime" matInput>
+            </mat-form-field>
+            <mat-form-field>
+                <mat-label>End Date</mat-label>
+                <input type="date" formControlName="endDate" matInput>
+            </mat-form-field>
+            <mat-form-field>
+                <mat-label>Time</mat-label>
+                <input type="time" formControlName="endTime" matInput>
             </mat-form-field>
         </form>
     </div>
