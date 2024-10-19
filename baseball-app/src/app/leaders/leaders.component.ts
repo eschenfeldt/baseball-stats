@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
 import { LeaderboardBattersComponent } from '../leaderboard-batters/leaderboard-batters.component';
 import { LeaderboardPitchersComponent } from '../leaderboard-pitchers/leaderboard-pitchers.component';
 import { BaseballFilterService } from '../baseball-filter.service';
@@ -8,7 +8,11 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { BatterLeaderboardParams } from '../leaderboard-batters/leaderboard-batters-datasource';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
-import { zip } from 'rxjs';
+import { Observable, zip } from 'rxjs';
+import { MatSelectModule } from '@angular/material/select';
+import { AsyncPipe } from '@angular/common';
+import { BaseballApiService } from '../baseball-api.service';
+import { SortPipe } from '../sort.pipe';
 
 @Component({
     selector: 'app-leaders',
@@ -19,12 +23,15 @@ import { zip } from 'rxjs';
         FormsModule,
         MatFormFieldModule,
         MatInputModule,
-        MatButtonToggleModule
+        MatButtonToggleModule,
+        MatSelectModule,
+        AsyncPipe,
+        SortPipe
     ],
     templateUrl: './leaders.component.html',
     styleUrl: './leaders.component.scss'
 })
-export class LeadersComponent implements AfterViewInit {
+export class LeadersComponent implements OnInit, AfterViewInit {
 
     @ViewChild(LeaderboardBattersComponent)
     batters!: LeaderboardBattersComponent;
@@ -48,9 +55,24 @@ export class LeadersComponent implements AfterViewInit {
         this.filterService.setFilterValue<BatterLeaderboardParams>(LeaderboardBattersComponent.endpoint, 'playerSearch', val);
     }
 
+    public yearOptions$?: Observable<number[]>;
+
+    public get selectedYear(): number | undefined {
+        return this.filterService.getFilterValue<PitcherLeaderboardParams>(LeaderboardPitchersComponent.endpoint, 'year');
+    }
+    public set selectedYear(value: number) {
+        this.filterService.setFilterValue<PitcherLeaderboardParams>(LeaderboardPitchersComponent.endpoint, 'year', value);
+        this.filterService.setFilterValue<BatterLeaderboardParams>(LeaderboardBattersComponent.endpoint, 'year', value);
+    }
+
     public constructor(
-        private filterService: BaseballFilterService
+        private filterService: BaseballFilterService,
+        private api: BaseballApiService
     ) { }
+
+    public ngOnInit(): void {
+        this.yearOptions$ = this.api.makeApiGet<number[]>('games/years', {});
+    }
 
     public ngAfterViewInit(): void {
         const allCounts = zip(this.batters.dataSource.totalCount$, this.pitchers.dataSource.totalCount$);

@@ -43,13 +43,6 @@
     </table>
 </div>
 
-
-<div class="box-footer">
-    <button type="button" class="btn btn-primary table-buttons" (click)="refresh()">
-        <i class="fas fa-sync" [ngClass]="{'fa-spin': dataSource.loading$ | async}"></i>
-        Refresh
-    </button>
-    <mat-paginator #paginator [length]="dataSource.totalCount$ | async" [pageIndex]="0" [pageSize]="defaultPageSize"
-        [pageSizeOptions]="[5, 10, 20]" aria-label="Select page">
-    </mat-paginator>
-</div>
+<mat-paginator #paginator [length]="dataSource.totalCount$ | async" [pageIndex]="0" [pageSize]="defaultPageSize"
+    [pageSizeOptions]="[5, 10, 20]" aria-label="Select page">
+</mat-paginator>

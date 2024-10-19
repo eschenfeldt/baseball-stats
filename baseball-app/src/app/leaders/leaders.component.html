@@ -2,6 +2,17 @@
     <mat-label>Search</mat-label>
     <input type="text" matInput placeholder="Player Name" [(ngModel)]="search">
 </mat-form-field>
+@if (yearOptions$ | async ; as yearOptions) {
+<mat-form-field>
+    <mat-label>Year</mat-label>
+    <mat-select [(ngModel)]="selectedYear">
+        <mat-option [value]=""></mat-option>
+        @for (year of yearOptions | sort: null: 'desc'; track year) {
+        <mat-option [value]="year">{{year}}</mat-option>
+        }
+    </mat-select>
+</mat-form-field>
+}
 <mat-button-toggle-group name="type" aria-label="Player Type" multiple [(ngModel)]="showTables">
     <mat-button-toggle value="batters">Batters</mat-button-toggle>
     <mat-button-toggle value="pitchers">Pitchers</mat-button-toggle>
