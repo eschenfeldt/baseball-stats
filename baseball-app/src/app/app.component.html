@@ -1,7 +1,7 @@
 <mat-sidenav-container class="sidenav-container">
     <mat-sidenav #drawer class="sidenav" fixedInViewport [attr.role]="(isHandset$ | async) ? 'dialog' : 'navigation'"
         [mode]="(isHandset$ | async) ? 'over' : 'side'" [opened]="(isHandset$ | async) === false">
-        <mat-toolbar>Menu</mat-toolbar>
+        <mat-toolbar><img src="favicon.svg" alt=""></mat-toolbar>
         <mat-nav-list>
             <a mat-list-item [routerLink]="['/home']" routerLinkActive="router-link-active">Home</a>
             <a mat-list-item [routerLink]="['/leaders']" routerLinkActive="router-link-active">Leaders</a>
