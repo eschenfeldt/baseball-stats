@@ -5,7 +5,8 @@ import { PagedApiParameters } from '../paged-api-parameters'
 export interface BatterLeaderboardParams extends PagedApiParameters {
     playerId?: number,
     playerSearch?: string,
-    minPlateAppearances?: number
+    minPlateAppearances?: number,
+    year?: number
 }
 
 export class LeaderboardBattersDataSource extends BaseballDataSource<BatterLeaderboardParams, LeaderboardPlayer> {
