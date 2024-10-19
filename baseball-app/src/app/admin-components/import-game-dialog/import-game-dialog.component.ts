@@ -1,15 +1,14 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, UntypedFormControl } from '@angular/forms';
-import { MatFormField, MatFormFieldModule, MatLabel, MatSuffix } from '@angular/material/form-field';
+import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, UntypedFormControl, Validators } from '@angular/forms';
+import { MatFormField, MatLabel, MatSuffix } from '@angular/material/form-field';
 import { MatInput, MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
 import { MatDialogActions, MatDialogClose, MatDialogContent, MatDialogRef, MatDialogTitle } from '@angular/material/dialog';
-import { MtxDatetimepicker, MtxDatetimepickerInput, MtxDatetimepickerInputEvent, MtxDatetimepickerToggle } from '@ng-matero/extensions/datetimepicker';
-import { provideMomentDatetimeAdapter } from '@ng-matero/extensions-moment-adapter';
 import { NgFor, NgIf } from '@angular/common';
 import { BaseballApiService } from '../../baseball-api.service';
 import { Team } from '../../contracts/team';
+import { GameMetadata } from '../../contracts/game-metadata';
 
 @Component({
     selector: 'app-import-game-dialog',
@@ -28,29 +27,8 @@ import { Team } from '../../contracts/team';
         MatDialogClose,
         MatButtonModule,
         MatSuffix,
-        MtxDatetimepicker,
-        MtxDatetimepickerInput,
-        MtxDatetimepickerToggle,
         MatSelectModule,
         MatInputModule
-    ],
-    providers: [
-        provideMomentDatetimeAdapter({
-            parse: {
-                datetimeInput: 'YYYY-MM-DD hh:mm A',
-            },
-            display: {
-                dateInput: 'YYYY-MM-DD',
-                monthInput: 'MMMM',
-                yearInput: 'YYYY',
-                timeInput: 'HH:mm',
-                datetimeInput: 'YYYY-MM-DD hh:mm A',
-                monthYearLabel: 'YYYY MMMM',
-                dateA11yLabel: 'LL',
-                monthYearA11yLabel: 'MMMM YYYY',
-                popupHeaderDateLabel: 'MMM DD, ddd',
-            },
-        })
     ],
     templateUrl: './import-game-dialog.component.html',
     styleUrl: './import-game-dialog.component.scss'
@@ -58,24 +36,15 @@ import { Team } from '../../contracts/team';
 export class ImportGameDialogComponent implements OnInit {
 
     metadata = new FormGroup({
-        scheduledStart: new FormControl<Date | null>(null),
-        actualStart: new FormControl<Date | null>(null),
-        end: new FormControl<Date | null>(null),
-        home: new FormControl<Team | null>(null),
-        away: new FormControl<Team | null>(null)
+        scheduledStartDate: new FormControl<string | null>(null, Validators.required),
+        scheduledStartTime: new FormControl<string | null>(null, Validators.required),
+        actualStartDate: new FormControl<string | null>(null, Validators.required),
+        actualStartTime: new FormControl<string | null>(null, Validators.required),
+        endDate: new FormControl<string | null>(null, Validators.required),
+        endTime: new FormControl<string | null>(null, Validators.required),
+        home: new FormControl<Team | null>(null, Validators.required),
+        away: new FormControl<Team | null>(null, Validators.required)
     })
-    /**
-     * The picker component doesn't seem to be updating the model correctly,
-     *  so we're forcing it with this
-     */
-    dateChangePatch(formControlName: string, event: MtxDatetimepickerInputEvent<any>) {
-        const patch = {
-            [formControlName]: event.value
-        }
-        this.metadata.patchValue(patch)
-        this.metadata.markAsDirty()
-    }
-
 
     files: File[] = [];
     fileNames: string[] = [];
@@ -83,17 +52,29 @@ export class ImportGameDialogComponent implements OnInit {
         return this.fileNames.length > 0;
     }
 
-    // private get metadata(): GameMetadata {
-    //     return {
-    //         home: this.homeTeam.value,
-    //         away: this.awayTeam.value,
-    //         scheduledStart: this.scheduledDateTime.value,
-    //         actualStart: this.startDateTime.value,
-    //         end: this.endDateTime.value
-    //     }
-    // }
-
     teams: Team[] = [];
+
+    get canImport(): boolean {
+        return this.filesUploaded
+            && this.metadata.valid
+    }
+
+    private get metadataValue(): GameMetadata | null {
+        if (this.metadata.valid && this.metadata.value.home && this.metadata.value.away) {
+            const scheduled = this.metadata.value.scheduledStartDate ? new Date(`${this.metadata.value.scheduledStartDate} ${this.metadata.value.scheduledStartTime}`) : null;
+            const actual = this.metadata.value.actualStartDate ? new Date(`${this.metadata.value.actualStartDate} ${this.metadata.value.actualStartTime}`) : null;
+            const end = this.metadata.value.endDate ? new Date(`${this.metadata.value.endDate} ${this.metadata.value.endTime}`) : null;
+            return {
+                home: this.metadata.value.home,
+                away: this.metadata.value.away,
+                scheduledStart: scheduled,
+                actualStart: actual,
+                end: end
+            }
+        } else {
+            return null;
+        }
+    }
 
     constructor(
         private api: BaseballApiService,
@@ -113,12 +94,12 @@ export class ImportGameDialogComponent implements OnInit {
     }
 
     import() {
-        if (this.filesUploaded) {
+        if (this.canImport) {
             const formData = new FormData();
             this.files.forEach(f => {
                 formData.append('files', f);
             });
-            formData.append('serializedMetadata', JSON.stringify(this.metadata.value))
+            formData.append('serializedMetadata', JSON.stringify(this.metadataValue))
             this.api.makeApiPost<{ id: number }>('Games/import', formData).subscribe(result => {
                 this.dialogRef.close(result.id);
             });

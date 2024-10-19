@@ -33,7 +33,6 @@
                         ],
                         "styles": [
                             "@angular/material/prebuilt-themes/azure-blue.css",
-                            "@ng-matero/extensions/prebuilt-themes/deeppurple-amber.css",
                             "src/styles.scss"
                         ],
                         "scripts": []
