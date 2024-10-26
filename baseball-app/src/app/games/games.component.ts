@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, Input, OnChanges, OnInit, SimpleChanges, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, Input, OnChanges, OnInit, signal, SimpleChanges, ViewChild } from '@angular/core';
 import { GamesDataSource, GamesListParams, GameSummary } from './games-datasource';
 import { ApiMethod, BaseballApiService } from '../baseball-api.service';
 import { MatTableModule } from '@angular/material/table';
@@ -18,6 +18,7 @@ import { MatInputModule } from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
 import { Utils } from '../utils';
 import { SortPipe } from '../sort.pipe';
+import { MatExpansionModule } from '@angular/material/expansion';
 
 @Component({
     selector: 'app-games',
@@ -35,7 +36,8 @@ import { SortPipe } from '../sort.pipe';
         FormsModule,
         MatInputModule,
         MatFormFieldModule,
-        MatSelectModule
+        MatSelectModule,
+        MatExpansionModule
     ],
     templateUrl: './games.component.html',
     styleUrl: './games.component.scss'
@@ -100,6 +102,18 @@ export class GamesComponent extends BaseballTableComponent<GamesListParams, Game
     public endTime(game: GameSummary): string {
         if (game.endTime) {
             return Utils.formatTime(game.endTime);
+        } else {
+            return '';
+        }
+    }
+
+    readonly filterOpenState = signal(false);
+
+    public get filterSummary(): string {
+        if (this.filterOpenState()) {
+            return '';
+        } else if (this.selectedYear) {
+            return `Year: ${this.selectedYear}`;
         } else {
             return '';
         }

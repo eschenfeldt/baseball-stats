@@ -139,3 +139,31 @@ $dark-theme: mat.define-theme((color: (theme-type: dark,
                 tertiary: $_tertiary,
             ),
         ));
+
+@mixin customize-dark($dark-theme) {
+
+    mat-sidenav-content {
+        background: mat.get-theme-color($dark-theme, 'secondary', 10);
+    }
+
+    .mat-expansion-panel {
+        background: mat.get-theme-color($dark-theme, 'secondary', 20);
+    }
+
+    div.mat-mdc-select-panel .mat-mdc-option {
+        background: mat.get-theme-color($dark-theme, 'secondary', 30);
+    }
+
+    div.mat-mdc-select-panel .mat-mdc-option.mat-mdc-option-active,
+    .mat-mdc-option.mdc-list-item--selected:not(.mdc-list-item--disabled):not(.mat-mdc-option-multiple) {
+        background: mat.get-theme-color($dark-theme, 'primary', 30);
+    }
+
+    a:not(:visited) {
+        color: mat.get-theme-color($dark-theme, 'tertiary', 90);
+    }
+
+    a:visited {
+        color: mat.get-theme-color($dark-theme, 'tertiary', 50);
+    }
+}

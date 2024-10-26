@@ -1,5 +1,18 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '../../baseball-theme';
+
 .game-time {
     margin-left: 2em;
     font-size: small;
     font-weight: lighter;
+}
+
+mat-expansion-panel {
+    margin-bottom: 1em;
+}
+
+table,
+mat-paginator {
+    background-color: mat.get-theme-color(baseball-theme.$dark-theme, 'secondary', 20);
 }

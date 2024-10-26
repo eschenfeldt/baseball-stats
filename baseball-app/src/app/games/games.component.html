@@ -1,70 +1,74 @@
-@if (yearOptions$ | async; as yearOptions) {
-<mat-form-field>
-    <mat-label>Year</mat-label>
-    <mat-select [(ngModel)]="selectedYear">
-        <mat-option [value]=""></mat-option>
-        @for (year of yearOptions| sort: null: 'desc'; track year) {
-        <mat-option [value]="year">{{year}}</mat-option>
-        }
-    </mat-select>
-</mat-form-field>
-}
+<mat-expansion-panel (opened)="filterOpenState.set(true)" (closed)="filterOpenState.set(false)">
+    <mat-expansion-panel-header>
+        <mat-panel-title>Filter</mat-panel-title>
+        <mat-panel-description>{{filterSummary}}</mat-panel-description>
+    </mat-expansion-panel-header>
+    @if (yearOptions$ | async; as yearOptions) {
+    <mat-form-field>
+        <mat-label>Year</mat-label>
+        <mat-select [(ngModel)]="selectedYear">
+            <mat-option [value]=""></mat-option>
+            @for (year of yearOptions| sort: null: 'desc'; track year) {
+            <mat-option [value]="year">{{year}}</mat-option>
+            }
+        </mat-select>
+    </mat-form-field>
+    }
+</mat-expansion-panel>
 
-<div>
-    <table mat-table [dataSource]="dataSource" #table="matTable" matSort class="mat-elevation-z8">
+<table mat-table [dataSource]="dataSource" #table="matTable" matSort class="mat-elevation-z8">
 
-        <!-- Date Column -->
-        <ng-container matColumnDef="date">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by date">
-                Date
-            </th>
-            <td mat-cell *matCellDef="let game; table: table">
-                <a [routerLink]="['/game', game.id]" routerLinkActive="router-link-active">{{game.date}}</a>
-                <span class="game-time">
-                    {{gameTime(game)}}
-                    @if (game.endTime) {
-                    - {{endTime(game)}}
-                    }
-                </span>
-            </td>
-        </ng-container>
+    <!-- Date Column -->
+    <ng-container matColumnDef="date">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by date">
+            Date
+        </th>
+        <td mat-cell *matCellDef="let game; table: table">
+            <a [routerLink]="['/game', game.id]" routerLinkActive="router-link-active">{{game.date}}</a>
+            <span class="game-time">
+                {{gameTime(game)}}
+                @if (game.endTime) {
+                - {{endTime(game)}}
+                }
+            </span>
+        </td>
+    </ng-container>
 
-        <!-- Away Team -->
-        <ng-container matColumnDef="awayTeam">
-            <th mat-header-cell *matHeaderCellDef>Away</th>
-            <td mat-cell *matCellDef="let game">
-                <a [routerLink]="['/team', game.away.id]" routerLinkActive="router-link-active">
-                    {{game.awayTeamName}}
-                </a>
-            </td>
-        </ng-container>
+    <!-- Away Team -->
+    <ng-container matColumnDef="awayTeam">
+        <th mat-header-cell *matHeaderCellDef>Away</th>
+        <td mat-cell *matCellDef="let game">
+            <a [routerLink]="['/team', game.away.id]" routerLinkActive="router-link-active">
+                {{game.awayTeamName}}
+            </a>
+        </td>
+    </ng-container>
 
-        <!-- Home Team -->
-        <ng-container matColumnDef="homeTeam">
-            <th mat-header-cell *matHeaderCellDef>Home</th>
-            <td mat-cell *matCellDef="let game">
-                <a [routerLink]="['/team', game.home.id]" routerLinkActive="router-link-active">
-                    {{game.homeTeamName}}
-                </a>
-            </td>
-        </ng-container>
+    <!-- Home Team -->
+    <ng-container matColumnDef="homeTeam">
+        <th mat-header-cell *matHeaderCellDef>Home</th>
+        <td mat-cell *matCellDef="let game">
+            <a [routerLink]="['/team', game.home.id]" routerLinkActive="router-link-active">
+                {{game.homeTeamName}}
+            </a>
+        </td>
+    </ng-container>
 
-        <!-- Away Score -->
-        <ng-container matColumnDef="awayScore">
-            <th mat-header-cell *matHeaderCellDef></th>
-            <td mat-cell *matCellDef="let game"> {{game.awayScore}} </td>
-        </ng-container>
+    <!-- Away Score -->
+    <ng-container matColumnDef="awayScore">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let game"> {{game.awayScore}} </td>
+    </ng-container>
 
-        <!-- Home Score -->
-        <ng-container matColumnDef="homeScore">
-            <th mat-header-cell *matHeaderCellDef></th>
-            <td mat-cell *matCellDef="let game"> {{game.homeScore}} </td>
-        </ng-container>
+    <!-- Home Score -->
+    <ng-container matColumnDef="homeScore">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let game"> {{game.homeScore}} </td>
+    </ng-container>
 
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let game; columns: displayedColumns; table: table"></tr>
-    </table>
-</div>
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let game; columns: displayedColumns; table: table"></tr>
+</table>
 
 <mat-paginator #paginator [length]="dataSource.totalCount$ | async" [pageIndex]="0" [pageSize]="defaultPageSize"
     [pageSizeOptions]="[5, 10, 20]" aria-label="Select page">
