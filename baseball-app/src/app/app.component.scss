@@ -25,6 +25,15 @@
     }
 }
 
+mat-toolbar {
+    background-color: var(--primary-color);
+    color: var(--secondary-color);
+}
+
+.mat-drawer {
+    border-radius: 0;
+}
+
 .mat-toolbar.mat-primary {
     position: sticky;
     top: 0;
@@ -36,6 +45,11 @@
     min-height: 0;
 }
 
-img {
+.home-icon {
     height: 100%;
+    width: 100%;
+
+    img {
+        height: 100%;
+    }
 }
