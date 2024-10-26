@@ -1,13 +1,9 @@
-@if (team == null) {
-<h3>Games</h3>
-}
-
 @if (yearOptions$ | async; as yearOptions) {
 <mat-form-field>
     <mat-label>Year</mat-label>
     <mat-select [(ngModel)]="selectedYear">
         <mat-option [value]=""></mat-option>
-        @for (year of yearOptions; track year) {
+        @for (year of yearOptions| sort: null: 'desc'; track year) {
         <mat-option [value]="year">{{year}}</mat-option>
         }
     </mat-select>

@@ -17,6 +17,7 @@ import { MatSelect, MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
 import { Utils } from '../utils';
+import { SortPipe } from '../sort.pipe';
 
 @Component({
     selector: 'app-games',
@@ -28,6 +29,7 @@ import { Utils } from '../utils';
         MatPaginatorModule,
         MatSortModule,
         AsyncPipe,
+        SortPipe,
         CommonModule,
         RouterModule,
         FormsModule,
