@@ -12,7 +12,14 @@ mat-expansion-panel {
     margin-bottom: 1em;
 }
 
-table,
-mat-paginator {
-    background-color: mat.get-theme-color(baseball-theme.$dark-theme, 'secondary', 20);
+table {
+    margin-bottom: 1em;
+}
+
+@media (prefers-color-scheme: dark) {
+
+    table,
+    mat-paginator {
+        background-color: mat.get-theme-color(baseball-theme.$dark-theme, 'secondary', 20);
+    }
 }

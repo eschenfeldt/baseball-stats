@@ -4,11 +4,11 @@
 @include mat.core();
 
 html {
-    @include mat.all-component-themes(baseball-theme.$dark-theme);
-    @include baseball-theme.customize-dark(baseball-theme.$dark-theme);
+    @include mat.all-component-themes(baseball-theme.$light-theme);
 
-    @media (prefers-color-scheme: light) {
-        @include mat.all-component-colors(baseball-theme.$light-theme);
+    @media (prefers-color-scheme: dark) {
+        @include mat.all-component-colors(baseball-theme.$dark-theme);
+        @include baseball-theme.customize-dark(baseball-theme.$dark-theme);
     }
 }
 
