@@ -4,22 +4,7 @@
 @include mat.core();
 
 html {
-    @include mat.core-theme(baseball-theme.$light-theme);
-    @include mat.button-theme(baseball-theme.$light-theme);
-    @include mat.button-toggle-theme(baseball-theme.$light-theme);
-    @include mat.card-theme(baseball-theme.$light-theme);
-    @include mat.datepicker-theme(baseball-theme.$light-theme);
-    @include mat.divider-theme(baseball-theme.$light-theme);
-    @include mat.expansion-theme(baseball-theme.$light-theme);
-    @include mat.form-field-theme(baseball-theme.$light-theme);
-    @include mat.icon-button-theme(baseball-theme.$light-theme);
-    @include mat.menu-theme(baseball-theme.$light-theme);
-    @include mat.paginator-theme(baseball-theme.$light-theme);
-    @include mat.progress-spinner-theme(baseball-theme.$light-theme);
-    @include mat.sidenav-theme(baseball-theme.$light-theme);
-    @include mat.table-theme(baseball-theme.$light-theme);
-    @include mat.tabs-theme(baseball-theme.$light-theme);
-    @include mat.tooltip-theme(baseball-theme.$light-theme);
+    @include mat.all-component-themes(baseball-theme.$light-theme);
 }
 
 html,
