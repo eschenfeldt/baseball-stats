@@ -21,6 +21,10 @@ body {
     flex-grow: 1;
 }
 
+.sidenav .mdc-list-item__primary-text {
+    color: var(--secondary-color) !important
+}
+
 :root {
     --primary-color: #3A5A49;
     --secondary-color: #D8AD2B;
