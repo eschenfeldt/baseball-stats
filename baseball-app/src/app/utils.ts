@@ -21,7 +21,7 @@ export class Utils {
 
     public static formatDate(datetime?: string): string {
         if (datetime) {
-            return new Date(datetime).toLocaleDateString();
+            return new Date(datetime).toLocaleDateString(undefined, { timeZone: 'UTC' });
         } else {
             return '';
         }
