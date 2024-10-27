@@ -145,6 +145,10 @@ $dark-theme: mat.define-theme((color: (theme-type: dark,
     .mat-drawer,
     .mat-toolbar {
         background: mat.get-theme-color($light-theme, 'secondary', 30);
+
+        mat-icon {
+            color: var(--secondary-color)
+        }
     }
 }
 
