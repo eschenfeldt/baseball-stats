@@ -140,13 +140,23 @@ $dark-theme: mat.define-theme((color: (theme-type: dark,
             ),
         ));
 
+@mixin customize-light($light-theme) {
+
+    .mat-drawer,
+    .mat-toolbar {
+        background: mat.get-theme-color($light-theme, 'secondary', 30);
+    }
+}
+
 @mixin customize-dark($dark-theme) {
 
     mat-sidenav-content {
         background: mat.get-theme-color($dark-theme, 'secondary', 10);
     }
 
-    .mat-expansion-panel {
+    .mat-expansion-panel,
+    .mat-drawer,
+    .mat-toolbar {
         background: mat.get-theme-color($dark-theme, 'secondary', 20);
     }
 

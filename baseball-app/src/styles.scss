@@ -5,6 +5,7 @@
 
 html {
     @include mat.all-component-themes(baseball-theme.$light-theme);
+    @include baseball-theme.customize-light(baseball-theme.$light-theme);
 
     @media (prefers-color-scheme: dark) {
         @include mat.all-component-colors(baseball-theme.$dark-theme);

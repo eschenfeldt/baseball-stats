@@ -1,7 +1,8 @@
 <mat-sidenav-container class="sidenav-container">
     <mat-sidenav #drawer class="sidenav" fixedInViewport [attr.role]="(isHandset$ | async) ? 'dialog' : 'navigation'"
         [mode]="(isHandset$ | async) ? 'over' : 'side'" [opened]="(isHandset$ | async) === false">
-        <mat-toolbar><a class="home-icon" [routerLink]="['/games']"><img src="favicon.svg" alt=""></a></mat-toolbar>
+        <mat-toolbar><a class="home-icon" [routerLink]="['/games']"><img src="baseball square border.png"
+                    alt=""></a></mat-toolbar>
         <mat-nav-list>
             <a mat-list-item [routerLink]="['/home']">
                 Home@if(routeActive('home')){<span class="active-indicator">></span>}
