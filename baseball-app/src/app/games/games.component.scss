@@ -2,9 +2,16 @@
 @use '@angular/material' as mat;
 @use '../../baseball-theme';
 
+.date-cell {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    column-gap: 2em;
+}
+
 .game-time {
-    margin-left: 2em;
-    font-size: small;
+    font-size: smaller;
     font-weight: lighter;
 }
 
@@ -29,7 +36,7 @@ table {
 
 :host {
     height: 100%;
-    overflow: auto;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
 }
