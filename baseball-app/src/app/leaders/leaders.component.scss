@@ -1,0 +1,30 @@
+$table-margin: 15pt;
+
+.leader-filters,
+.filter-inputs {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    align-items: center;
+    column-gap: 10pt;
+    row-gap: 5pt;
+    margin: $table-margin
+}
+
+mat-expansion-panel {
+    @media (max-width: 500pt) {
+        max-width: 160pt;
+    }
+}
+
+mat-form-field {
+    max-width: 120pt;
+}
+
+:host {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    row-gap: 10pt;
+}
