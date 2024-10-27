@@ -65,7 +65,6 @@ export class GamesComponent extends BaseballTableComponent<GamesListParams, Game
     }
 
     public condenseInformation: boolean = false;
-    override defaultPageSize: number = 20;
 
     public yearOptions$?: Observable<number[]>;
 

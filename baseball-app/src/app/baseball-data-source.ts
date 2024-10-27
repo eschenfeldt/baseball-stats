@@ -12,7 +12,7 @@ import { Leaderboard } from './contracts/leaderboard';
 
 export abstract class BaseballDataSource<ArgType extends PagedApiParameters, ReturnType> extends DataSource<ReturnType> {
 
-    public static readonly defaultPageSize = 10;
+    public static readonly defaultPageSize = 20;
 
     protected updateOnFilterChanges: boolean = true;
     protected postProcess(data: PagedResult<ReturnType>): void {
