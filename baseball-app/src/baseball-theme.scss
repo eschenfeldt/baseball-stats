@@ -162,7 +162,8 @@ $dark-theme: mat.define-theme((color: (theme-type: dark,
     .mat-expansion-panel,
     .mat-drawer,
     .mat-toolbar,
-    .mat-mdc-card {
+    .mat-mdc-card,
+    .mat-mdc-dialog-surface {
         background: mat.get-theme-color($dark-theme, 'secondary', 20);
     }
 
