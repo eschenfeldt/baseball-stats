@@ -51,11 +51,9 @@ export class GameComponent implements OnInit {
     gameId$!: Observable<number>
     game$?: Observable<GameDetail>;
 
-    @ViewChild('livephoto') livePhotoDiv?: ElementRef;
-
     boxScoreOption: BoxScoreOption = BoxScoreOption.homeBatters;
     abbreviateBoxScoreOptions = false;
-    tabIndex: GameTab = GameTab.scoreCard;
+    tabIndex: GameTab = GameTab.boxScore;
 
     get boxScoresActive(): boolean {
         return this.tabIndex === GameTab.boxScore;
