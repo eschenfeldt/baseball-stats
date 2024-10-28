@@ -1,0 +1,19 @@
+.content {
+    margin-left: 10pt;
+    margin-top: 10pt;
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: 0;
+    min-height: 0;
+}
+
+.disclaimers {
+    margin-left: 10pt;
+}
+
+:host {
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
