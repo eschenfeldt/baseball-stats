@@ -26,7 +26,7 @@
             </th>
             <td mat-cell *matCellDef="let playerGame; table: table">
                 <a [routerLink]="['/game', playerGame.game.id]"
-                    routerLinkActive="router-link-active">{{playerGame.game.date}}</a>
+                    routerLinkActive="router-link-active">{{gameDate(playerGame)}}</a>
             </td>
         </ng-container>
 

@@ -223,5 +223,9 @@ export class PlayerGamesComponent extends BaseballTableComponent<PlayerGamesPara
             return '';
         }
     }
+
+    public gameDate(game: PlayerGame): string {
+        return Utils.formatDate(game.game.date);
+    }
 }
 
