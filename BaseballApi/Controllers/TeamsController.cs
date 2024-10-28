@@ -32,7 +32,7 @@ namespace BaseballApi.Controllers
         }
 
         [HttpGet("summaries")]
-        public async Task<ActionResult<PagedResult<TeamSummary>>> GetTeamSummaries(int skip, int take, string? sort = null, bool asc = false)
+        public ActionResult<PagedResult<TeamSummary>> GetTeamSummaries(int skip, int take, string? sort = null, bool asc = false)
         {
             TeamSummaryOrder order = sort.ToEnumOrDefault<TeamSummaryOrder, ParamValueAttribute>();
 
@@ -63,15 +63,15 @@ namespace BaseballApi.Controllers
                 Wins = ag.Wins + hg.Wins,
                 Losses = ag.Losses + hg.Losses,
                 LastGameDate = ag.LastGame > hg.LastGame ? ag.LastGame : hg.LastGame
-            });
+            }).AsEnumerable();
             var sorted = GetSorted(query, order, asc);
             return new PagedResult<TeamSummary>
             {
-                TotalCount = await query.CountAsync(),
-                Results = await sorted
+                TotalCount = query.Count(),
+                Results = sorted
                     .Skip(skip)
                     .Take(take)
-                    .ToListAsync()
+                    .ToList()
             };
         }
 
@@ -155,13 +155,13 @@ namespace BaseballApi.Controllers
             return _context.Teams.Any(e => e.Id == id);
         }
 
-        private static IOrderedQueryable<TeamSummary> GetSorted(IQueryable<TeamSummary> query, TeamSummaryOrder order, bool asc)
+        private static IOrderedEnumerable<TeamSummary> GetSorted(IEnumerable<TeamSummary> query, TeamSummaryOrder order, bool asc)
         {
             if (asc)
             {
                 return order switch
                 {
-                    TeamSummaryOrder.Team => query.OrderBy(k => k.Team),
+                    TeamSummaryOrder.Team => query.OrderBy(k => k.Team.City),
                     TeamSummaryOrder.Games => query.OrderBy(k => k.Games),
                     TeamSummaryOrder.Wins => query.OrderBy(k => k.Wins),
                     TeamSummaryOrder.Losses => query.OrderBy(k => k.Losses),
@@ -173,7 +173,7 @@ namespace BaseballApi.Controllers
             {
                 return order switch
                 {
-                    TeamSummaryOrder.Team => query.OrderByDescending(k => k.Team),
+                    TeamSummaryOrder.Team => query.OrderByDescending(k => k.Team.City),
                     TeamSummaryOrder.Games => query.OrderByDescending(k => k.Games),
                     TeamSummaryOrder.Wins => query.OrderByDescending(k => k.Wins),
                     TeamSummaryOrder.Losses => query.OrderByDescending(k => k.Losses),

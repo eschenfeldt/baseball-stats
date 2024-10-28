@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { Component, EventEmitter, Input, Output, signal, ViewChild } from '@angular/core';
 import { BaseballTableComponent } from '../../baseball-table-component';
 import { PlayerGamesDataSource, PlayerGamesParameters } from './player-games-datasource';
 import { PlayerGame } from '../../contracts/player-game';
@@ -21,9 +21,12 @@ import { StatDefCollection } from '../../contracts/stat-def';
 import { Utils } from '../../utils';
 import { StatPipe } from '../../stat.pipe';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatExpansionModule } from '@angular/material/expansion';
+import { SortPipe } from '../../sort.pipe';
 
 enum ColumnGroup {
     general = 'general',
+    placeholder = 'placeholder',
     pitching = 'pitching',
     batting = 'batting',
     fielding = 'fielding'
@@ -44,9 +47,11 @@ enum ColumnGroup {
         MatFormFieldModule,
         MatSelectModule,
         MatButtonToggleModule,
+        MatExpansionModule,
         CommonModule,
         RouterModule,
-        StatPipe
+        StatPipe,
+        SortPipe
     ],
     templateUrl: './player-games.component.html',
     styleUrl: './player-games.component.scss'
@@ -163,7 +168,7 @@ export class PlayerGamesComponent extends BaseballTableComponent<PlayerGamesPara
     }
 
     private getDisplayedColumnGroups(): void {
-        const colGroups = [ColumnGroup.general];
+        const colGroups = [ColumnGroup.general, ColumnGroup.placeholder];
         if (this.shouldShowPitching) {
             colGroups.push(ColumnGroup.pitching);
         }
@@ -205,6 +210,22 @@ export class PlayerGamesComponent extends BaseballTableComponent<PlayerGamesPara
     public hideGroup(group: ColumnGroup) {
         this.optionalColumnGroupSelection = this.optionalColumnGroupSelection.filter(g => g !== group);
         this.updateColumns();
+    }
+
+    readonly filterOpenState = signal(false);
+
+    public get filterSummary(): string {
+        if (this.filterOpenState()) {
+            return '';
+        } else if (this.selectedYear) {
+            return `Year: ${this.selectedYear}`;
+        } else {
+            return '';
+        }
+    }
+
+    public gameDate(game: PlayerGame): string {
+        return Utils.formatDate(game.game.date);
     }
 }
 

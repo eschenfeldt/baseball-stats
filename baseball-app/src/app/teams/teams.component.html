@@ -1,6 +1,4 @@
-<h5>Teams</h5>
-
-<div>
+<div class="table-container">
     <table mat-table [dataSource]="dataSource" #table="matTable" matSort class="mat-elevation-z8">
 
         <ng-container matColumnDef="team">
@@ -18,7 +16,7 @@
             <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by date of last game">
                 Last Game
             </th>
-            <td mat-cell *matCellDef="let team; table: table">{{team.lastGameDate}}</td>
+            <td mat-cell *matCellDef="let team; table: table">{{lastGameDate(team)}}</td>
         </ng-container>
 
         <ng-container matColumnDef="games">
@@ -38,7 +36,7 @@
             <td mat-cell *matCellDef="let team; table: table">{{team.losses}}</td>
         </ng-container>
 
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
         <tr mat-row *matRowDef="let row; columns: displayedColumns; table: table"></tr>
     </table>
 </div>

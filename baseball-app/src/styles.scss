@@ -1,3 +1,18 @@
+@use '@angular/material' as mat;
+@use 'baseball-theme';
+
+@include mat.core();
+
+html {
+    @include mat.all-component-themes(baseball-theme.$light-theme);
+    @include baseball-theme.customize-light(baseball-theme.$light-theme);
+
+    @media (prefers-color-scheme: dark) {
+        @include mat.all-component-colors(baseball-theme.$dark-theme);
+        @include baseball-theme.customize-dark(baseball-theme.$dark-theme);
+    }
+}
+
 html,
 body {
     height: 100%;
@@ -10,4 +25,14 @@ body {
 
 .mat-mdc-tab-body-wrapper {
     flex-grow: 1;
+}
+
+.sidenav .mdc-list-item__primary-text {
+    color: var(--secondary-color) !important
+}
+
+:root {
+    --primary-color: #3A5A49;
+    --secondary-color: #D8AD2B;
+    --tertiary-color: #e2c260;
 }

@@ -9,10 +9,10 @@
     </mat-form-field>
 </mat-expansion-panel>
 
-<div>
+<div class="table-container">
     <table mat-table [dataSource]="dataSource" #table="matTable" matSort class="mat-elevation-z8">
 
-        <ng-container matColumnDef="name">
+        <ng-container matColumnDef="name" sticky>
             <th mat-header-cell *matHeaderCellDef>
                 Name
             </th>

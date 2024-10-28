@@ -19,9 +19,18 @@ export class Utils {
         }
     }
 
+    public static formatDate(datetime?: string): string {
+        if (datetime) {
+            return new Date(datetime).toLocaleDateString(undefined, { timeZone: 'UTC' });
+        } else {
+            return '';
+        }
+    }
+
     public static formatTime(datetime?: string): string {
         if (datetime) {
-            return new Date(datetime).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+            return new Date(datetime).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+                .replace(' ', '\u00A0');
         } else {
             return '';
         }

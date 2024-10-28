@@ -8,7 +8,7 @@ import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
 import { Observable } from 'rxjs';
 import { map, shareReplay } from 'rxjs/operators';
-import { RouterLink, RouterOutlet } from '@angular/router';
+import { Router, RouterLink, RouterOutlet } from '@angular/router';
 
 @Component({
     selector: 'app-root',
@@ -28,11 +28,19 @@ import { RouterLink, RouterOutlet } from '@angular/router';
 })
 export class AppComponent {
     title = 'baseball-app';
-    private breakpointObserver = inject(BreakpointObserver);
+
+    constructor(
+        private breakpointObserver: BreakpointObserver,
+        private router: Router
+    ) { }
 
     isHandset$: Observable<boolean> = this.breakpointObserver.observe(Breakpoints.Handset)
         .pipe(
             map(result => result.matches),
             shareReplay()
         );
+
+    routeActive(route: string): boolean {
+        return this.router.isActive(route, { paths: 'exact', queryParams: 'exact', fragment: 'ignored', matrixParams: 'ignored' });
+    }
 }

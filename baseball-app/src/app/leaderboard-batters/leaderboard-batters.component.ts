@@ -53,6 +53,7 @@ export class LeaderboardBattersComponent extends BaseballTableComponent<BatterLe
     protected override defaultFilters?: BaseballApiFilter = {
         minPlateAppearances: 30
     };
+    override defaultPageSize: number = 10;
 
     stats: StatDefCollection = {};
     get statNames(): string[] {

@@ -65,4 +65,8 @@ export class TeamsComponent extends BaseballTableComponent<PagedApiParameters, T
             this.defaultFilters
         );
     }
+
+    lastGameDate(team: TeamSummary): string {
+        return Utils.formatDate(team.lastGameDate);
+    }
 }

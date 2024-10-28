@@ -31,5 +31,5 @@ export const routes: Routes = [
     { path: BASEBALL_ROUTES.PLAYER, component: PlayerComponent },
     { path: BASEBALL_ROUTES.ADMIN, component: AdminViewComponent },
     { path: BASEBALL_ROUTES.MEDIA, component: MediaCarouselComponent },
-    { path: '', redirectTo: BASEBALL_ROUTES.HOME, pathMatch: 'full' }
+    { path: '', redirectTo: BASEBALL_ROUTES.GAMES, pathMatch: 'full' }
 ];

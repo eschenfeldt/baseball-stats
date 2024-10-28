@@ -1,3 +1,5 @@
+@use '@angular/material' as mat;
+
 .sidenav-container {
     height: 100%;
 }
@@ -10,20 +12,42 @@
 }
 
 .sidenav {
-    width: 200px;
+    width: 100px;
+
+    .mat-toolbar {
+        background: inherit;
+    }
+
+    .active-indicator {
+        position: absolute;
+        right: 10px;
+    }
 }
 
-.sidenav .mat-toolbar {
-    background: inherit;
+mat-toolbar {
+    color: var(--secondary-color);
+}
+
+.mat-drawer {
+    border-radius: 0;
 }
 
 .mat-toolbar.mat-primary {
     position: sticky;
     top: 0;
-    z-index: 1;
+    z-index: 2;
 }
 
 .content-wrapper {
     flex: auto;
     min-height: 0;
+}
+
+.home-icon {
+    height: 100%;
+    width: 100%;
+
+    img {
+        height: 100%;
+    }
 }

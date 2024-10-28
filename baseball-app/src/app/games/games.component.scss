@@ -1,5 +1,62 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '../../baseball-theme';
+
+.date-cell {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    column-gap: 2em;
+}
+
 .game-time {
-    margin-left: 2em;
-    font-size: small;
+    font-size: smaller;
     font-weight: lighter;
+}
+
+$table-margin: 15pt;
+
+mat-expansion-panel {
+    margin: $table-margin;
+}
+
+table {
+    margin: 0em;
+}
+
+
+.table-container {
+    width: calc(100% - 2 * $table-margin);
+    overflow: auto;
+
+    max-width: 100%;
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: 0;
+    min-height: 0;
+
+    margin-left: $table-margin;
+    margin-right: $table-margin;
+}
+
+mat-paginator {
+    width: calc(100% - 2 * $table-margin);
+    margin-left: $table-margin;
+    margin-right: $table-margin;
+}
+
+:host {
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+@media (prefers-color-scheme: dark) {
+
+    table,
+    mat-paginator {
+        background-color: mat.get-theme-color(baseball-theme.$dark-theme, 'secondary', 20);
+    }
 }

@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, OnInit, signal, ViewChild } from '@angular/core';
 import { LeaderboardBattersComponent } from '../leaderboard-batters/leaderboard-batters.component';
 import { LeaderboardPitchersComponent } from '../leaderboard-pitchers/leaderboard-pitchers.component';
 import { BaseballFilterService } from '../baseball-filter.service';
@@ -13,6 +13,8 @@ import { MatSelectModule } from '@angular/material/select';
 import { AsyncPipe } from '@angular/common';
 import { BaseballApiService } from '../baseball-api.service';
 import { SortPipe } from '../sort.pipe';
+import { MatExpansionModule } from '@angular/material/expansion';
+import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 
 @Component({
     selector: 'app-leaders',
@@ -25,6 +27,7 @@ import { SortPipe } from '../sort.pipe';
         MatInputModule,
         MatButtonToggleModule,
         MatSelectModule,
+        MatExpansionModule,
         AsyncPipe,
         SortPipe
     ],
@@ -65,10 +68,29 @@ export class LeadersComponent implements OnInit, AfterViewInit {
         this.filterService.setFilterValue<BatterLeaderboardParams>(LeaderboardBattersComponent.endpoint, 'year', value);
     }
 
+    public condenseInformation: boolean = false;
+    public get batterLabel(): string {
+        return this.condenseInformation ? "B" : "Batters";
+    }
+    public get pitcherLabel(): string {
+        return this.condenseInformation ? "P" : "Pitchers";
+    }
+
     public constructor(
         private filterService: BaseballFilterService,
-        private api: BaseballApiService
-    ) { }
+        private api: BaseballApiService,
+        private breakpointObserver: BreakpointObserver
+    ) {
+        this.breakpointObserver.observe([
+            Breakpoints.HandsetPortrait
+        ]).subscribe(result => {
+            if (result.matches) {
+                this.condenseInformation = true;
+            } else {
+                this.condenseInformation = false;
+            }
+        });
+    }
 
     public ngOnInit(): void {
         this.yearOptions$ = this.api.makeApiGet<number[]>('games/years', {});
@@ -91,6 +113,21 @@ export class LeadersComponent implements OnInit, AfterViewInit {
         });
     }
 
+    readonly filterOpenState = signal(false);
+
+    public get filterSummary(): string {
+        if (this.filterOpenState()) {
+            return '';
+        } else if (this.search && this.selectedYear) {
+            return `${this.search} ${this.selectedYear}`;
+        } else if (this.search) {
+            return `Search: ${this.search}`;
+        } else if (this.selectedYear) {
+            return `Year: ${this.selectedYear}`;
+        } else {
+            return '';
+        }
+    }
 }
 
 enum Table {

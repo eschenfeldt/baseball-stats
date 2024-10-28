@@ -55,6 +55,7 @@ export class LeaderboardPitchersComponent extends BaseballTableComponent<Pitcher
     protected override defaultFilters?: BaseballApiFilter = {
         minInningsPitched: 10
     };
+    override defaultPageSize: number = 10;
 
     stats: StatDefCollection = {};
     get statNames(): string[] {

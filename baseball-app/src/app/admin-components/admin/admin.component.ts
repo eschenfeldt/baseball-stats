@@ -3,12 +3,11 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { ImportGameDialogComponent } from '../import-game-dialog/import-game-dialog.component';
 import { BaseballApiService } from '../../baseball-api.service';
-import { MatFormField, MatLabel } from '@angular/material/form-field';
+import { MatFormField, MatLabel, MatSuffix } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { EditTeamDialogComponent } from '../edit-team-dialog/edit-team-dialog.component';
 import { Router } from '@angular/router';
-import { BASEBALL_ROUTES } from '../../app.routes';
 import { ImportConstantsDialogComponent } from '../import-constants-dialog/import-constants-dialog.component';
 
 @Component({
@@ -20,6 +19,7 @@ import { ImportConstantsDialogComponent } from '../import-constants-dialog/impor
         MatLabel,
         MatInput,
         MatButtonModule,
+        MatSuffix,
         ReactiveFormsModule
     ],
     templateUrl: './admin.component.html',

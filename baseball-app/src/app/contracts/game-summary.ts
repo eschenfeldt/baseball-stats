@@ -7,7 +7,7 @@ export interface GameSummary {
     id: number,
     externalId: number,
     name: string,
-    date: Date,
+    date: string,
     gameType?: GameType,
     home: Team,
     homeTeamName: string,

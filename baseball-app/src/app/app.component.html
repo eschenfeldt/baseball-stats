@@ -1,17 +1,28 @@
 <mat-sidenav-container class="sidenav-container">
     <mat-sidenav #drawer class="sidenav" fixedInViewport [attr.role]="(isHandset$ | async) ? 'dialog' : 'navigation'"
         [mode]="(isHandset$ | async) ? 'over' : 'side'" [opened]="(isHandset$ | async) === false">
-        <mat-toolbar>Menu</mat-toolbar>
+        <mat-toolbar><a class="home-icon" [routerLink]="['/games']"><img src="baseball square border.png"
+                    alt=""></a></mat-toolbar>
         <mat-nav-list>
-            <a mat-list-item [routerLink]="['/home']" routerLinkActive="router-link-active">Home</a>
-            <a mat-list-item [routerLink]="['/leaders']" routerLinkActive="router-link-active">Leaders</a>
-            <a mat-list-item [routerLink]="['/teams']" routerLinkActive="router-link-active">Teams</a>
-            <a mat-list-item [routerLink]="['/games']" routerLinkActive="router-link-active">Games</a>
-            <a mat-list-item [routerLink]="['/admin']" routerLinkActive="router-link-active">Admin</a>
+            <a mat-list-item [routerLink]="['/home']">
+                Home@if(routeActive('home')){<span class="active-indicator">></span>}
+            </a>
+            <a mat-list-item [routerLink]="['/leaders']">
+                Leaders @if(routeActive('leaders')){<span class="active-indicator">></span>}
+            </a>
+            <a mat-list-item [routerLink]="['/teams']">
+                Teams @if(routeActive('teams')){<span class="active-indicator">></span>}
+            </a>
+            <a mat-list-item [routerLink]="['/games']">
+                Games @if(routeActive('games')){<span class="active-indicator">></span>}
+            </a>
+            <a mat-list-item [routerLink]="['/admin']">
+                Admin @if(routeActive('admin')){<span class="active-indicator">></span>}
+            </a>
         </mat-nav-list>
     </mat-sidenav>
     <mat-sidenav-content class="sidenav-content">
-        <mat-toolbar color="primary">
+        <mat-toolbar class="mat-primary">
             @if (isHandset$ | async) {
             <button type="button" aria-label="Toggle sidenav" mat-icon-button (click)="drawer.toggle()">
                 <mat-icon aria-label="Side nav toggle icon">menu</mat-icon>

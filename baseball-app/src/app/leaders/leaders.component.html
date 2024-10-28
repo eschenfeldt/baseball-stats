@@ -1,22 +1,33 @@
-<mat-form-field>
-    <mat-label>Search</mat-label>
-    <input type="text" matInput placeholder="Player Name" [(ngModel)]="search">
-</mat-form-field>
-@if (yearOptions$ | async ; as yearOptions) {
-<mat-form-field>
-    <mat-label>Year</mat-label>
-    <mat-select [(ngModel)]="selectedYear">
-        <mat-option [value]=""></mat-option>
-        @for (year of yearOptions | sort: null: 'desc'; track year) {
-        <mat-option [value]="year">{{year}}</mat-option>
-        }
-    </mat-select>
-</mat-form-field>
-}
-<mat-button-toggle-group name="type" aria-label="Player Type" multiple [(ngModel)]="showTables">
-    <mat-button-toggle value="batters">Batters</mat-button-toggle>
-    <mat-button-toggle value="pitchers">Pitchers</mat-button-toggle>
-</mat-button-toggle-group>
+<div class="leader-filters">
+
+    <mat-button-toggle-group name="type" aria-label="Player Type" multiple [(ngModel)]="showTables">
+        <mat-button-toggle value="batters">{{batterLabel}}</mat-button-toggle>
+        <mat-button-toggle value="pitchers">{{pitcherLabel}}</mat-button-toggle>
+    </mat-button-toggle-group>
+    <mat-expansion-panel (opened)="filterOpenState.set(true)" (closed)="filterOpenState.set(false)">
+        <mat-expansion-panel-header>
+            <mat-panel-title>Filter</mat-panel-title>
+            <mat-panel-description>{{filterSummary}}</mat-panel-description>
+        </mat-expansion-panel-header>
+        <div class="filter-inputs">
+            <mat-form-field>
+                <mat-label>Search</mat-label>
+                <input type="text" matInput placeholder="Player Name" [(ngModel)]="search">
+            </mat-form-field>
+            @if (yearOptions$ | async ; as yearOptions) {
+            <mat-form-field>
+                <mat-label>Year</mat-label>
+                <mat-select [(ngModel)]="selectedYear">
+                    <mat-option [value]=""></mat-option>
+                    @for (year of yearOptions | sort: null: 'desc'; track year) {
+                    <mat-option [value]="year">{{year}}</mat-option>
+                    }
+                </mat-select>
+            </mat-form-field>
+            }
+        </div>
+    </mat-expansion-panel>
+</div>
 
 <app-leaderboard-batters [hidden]="!showBatters"></app-leaderboard-batters>
 <app-leaderboard-pitchers [hidden]="!showPitchers"></app-leaderboard-pitchers>
