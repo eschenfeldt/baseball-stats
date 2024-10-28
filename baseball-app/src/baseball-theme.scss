@@ -167,6 +167,11 @@ $dark-theme: mat.define-theme((color: (theme-type: dark,
         background: mat.get-theme-color($dark-theme, 'secondary', 20);
     }
 
+    .mat-expansion-panel:not(.mat-expanded) .mat-expansion-panel-header:not([aria-disabled=true]):hover {
+        // weird mobile behavior after opening and closing
+        background: mat.get-theme-color($dark-theme, 'secondary', 20);
+    }
+
     div.mat-mdc-select-panel .mat-mdc-option {
         background: mat.get-theme-color($dark-theme, 'secondary', 30);
     }

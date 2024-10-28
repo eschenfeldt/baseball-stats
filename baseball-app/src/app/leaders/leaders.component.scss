@@ -14,7 +14,7 @@ $table-margin: 15pt;
 
 mat-expansion-panel {
     @media (max-width: 500pt) {
-        max-width: 160pt;
+        max-width: 144pt;
     }
 }
 
@@ -27,4 +27,26 @@ mat-form-field {
     flex-direction: column;
     justify-content: space-between;
     row-gap: 10pt;
+}
+
+$table-margin: 15pt;
+
+.table-container {
+    width: calc(100% - 2 * $table-margin);
+    overflow: auto;
+
+    max-width: 100%;
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: 0;
+    min-height: 0;
+
+    margin-left: $table-margin;
+    margin-right: $table-margin;
+}
+
+mat-paginator {
+    width: calc(100% - 2 * $table-margin);
+    margin-left: $table-margin;
+    margin-right: $table-margin;
 }
