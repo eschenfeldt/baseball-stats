@@ -1,9 +1,15 @@
 .header-stats {
     display: flex;
     justify-content: space-evenly;
+    column-gap: 0.5em;
     margin-bottom: 1em;
     padding-bottom: 1em;
 
     width: 100%;
     overflow-x: auto;
+}
+
+h5 {
+    margin-left: 10pt;
+    font-size: large;
 }

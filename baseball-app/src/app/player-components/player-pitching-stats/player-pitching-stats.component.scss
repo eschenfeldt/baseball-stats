@@ -1,3 +1,7 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '../../../baseball-theme';
+
 a.year-link {
     cursor: pointer;
     color: -webkit-link;
@@ -7,4 +11,16 @@ a.year-link {
 .table-container {
     width: 100%;
     overflow-x: auto;
+}
+
+@media (prefers-color-scheme: dark) {
+
+    a.year-link {
+        color: mat.get-theme-color(baseball-theme.$dark-theme, 'tertiary', 90);
+    }
+
+    table,
+    mat-paginator {
+        background-color: mat.get-theme-color(baseball-theme.$dark-theme, 'secondary', 20);
+    }
 }

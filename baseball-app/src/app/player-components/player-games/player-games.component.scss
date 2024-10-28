@@ -1,3 +1,7 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '../../../baseball-theme';
+
 :host {
     width: 100%;
 }
@@ -7,6 +11,18 @@
     overflow-x: auto;
 }
 
+mat-expansion-panel {
+    margin: 15pt;
+}
+
 td.player-team {
     font-weight: bold;
+}
+
+@media (prefers-color-scheme: dark) {
+
+    table,
+    mat-paginator {
+        background-color: mat.get-theme-color(baseball-theme.$dark-theme, 'secondary', 20);
+    }
 }
