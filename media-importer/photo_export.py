@@ -69,12 +69,13 @@ class PhotoExporter:
             return
         
         out_dir = self._paths.temp_dir(game, photo)
-        paths = photo.export(out_dir, live_photo=True, export_as_hardlink=True, overwrite=True)
+        edited = photo.hasadjustments
+        paths = photo.export(out_dir, edited=edited, live_photo=True, export_as_hardlink=True, overwrite=True)
         if len(paths) == 0:
             print(f'export issue with {photo}')
         else:
             self.export_paths[photo.uuid] = paths[0]
             ext = os.path.splitext(paths[0])[1]
             preview_dir = self._paths.preview_dir(game)
-            photo.export(preview_dir, filename=f'{photo.uuid}{ext}', live_photo=False, export_as_hardlink=True, overwrite=True)
+            photo.export(preview_dir, edited=edited, filename=f'{photo.uuid}{ext}', live_photo=False, export_as_hardlink=True, overwrite=True)
             
