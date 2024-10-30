@@ -8,10 +8,12 @@ from path_management import PathManager
 
 class PhotoExporter:
 
-    def __init__(self, path_manager: PathManager):
+    def __init__(self, path_manager: PathManager, hours_before: int = 3, hours_after: int = 2):
         self._paths = path_manager
         self.photosdb = osxphotos.PhotosDB()
         self.export_paths = dict()
+        self._hours_before = hours_before
+        self._hours_after = hours_after
 
     def export_photos_for_game(self, game: Game) -> str:
         photos = self.get_photos_for_game(game)
@@ -59,8 +61,8 @@ class PhotoExporter:
         return to_upload
 
     def get_photos_for_game(self, game: Game) -> list[PhotoInfo]:
-        start_time = game.StartTime + timedelta(hours=-3)
-        end_time = game.EndTime + timedelta(hours=2)
+        start_time = game.StartTime + timedelta(hours=-self._hours_before)
+        end_time = game.EndTime + timedelta(hours=self._hours_after)
         return self.photosdb.photos(from_date=start_time, to_date=end_time)
     
     def export(self, photo: PhotoInfo, game: Game):
