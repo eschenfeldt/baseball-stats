@@ -9,6 +9,7 @@
         .item {
             flex-grow: 1;
             flex-shrink: 0;
+            max-width: 120px;
 
             display: flex;
             align-items: center;

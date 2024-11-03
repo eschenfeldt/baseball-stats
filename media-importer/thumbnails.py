@@ -1,6 +1,6 @@
 import os
 from dataclasses import dataclass
-from PIL import Image
+from PIL import Image, ImageOps
 import subprocess
 from multiprocessing import Pool
 from pillow_heif import register_heif_opener
@@ -41,6 +41,7 @@ class Thumbnailer:
             dir = os.path.dirname(path)
             filename, ext = os.path.splitext(os.path.basename(path))
             image = Image.open(path)
+            ImageOps.exif_transpose(image, in_place=True)
             alt_ext = '.jpeg'
             if ext != alt_ext:
                 alt_name = os.path.join(dir, f"{filename}{alt_ext}")
