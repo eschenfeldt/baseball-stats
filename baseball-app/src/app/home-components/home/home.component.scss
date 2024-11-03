@@ -1,14 +1,13 @@
 .content {
-    margin-left: 10pt;
-    margin-top: 10pt;
+    margin: 10pt;
     flex-grow: 1;
     flex-shrink: 1;
     flex-basis: 0;
     min-height: 0;
-}
 
-.disclaimers {
-    margin-left: 10pt;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
 }
 
 :host {

@@ -1,0 +1,49 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '../../../baseball-theme';
+
+$max-width: 500px;
+
+mat-card-header {
+    margin-bottom: 1em;
+
+    button {
+        margin-left: 1em;
+    }
+}
+
+.game-teams {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-evenly;
+    margin-bottom: 1em;
+
+    mat-card-header {
+        text-align: center;
+    }
+
+    mat-card-content {
+        font-size: 2em;
+        text-align: center;
+        font-weight: bolder;
+    }
+
+    @media (prefers-color-scheme: dark) {
+
+        mat-card {
+            background-color: mat.get-theme-color(baseball-theme.$dark-theme, 'secondary', 30);
+        }
+    }
+}
+
+mat-card {
+    max-width: $max-width;
+}
+
+app-thumbnail {
+    max-width: $max-width;
+
+    @media (width <=$max-width) {
+        max-width: calc(100vw - 2em);
+    }
+}

@@ -1,0 +1,41 @@
+<mat-card>
+    <mat-card-header>
+        <mat-card-title><a [routerLink]="['/game', game.id]">{{game.name}}</a></mat-card-title>
+        @if (purpose) {
+        <button type="button" mat-mini-fab [matTooltip]="purpose" #tooltip="matTooltip" (click)="tooltip.toggle()">
+            <mat-icon fontIcon="info_outline"></mat-icon>
+        </button>
+        }
+    </mat-card-header>
+    @if (image$ | async; as image) {
+    <app-thumbnail [file]="image" [queryParams]="mediaParams"></app-thumbnail>
+    }
+    <mat-card-content>
+        <div class="game-teams">
+            <mat-card appearance="raised">
+                <mat-card-header>
+                    <mat-card-title>
+                        <a [routerLink]="['/team', game.away.id]">
+                            {{game.away.name}}
+                        </a>
+                    </mat-card-title>
+                </mat-card-header>
+                <mat-card-content [style.color]="color(game.away)">
+                    {{game.awayScore}}
+                </mat-card-content>
+            </mat-card>
+            <mat-card appearance="raised">
+                <mat-card-header>
+                    <mat-card-title>
+                        <a [routerLink]="['/team', game.home.id]">
+                            {{game.home.name}}
+                        </a>
+                    </mat-card-title>
+                </mat-card-header>
+                <mat-card-content [style.color]="color(game.home)">
+                    {{game.homeScore}}
+                </mat-card-content>
+            </mat-card>
+        </div>
+    </mat-card-content>
+</mat-card>

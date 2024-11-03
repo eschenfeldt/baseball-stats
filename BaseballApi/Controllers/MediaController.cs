@@ -134,6 +134,42 @@ namespace BaseballApi.Controllers
             };
         }
 
+        [HttpGet("random")]
+        public async Task<ActionResult<RemoteFileDetail?>> GetRandomThumbnail(
+            string size = "medium",
+            long? gameId = null,
+            long? playerId = null
+        )
+        {
+            IQueryable<MediaResource> query = _context.MediaResources;
+
+            if (gameId.HasValue)
+            {
+                query = query.Where(r => r.Game != null && r.Game.Id == gameId);
+            }
+            if (playerId.HasValue)
+            {
+                query = query.Where(r => r.Players.Any(p => p.Id == playerId));
+            }
+
+            var allResults = query.OrderBy(r => Guid.NewGuid())
+                .Select(r => r.Files.First(f =>
+                    f.Purpose == RemoteFilePurpose.Thumbnail
+                    && f.NameModifier != null
+                    && f.NameModifier == size))
+                .Select(f => new RemoteFileDetail
+                {
+                    AssetIdentifier = f.Resource.AssetIdentifier,
+                    DateTime = f.Resource.DateTime,
+                    FileType = (f.Resource as MediaResource).ResourceType.Humanize(),
+                    OriginalFileName = f.Resource.OriginalFileName,
+                    NameModifier = f.NameModifier,
+                    Purpose = f.Purpose,
+                    Extension = f.Extension
+                });
+
+            return await allResults.Cast<RemoteFileDetail?>().FirstOrDefaultAsync();
+        }
 
         [HttpPost("import-scorecard")]
         [Authorize]

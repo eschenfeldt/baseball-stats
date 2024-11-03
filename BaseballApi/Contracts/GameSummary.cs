@@ -9,6 +9,7 @@ public struct GameSummary(Game game)
     public string Name { get; set; } = game.Name;
     public DateOnly Date { get; set; } = game.Date;
     public GameType? GameType { get; set; } = game.GameType;
+    public bool HasMedia { get; } = game.Media.Count != 0;
     public Team Home { get; set; } = game.Home;
     public string HomeTeamName { get; set; } = game.HomeTeamName;
     public Team Away { get; set; } = game.Away;
