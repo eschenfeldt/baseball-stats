@@ -244,3 +244,27 @@ class DbConnector:
                 id = cursor.fetchone()[0]
                 self.import_scorecard_file(id, ext, cursor)
                 cursor.execute(update_statement, (id, game.Id))
+
+    def remove_duplicate_thumbnails(self):
+        statement = """
+            WITH dupes AS (SELECT *
+            FROM
+            (SELECT
+                "RemoteFile"."Id",
+                "ResourceId",
+                    UPPER("AssetIdentifier"::varchar) AS Identifier,
+                    "Extension",
+                    "NameModifier",
+                    ROW_NUMBER() over (PARTITION BY "ResourceId", "NameModifier" ORDER BY "Extension" DESC) as rn
+            FROM "RemoteFile"
+            JOIN "RemoteResource" r ON "RemoteFile"."ResourceId" = r."Id"
+            WHERE "Purpose" = 2) thumbnails
+            WHERE rn > 1)
+
+            DELETE FROM "RemoteFile"
+                USING dupes
+            WHERE dupes."Id" = "RemoteFile"."Id"
+        """
+        with psycopg.connect(self.__config.connection_info()) as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(statement)
