@@ -46,13 +46,18 @@ namespace BaseballApi.Controllers
         }
 
         [HttpGet("random")]
-        public async Task<ActionResult<PlayerSummary>> GetRandomPlayer()
+        public async Task<ActionResult<PlayerSummary>> GetRandomPlayer(bool withMedia = false)
         {
-            var player = await _context.Players
+            IQueryable<Player> playerQuery = _context.Players
                 .Include(p => p.Media)
-                    .ThenInclude(m => m.Files)
-                .Where(p => p.Media.Count > 0)
-                .OrderBy(p => Guid.NewGuid())
+                    .ThenInclude(m => m.Files);
+
+            if (withMedia)
+            {
+                playerQuery = playerQuery.Where(p => p.Media.Count > 0);
+            }
+
+            var player = await playerQuery.OrderBy(p => Guid.NewGuid())
                 .FirstOrDefaultAsync();
 
             if (player == null)
@@ -101,7 +106,7 @@ namespace BaseballApi.Controllers
                     NameModifier = f.NameModifier,
                     Purpose = f.Purpose,
                     Extension = f.Extension
-                }).OrderBy(f => Guid.NewGuid()).FirstOrDefault();
+                }).OrderBy(f => Guid.NewGuid()).Cast<RemoteFileDetail?>().FirstOrDefault();
 
             return summary;
         }
