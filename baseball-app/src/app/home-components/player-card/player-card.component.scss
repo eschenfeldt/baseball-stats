@@ -1,0 +1,27 @@
+$max-width: 500px;
+
+mat-card-header {
+    margin-bottom: 1em;
+
+    mat-card-title {
+        padding-right: 3em;
+    }
+
+    button {
+        position: absolute;
+        right: 1em;
+        top: 1em;
+    }
+}
+
+mat-card {
+    max-width: $max-width;
+}
+
+app-thumbnail {
+    max-width: $max-width;
+
+    @media (width <=$max-width) {
+        max-width: calc(100vw - 2em);
+    }
+}

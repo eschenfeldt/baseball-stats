@@ -6,6 +6,8 @@ import { Observable } from 'rxjs';
 import { GameSummary } from '../../contracts/game-summary';
 import { GameDetail } from '../../contracts/game-detail';
 import { AsyncPipe } from '@angular/common';
+import { PlayerCardComponent } from '../player-card/player-card.component';
+import { PlayerSummary } from '../../contracts/player-summary';
 
 @Component({
     selector: 'app-home',
@@ -15,19 +17,22 @@ import { AsyncPipe } from '@angular/common';
     imports: [
         RouterLink,
         AsyncPipe,
-        GameCardComponent
+        GameCardComponent,
+        PlayerCardComponent
     ]
 })
 export class HomeComponent implements OnInit {
 
     public randomGame$?: Observable<GameSummary>;
+    public randomPlayer$?: Observable<PlayerSummary>;
 
     public constructor(
         private api: BaseballApiService
     ) { }
 
     ngOnInit(): void {
-        this.randomGame$ = this.api.makeApiGet<GameDetail>('games/random');
+        this.randomGame$ = this.api.makeApiGet<GameSummary>('games/random');
+        this.randomPlayer$ = this.api.makeApiGet<PlayerSummary>('player/random');
     }
 
 

@@ -1,0 +1,20 @@
+<mat-card>
+    <mat-card-header>
+        <mat-card-title><a [routerLink]="['/player', player.info.id]">{{player.info.name}}</a></mat-card-title>
+        @if (purpose) {
+        <button type="button" mat-mini-fab [matTooltip]="purpose" #tooltip="matTooltip" (click)="tooltip.toggle()">
+            <mat-icon fontIcon="info_outline"></mat-icon>
+        </button>
+        }
+    </mat-card-header>
+    @if (player.photo) {
+    <app-thumbnail [file]="player.photo" [queryParams]="mediaParams"></app-thumbnail>
+    }
+    <mat-card-content>
+        @for (category of orderedCategories; track category) {
+
+        <app-player-summary-stats [player]="player" [category]="category"
+            class="nested-in-card"></app-player-summary-stats>
+        }
+    </mat-card-content>
+</mat-card>

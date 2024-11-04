@@ -1,3 +1,7 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '../../../baseball-theme';
+
 .header-stats {
     display: flex;
     justify-content: space-evenly;
@@ -12,4 +16,13 @@
 h5 {
     margin-left: 10pt;
     font-size: large;
+}
+
+:host.nested-in-card {
+    @media (prefers-color-scheme: dark) {
+
+        mat-card {
+            background-color: mat.get-theme-color(baseball-theme.$dark-theme, 'secondary', 30);
+        }
+    }
 }

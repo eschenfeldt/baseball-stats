@@ -9,6 +9,7 @@ using BaseballApi;
 using BaseballApi.Models;
 using Microsoft.AspNetCore.Authorization;
 using BaseballApi.Contracts;
+using Humanizer;
 
 namespace BaseballApi.Controllers
 {
@@ -41,6 +42,29 @@ namespace BaseballApi.Controllers
                 return NotFound();
             }
 
+            return await this.GetPlayerSummary(player);
+        }
+
+        [HttpGet("random")]
+        public async Task<ActionResult<PlayerSummary>> GetRandomPlayer()
+        {
+            var player = await _context.Players
+                .Include(p => p.Media)
+                    .ThenInclude(m => m.Files)
+                .Where(p => p.Media.Count > 0)
+                .OrderBy(p => Guid.NewGuid())
+                .FirstOrDefaultAsync();
+
+            if (player == null)
+            {
+                return NotFound();
+            }
+
+            return await this.GetPlayerSummary(player);
+        }
+
+        private async Task<PlayerSummary> GetPlayerSummary(Player player)
+        {
             PlayerSummary summary = new()
             {
                 Info = new(player),
@@ -49,7 +73,7 @@ namespace BaseballApi.Controllers
 
             var calculator = new StatCalculator(_context)
             {
-                PlayerId = id
+                PlayerId = player.Id
             };
 
             var aggregateBatting = await calculator.GetBattingStats().FirstOrDefaultAsync();
@@ -62,6 +86,22 @@ namespace BaseballApi.Controllers
             {
                 aggregatePitching.AddAsSummaryStats(summary.SummaryStats);
             }
+
+            var size = "large";
+            summary.Photo = player.Media.Select(r => r.Files.First(f =>
+                    f.Purpose == RemoteFilePurpose.Thumbnail
+                    && f.NameModifier != null
+                    && f.NameModifier == size))
+                .Select(f => new RemoteFileDetail
+                {
+                    AssetIdentifier = f.Resource.AssetIdentifier,
+                    DateTime = f.Resource.DateTime,
+                    FileType = (f.Resource as MediaResource).ResourceType.Humanize(),
+                    OriginalFileName = f.Resource.OriginalFileName,
+                    NameModifier = f.NameModifier,
+                    Purpose = f.Purpose,
+                    Extension = f.Extension
+                }).OrderBy(f => Guid.NewGuid()).FirstOrDefault();
 
             return summary;
         }

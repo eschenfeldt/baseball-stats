@@ -7,8 +7,14 @@ $max-width: 500px;
 mat-card-header {
     margin-bottom: 1em;
 
+    mat-card-title {
+        padding-right: 3em;
+    }
+
     button {
-        margin-left: 1em;
+        position: absolute;
+        right: 1em;
+        top: 1em;
     }
 }
 
