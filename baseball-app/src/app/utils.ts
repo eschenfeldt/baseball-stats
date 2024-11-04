@@ -79,6 +79,14 @@ export class Utils {
         }
     }
 
+    public static teamColorOrDefault(team: Team): string {
+        if (team.colorHex) {
+            return `rgb(from #${team.colorHex} r g b / 50%)`;
+        } else {
+            return 'black';
+        }
+    }
+
     public static transparentTeamColor(team: Team, percentage: number): string {
         const baseColor = team.colorHex ? `#${team.colorHex}` : 'black';
         return `rgb(from #${baseColor} r g b / ${percentage}%)`;

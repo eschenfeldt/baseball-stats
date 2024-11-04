@@ -1,0 +1,33 @@
+mat-card-header {
+    margin-bottom: 1em;
+
+    mat-card-title {
+        padding-right: 3em;
+    }
+
+    button {
+        position: absolute;
+        right: 1em;
+        top: 1em;
+    }
+}
+
+.player-card {
+    @media (width >=500px) {
+        max-width: min(500px, 40vw);
+    }
+
+    @media (width <=500px) {
+        max-width: calc(100vw - 2em);
+    }
+}
+
+app-thumbnail {
+    max-width: 100%;
+}
+
+// https://github.com/angular/components/issues/25566
+.mat-mdc-tooltip-trigger {
+    touch-action: auto !important;
+    -webkit-user-drag: auto !important;
+}

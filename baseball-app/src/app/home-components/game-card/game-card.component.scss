@@ -1,0 +1,64 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '../../../baseball-theme';
+
+$max-width: min(500px, 40vw);
+
+mat-card-header.game-header {
+    margin-bottom: 1em;
+
+    mat-card-title {
+        padding-right: 3em;
+    }
+
+    button {
+        position: absolute;
+        right: 1em;
+        top: 1em;
+    }
+}
+
+.game-teams {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-evenly;
+    margin-bottom: 1em;
+
+    mat-card-header {
+        text-align: center;
+    }
+
+    mat-card-content {
+        font-size: 2em;
+        text-align: center;
+        font-weight: bolder;
+    }
+
+    @media (prefers-color-scheme: dark) {
+
+        mat-card {
+            background-color: mat.get-theme-color(baseball-theme.$dark-theme, 'secondary', 30);
+        }
+    }
+}
+
+.game-card {
+
+    @media (width >=500px) {
+        max-width: min(500px, 40vw);
+    }
+
+    @media (width <=500px) {
+        max-width: calc(100vw - 2em);
+    }
+}
+
+app-thumbnail {
+    max-width: 100%
+}
+
+// https://github.com/angular/components/issues/25566
+.mat-mdc-tooltip-trigger {
+    touch-action: auto !important;
+    -webkit-user-drag: auto !important;
+}

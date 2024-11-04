@@ -9,6 +9,7 @@ export interface GameSummary {
     name: string,
     date: string,
     gameType?: GameType,
+    hasMedia: boolean,
     home: Team,
     homeTeamName: string,
     away: Team,

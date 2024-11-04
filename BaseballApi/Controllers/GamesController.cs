@@ -108,6 +108,31 @@ namespace BaseballApi.Controllers
             return new GameDetail(game);
         }
 
+        [HttpGet("random")]
+        public async Task<ActionResult<GameSummary>> GetRandomGame(bool withMedia = false)
+        {
+            IQueryable<Game> query = _context.Games
+                .Include(nameof(Game.Away))
+                .Include(nameof(Game.Home))
+                .Include(nameof(Game.Location))
+                .Include(nameof(Game.WinningTeam))
+                .Include(nameof(Game.LosingTeam))
+                .Include(nameof(Game.WinningPitcher))
+                .Include(nameof(Game.LosingPitcher))
+                .Include(nameof(Game.LosingTeam))
+                .Include(g => g.Media);
+
+            if (withMedia)
+            {
+                query = query.Where(g => g.Media.Count > 0);
+            }
+
+            return await query
+                .OrderBy(g => Guid.NewGuid())
+                .Select(g => new GameSummary(g))
+                .FirstOrDefaultAsync();
+        }
+
         [HttpGet("years")]
         public async Task<ActionResult<List<int>>> GetGameYears(long? teamId = null)
         {

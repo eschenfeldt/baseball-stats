@@ -1,0 +1,8 @@
+<div class="content">
+    @if (randomGame$ | async; as randomGame) {
+    <app-game-card purpose="Randomly selected game" [game]="randomGame"></app-game-card>
+    }
+    @if (randomPlayer$ | async; as randomPlayer) {
+    <app-player-card purpose="Randomly selected player" [player]="randomPlayer"></app-player-card>
+    }
+</div>

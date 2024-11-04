@@ -22,6 +22,7 @@ import { BoxScoreFieldersComponent } from '../box-score-fielders/box-score-field
 import { ScorecardComponent } from '../scorecard/scorecard.component';
 import { MediaGalleryComponent } from '../../media-components/media-gallery/media-gallery.component';
 import { Team } from '../../contracts/team';
+import { Utils } from '../../utils';
 
 @Component({
     selector: 'app-game',
@@ -91,11 +92,7 @@ export class GameComponent implements OnInit {
     }
 
     public color(team: Team): string {
-        if (team.colorHex) {
-            return `rgb(from #${team.colorHex} r g b / 50%)`;
-        } else {
-            return 'black';
-        }
+        return Utils.teamColorOrDefault(team);
     }
 
     constructor(
