@@ -1,5 +1,5 @@
-<mat-card>
-    <mat-card-header>
+<mat-card class="game-card">
+    <mat-card-header class="game-header">
         <mat-card-title><a [routerLink]="['/game', game.id]">{{game.name}}</a></mat-card-title>
         @if (purpose) {
         <button type="button" mat-mini-fab [matTooltip]="purpose" #tooltip="matTooltip" (click)="tooltip.toggle()">
