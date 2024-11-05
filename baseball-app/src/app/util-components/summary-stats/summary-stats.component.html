@@ -5,7 +5,11 @@
         @if (stat.definition.name === 'ThirdInningsPitched') {
         <mat-card-header>
             <mat-card-title>
+                @if (fullInningsPitched !== null || partialInningsPitched !== null) {
                 {{fullInningsPitched}}&nbsp;<span innerHtml={{partialInningsPitched}}></span>
+                } @else {
+                0
+                }
             </mat-card-title>
         </mat-card-header>
         <mat-card-content>
@@ -14,7 +18,11 @@
         } @else {
         <mat-card-header>
             <mat-card-title>
+                @if (stat.value !== null) {
                 {{stat.value | stat: stat.definition}}
+                } @else {
+                -
+                }
             </mat-card-title>
         </mat-card-header>
         <mat-card-content>
