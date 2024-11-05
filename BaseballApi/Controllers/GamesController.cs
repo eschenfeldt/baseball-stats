@@ -145,6 +145,50 @@ namespace BaseballApi.Controllers
             return await query.Select(g => g.Date.Year).Distinct().OrderBy(i => i).ToListAsync();
         }
 
+        [HttpGet("summary-stats")]
+        public async Task<ActionResult<List<SummaryStat>>> GetSummaryStats(long? teamId = null)
+        {
+            IQueryable<Game> gamesQuery = _context.Games;
+
+            if (teamId.HasValue)
+            {
+                gamesQuery = gamesQuery.Where(g => g.Away.Id == teamId || g.Home.Id == teamId);
+            }
+
+            var gameCount = await gamesQuery.CountAsync();
+            var parksCount = await gamesQuery.Where(g => g.Location != null)
+                .Select(g => g.Location).Distinct().CountAsync();
+
+            var result = new List<SummaryStat>
+            {
+                new()
+                {
+                    Category = StatCategory.General,
+                    Definition = Stat.Games,
+                    Value = gameCount
+                },
+                new()
+                {
+                    Category = StatCategory.General,
+                    Definition = Stat.Parks,
+                    Value = parksCount
+                }
+            };
+
+            var calculator = new StatCalculator(_context)
+            {
+                TeamId = teamId,
+                GroupByPlayer = false
+            };
+
+            var aggregateBatting = await calculator.GetBattingStats().FirstOrDefaultAsync();
+            aggregateBatting?.AddAsSummaryStats(result);
+            var aggregatePitching = await calculator.GetPitchingStats().FirstOrDefaultAsync();
+            aggregatePitching?.AddAsSummaryStats(result);
+
+            return result;
+        }
+
         [HttpPost("import")]
         [Authorize]
         public async Task<IActionResult> ImportGame([FromForm] List<IFormFile> files, [FromForm] string serializedMetadata)
