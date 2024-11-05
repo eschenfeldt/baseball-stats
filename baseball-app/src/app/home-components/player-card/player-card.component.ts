@@ -46,6 +46,10 @@ export class PlayerCardComponent {
             .map(s => s.category);
     }
 
+    get noGames(): boolean {
+        return this.orderedCategories.length === 0;
+    }
+
     hasStatCategory(category: StatCategory): boolean {
         return this.player.summaryStats.some(s => s.category === category);
     }
