@@ -1,14 +1,7 @@
-using System;
-using System.Collections.ObjectModel;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq.Expressions;
-using System.Reflection;
 using BaseballApi.Contracts;
 using BaseballApi.Models;
-using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Npgsql;
 
 namespace BaseballApi.Controllers;
@@ -41,6 +34,7 @@ internal class StatCalculator
     private static readonly Dictionary<string, Expression<Func<BattingStat, decimal?>>> BattingStatSelectors = new() {
         {Stat.Games.Name, b => b.Games},
         {Stat.PlateAppearances.Name, b => b.PlateAppearances},
+        {Stat.Homeruns.Name, b => b.Homeruns},
         {Stat.BattingAverage.Name, b => b.AVG},
         {Stat.OnBasePercentage.Name, b => b.OBP},
         {Stat.SluggingPercentage.Name, b => b.SLG},
@@ -66,6 +60,7 @@ internal class StatCalculator
         public long? TeamId { get; set; }
         public int Games { get; set; }
         public int PlateAppearances { get; set; }
+        public int Homeruns { get; set; }
         public decimal? WOBA { get; set; }
         public decimal? OPS { get; set; }
         public decimal? SLG { get; set; }
@@ -103,6 +98,7 @@ internal class StatCalculator
                 {playerCol ?? "NULL"} AS ""PlayerId"",
                 SUM(b.""Games"") AS ""Games"",
                 SUM(b.""PlateAppearances"") AS ""PlateAppearances"",
+                SUM(b.""Homeruns"") AS ""Homeruns"",
                 SUM(b.""Hits"" + b.""Walks"" + b.""HitByPitch"")::decimal
                     / NULLIF(SUM(b.""AtBats"" + b.""Walks"" + b.""HitByPitch"" + b.""SacrificeFlies""), 0) AS ""OBP"",
                 SUM(c.""WBB"" * b.""Walks"" + c.""WHBP"" * b.""HitByPitch"" + c.""W1B"" * b.""Singles""
@@ -152,13 +148,22 @@ internal class StatCalculator
             teamCol,
             playerCol
         ];
-        string groupBy = $"GROUP BY {string.Join(", ", groupByCols.Where(c => !string.IsNullOrEmpty(c)))}";
+        groupByCols = groupByCols.Where(c => !string.IsNullOrEmpty(c)).ToList();
+        string groupBy;
+        if (groupByCols.Count > 0)
+        {
+            groupBy = @$"GROUP BY {string.Join(", ", groupByCols)}
+                        HAVING SUM(b.""PlateAppearances"") >= @minPlateAppearances";
+        }
+        else
+        {
+            groupBy = "";
+        }
 
         var query = @$"
         {baseQuery}
         {where}
         {groupBy}
-        HAVING SUM(b.""PlateAppearances"") >= @minPlateAppearances
         {GetBattingOrderBy()}
         ";
 
@@ -297,13 +302,22 @@ internal class StatCalculator
             teamCol,
             playerCol
         ];
-        string groupBy = $"GROUP BY {string.Join(", ", groupByCols.Where(c => !string.IsNullOrEmpty(c)))}";
+        groupByCols = groupByCols.Where(c => !string.IsNullOrEmpty(c)).ToList();
+        string groupBy;
+        if (groupByCols.Count > 0)
+        {
+            groupBy = @$"GROUP BY {string.Join(", ", groupByCols)}
+                        HAVING SUM(pi.""ThirdInningsPitched"") >= @minThirdInningsPitched";
+        }
+        else
+        {
+            groupBy = "";
+        }
 
         var query = @$"
         {baseQuery}
         {where}
         {groupBy}
-        HAVING SUM(pi.""ThirdInningsPitched"") >= @minThirdInningsPitched
         {GetPitchingOrderBy()}
         ";
 

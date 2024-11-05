@@ -4,5 +4,6 @@ public enum StatCategory
 {
     Batting,
     Pitching,
-    Fielding
+    Fielding,
+    General
 }

@@ -15,6 +15,24 @@ public struct Stat
         ShortName = "G",
         Format = StatFormat.Integer
     };
+    public static readonly Stat Parks = new()
+    {
+        Name = "Parks",
+        ShortName = null,
+        Format = StatFormat.Integer
+    };
+    public static readonly Stat Players = new()
+    {
+        Name = "Players",
+        ShortName = null,
+        Format = StatFormat.Integer
+    };
+    public static readonly Stat Teams = new()
+    {
+        Name = "Teams",
+        ShortName = null,
+        Format = StatFormat.Integer
+    };
     public static readonly Stat PlateAppearances = new()
     {
         Name = "PlateAppearances",

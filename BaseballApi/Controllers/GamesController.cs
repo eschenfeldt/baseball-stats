@@ -145,6 +145,75 @@ namespace BaseballApi.Controllers
             return await query.Select(g => g.Date.Year).Distinct().OrderBy(i => i).ToListAsync();
         }
 
+        [HttpGet("summary-stats")]
+        public async Task<ActionResult<List<SummaryStat>>> GetSummaryStats(long? teamId = null)
+        {
+            IQueryable<Game> gamesQuery = _context.Games;
+
+            IQueryable<BoxScore?> nullableBoxScoresQuery;
+            if (teamId.HasValue)
+            {
+                nullableBoxScoresQuery = gamesQuery.Where(g => g.Away.Id == teamId).Select(g => g.AwayBoxScore)
+                    .Concat(gamesQuery.Where(g => g.Home.Id == teamId).Select(g => g.HomeBoxScore));
+                gamesQuery = gamesQuery.Where(g => g.Away.Id == teamId || g.Home.Id == teamId);
+            }
+            else
+            {
+                nullableBoxScoresQuery = gamesQuery.Select(g => g.HomeBoxScore).Concat(gamesQuery.Select(g => g.AwayBoxScore));
+            }
+            IQueryable<BoxScore> boxScoresQuery = nullableBoxScoresQuery.Where(bs => bs != null).Select(bs => bs!);
+
+            var gameCount = await gamesQuery.CountAsync();
+            var parksCount = await gamesQuery.Where(g => g.Location != null)
+                .Select(g => g.Location).Distinct().CountAsync();
+            int teamsCount = await gamesQuery.Select(g => g.Away.Id).Union(gamesQuery.Select(g => g.Home.Id)).CountAsync();
+            int playerCount = await boxScoresQuery.SelectMany(bs => bs.Batters.Select(b => b.PlayerId))
+                                .Union(boxScoresQuery.SelectMany(bs => bs.Pitchers.Select(p => p.PlayerId)))
+                                .Union(boxScoresQuery.SelectMany(bs => bs.Fielders.Select(f => f.PlayerId)))
+                                .CountAsync();
+
+            var result = new List<SummaryStat>
+            {
+                new()
+                {
+                    Category = StatCategory.General,
+                    Definition = Stat.Games,
+                    Value = gameCount
+                },
+                new()
+                {
+                    Category = StatCategory.General,
+                    Definition = Stat.Parks,
+                    Value = parksCount
+                },
+                new()
+                {
+                    Category = StatCategory.General,
+                    Definition = Stat.Teams,
+                    Value = teamsCount
+                },
+                new()
+                {
+                    Category = StatCategory.General,
+                    Definition = Stat.Players,
+                    Value = playerCount
+                }
+            };
+
+            var calculator = new StatCalculator(_context)
+            {
+                TeamId = teamId,
+                GroupByPlayer = false
+            };
+
+            var aggregateBatting = await calculator.GetBattingStats().FirstOrDefaultAsync();
+            aggregateBatting?.AddAsSummaryStats(result);
+            var aggregatePitching = await calculator.GetPitchingStats().FirstOrDefaultAsync();
+            aggregatePitching?.AddAsSummaryStats(result);
+
+            return result;
+        }
+
         [HttpPost("import")]
         [Authorize]
         public async Task<IActionResult> ImportGame([FromForm] List<IFormFile> files, [FromForm] string serializedMetadata)

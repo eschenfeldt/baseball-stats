@@ -50,7 +50,7 @@ export class Utils {
     private static fullIP(thirds: number): string {
         const number = Math.floor(thirds / 3);
         if (number > 0) {
-            return number.toString();
+            return Intl.NumberFormat(undefined, {}).format(number);
         } else if (Utils.partialIP(thirds) === '') {
             return '0';
         } else {

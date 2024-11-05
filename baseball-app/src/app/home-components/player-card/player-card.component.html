@@ -13,8 +13,11 @@
     <mat-card-content>
         @for (category of orderedCategories; track category) {
 
-        <app-player-summary-stats [player]="player" [category]="category"
-            class="nested-in-card"></app-player-summary-stats>
+        <app-summary-stats [summaryStats]="player.summaryStats" [category]="category"
+            class="nested-in-card"></app-summary-stats>
+        }
+        @if (noGames) {
+        <p>This player was on a roster for at least one game but has not appeared in a game.</p>
         }
     </mat-card-content>
 </mat-card>

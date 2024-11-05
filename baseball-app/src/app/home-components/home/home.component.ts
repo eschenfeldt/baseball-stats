@@ -8,6 +8,10 @@ import { GameDetail } from '../../contracts/game-detail';
 import { AsyncPipe } from '@angular/common';
 import { PlayerCardComponent } from '../player-card/player-card.component';
 import { PlayerSummary } from '../../contracts/player-summary';
+import { SummaryStat } from '../../contracts/summary-stat';
+import { SummaryStatsComponent } from '../../util-components/summary-stats/summary-stats.component';
+import { StatCategory } from '../../contracts/stat-category';
+import { SummaryStatsCardComponent } from '../../util-components/summary-stats-card/summary-stats-card.component';
 
 @Component({
     selector: 'app-home',
@@ -17,12 +21,14 @@ import { PlayerSummary } from '../../contracts/player-summary';
     imports: [
         RouterLink,
         AsyncPipe,
+        SummaryStatsCardComponent,
         GameCardComponent,
         PlayerCardComponent
     ]
 })
 export class HomeComponent implements OnInit {
 
+    public summaryStats$?: Observable<SummaryStat[]>;
     public randomGame$?: Observable<GameSummary>;
     public randomPlayer$?: Observable<PlayerSummary>;
 
@@ -31,6 +37,7 @@ export class HomeComponent implements OnInit {
     ) { }
 
     ngOnInit(): void {
+        this.summaryStats$ = this.api.makeApiGet<SummaryStat[]>('games/summary-stats');
         this.randomGame$ = this.api.makeApiGet<GameSummary>('games/random');
         this.randomPlayer$ = this.api.makeApiGet<PlayerSummary>('player/random');
     }

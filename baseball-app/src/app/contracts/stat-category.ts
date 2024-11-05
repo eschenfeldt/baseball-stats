@@ -1,5 +1,6 @@
 export enum StatCategory {
     batting,
     pitching,
-    fielding
+    fielding,
+    general
 }
