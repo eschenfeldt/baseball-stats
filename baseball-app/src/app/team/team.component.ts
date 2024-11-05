@@ -6,9 +6,9 @@ import { ApiMethod, BaseballApiService } from '../baseball-api.service';
 import { Team } from '../contracts/team';
 import { AsyncPipe } from '@angular/common';
 import { GamesComponent } from '../games/games.component';
-import { SummaryStatsComponent } from '../util-components/summary-stats/summary-stats.component';
 import { SummaryStat } from '../contracts/summary-stat';
 import { StatCategory } from '../contracts/stat-category';
+import { SummaryStatsCardComponent } from '../util-components/summary-stats-card/summary-stats-card.component';
 
 @Component({
     selector: 'app-team',
@@ -16,7 +16,7 @@ import { StatCategory } from '../contracts/stat-category';
     imports: [
         AsyncPipe,
         GamesComponent,
-        SummaryStatsComponent
+        SummaryStatsCardComponent
     ],
     templateUrl: './team.component.html',
     styleUrl: './team.component.scss'
@@ -42,5 +42,9 @@ export class TeamComponent implements OnInit {
         this.summaryStats$ = this.teamId$.pipe(switchMap(teamId => {
             return this.api.makeApiGet<SummaryStat[]>('games/summary-stats', { teamId: teamId });
         }))
+    }
+
+    cardTitle(team: Team): string {
+        return `${team.city} ${team.name}`
     }
 }

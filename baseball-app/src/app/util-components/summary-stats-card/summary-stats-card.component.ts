@@ -3,12 +3,14 @@ import { SummaryStatsComponent } from '../summary-stats/summary-stats.component'
 import { SummaryStat } from '../../contracts/summary-stat';
 import { MatCardModule } from '@angular/material/card';
 import { StatCategory } from '../../contracts/stat-category';
+import { MatExpansionModule } from '@angular/material/expansion';
 
 @Component({
     selector: 'app-summary-stats-card',
     standalone: true,
     imports: [
         MatCardModule,
+        MatExpansionModule,
         SummaryStatsComponent
     ],
     templateUrl: './summary-stats-card.component.html',

@@ -1,5 +1,3 @@
-@use '@angular/material' as mat;
-
-:host {
-    @include mat.card-density(-5);
+mat-panel-title {
+    font-size: 1.5em;
 }
