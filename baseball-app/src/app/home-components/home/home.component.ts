@@ -11,6 +11,7 @@ import { PlayerSummary } from '../../contracts/player-summary';
 import { SummaryStat } from '../../contracts/summary-stat';
 import { SummaryStatsComponent } from '../../util-components/summary-stats/summary-stats.component';
 import { StatCategory } from '../../contracts/stat-category';
+import { SummaryStatsCardComponent } from '../../util-components/summary-stats-card/summary-stats-card.component';
 
 @Component({
     selector: 'app-home',
@@ -20,7 +21,7 @@ import { StatCategory } from '../../contracts/stat-category';
     imports: [
         RouterLink,
         AsyncPipe,
-        SummaryStatsComponent,
+        SummaryStatsCardComponent,
         GameCardComponent,
         PlayerCardComponent
     ]
@@ -30,15 +31,6 @@ export class HomeComponent implements OnInit {
     public summaryStats$?: Observable<SummaryStat[]>;
     public randomGame$?: Observable<GameSummary>;
     public randomPlayer$?: Observable<PlayerSummary>;
-
-    public statCategories = [
-        StatCategory.general,
-        StatCategory.batting,
-        StatCategory.pitching
-    ];
-    hideGames(category: StatCategory): boolean {
-        return category !== StatCategory.general;
-    }
 
     public constructor(
         private api: BaseballApiService

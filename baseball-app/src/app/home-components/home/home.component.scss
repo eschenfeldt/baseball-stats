@@ -13,6 +13,17 @@
     row-gap: 1em;
 }
 
+.home-card {
+
+    @media (width >=500px) {
+        max-width: min(500px, 40vw);
+    }
+
+    @media (width <=500px) {
+        max-width: calc(100vw - 2em);
+    }
+}
+
 :host {
     height: 100%;
     overflow: hidden;

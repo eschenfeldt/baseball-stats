@@ -2,8 +2,6 @@
 @use '@angular/material' as mat;
 @use '../../../baseball-theme';
 
-$max-width: min(500px, 40vw);
-
 mat-card-header.game-header {
     margin-bottom: 1em;
 
@@ -39,17 +37,6 @@ mat-card-header.game-header {
         mat-card {
             background-color: mat.get-theme-color(baseball-theme.$dark-theme, 'secondary', 30);
         }
-    }
-}
-
-.game-card {
-
-    @media (width >=500px) {
-        max-width: min(500px, 40vw);
-    }
-
-    @media (width <=500px) {
-        max-width: calc(100vw - 2em);
     }
 }
 

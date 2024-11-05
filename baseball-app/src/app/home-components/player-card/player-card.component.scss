@@ -12,16 +12,6 @@ mat-card-header {
     }
 }
 
-.player-card {
-    @media (width >=500px) {
-        max-width: min(500px, 40vw);
-    }
-
-    @media (width <=500px) {
-        max-width: calc(100vw - 2em);
-    }
-}
-
 app-thumbnail {
     max-width: 100%;
 }
