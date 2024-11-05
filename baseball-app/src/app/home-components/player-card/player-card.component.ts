@@ -8,7 +8,7 @@ import { RouterModule } from '@angular/router';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatIconModule } from '@angular/material/icon';
 import { StatCategory } from '../../contracts/stat-category';
-import { PlayerSummaryStatsComponent } from '../../player-components/player-summary-stats/player-summary-stats.component';
+import { SummaryStatsComponent } from '../../util-components/summary-stats/summary-stats.component';
 
 @Component({
     selector: 'app-player-card',
@@ -20,7 +20,7 @@ import { PlayerSummaryStatsComponent } from '../../player-components/player-summ
         MatIconModule,
         RouterModule,
         ThumbnailComponent,
-        PlayerSummaryStatsComponent
+        SummaryStatsComponent
     ],
     templateUrl: './player-card.component.html',
     styleUrl: './player-card.component.scss'

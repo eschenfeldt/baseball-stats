@@ -1,15 +1,13 @@
-import { AfterContentInit, AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { BaseballApiService } from '../../baseball-api.service';
-import { first, Observable, switchMap } from 'rxjs';
-import { Player } from '../../contracts/player';
+import { Observable, switchMap } from 'rxjs';
 import { RouterModule } from '@angular/router';
 import { param } from '../../param.decorator';
 import { BASEBALL_ROUTES } from '../../app.routes';
 import { AsyncPipe } from '@angular/common';
 import { PlayerBattingStatsComponent } from '../player-batting-stats/player-batting-stats.component';
 import { PlayerSummary } from '../../contracts/player-summary';
-import { MatCardModule } from '@angular/material/card';
-import { PlayerSummaryStatsComponent } from '../player-summary-stats/player-summary-stats.component';
+import { SummaryStatsComponent } from '../../util-components/summary-stats/summary-stats.component';
 import { PlayerGamesComponent } from '../player-games/player-games.component';
 import { PlayerPitchingStatsComponent } from '../player-pitching-stats/player-pitching-stats.component';
 import { StatCategory } from '../../contracts/stat-category';
@@ -20,7 +18,7 @@ import { StatCategory } from '../../contracts/stat-category';
     imports: [
         AsyncPipe,
         RouterModule,
-        PlayerSummaryStatsComponent,
+        SummaryStatsComponent,
         PlayerBattingStatsComponent,
         PlayerPitchingStatsComponent,
         PlayerGamesComponent

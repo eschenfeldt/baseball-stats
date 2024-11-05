@@ -1,5 +1,8 @@
 @if (team$ | async; as team) {
 <h4>{{team.city}} {{team.name}}</h4>
+@if (summaryStats$ | async; as summaryStats) {
+<app-summary-stats [summaryStats]="summaryStats" [category]="generalStatCategory"></app-summary-stats>
+}
 <app-games [team]="team"></app-games>
 } @else {
 loading...

@@ -1,4 +1,10 @@
 <div class="content">
+    @if (summaryStats$ | async; as summaryStats) {
+    @for (category of statCategories; track category) {
+    <app-summary-stats [summaryStats]="summaryStats" [category]="category"
+        [hideGames]="hideGames(category)"></app-summary-stats>
+    }
+    }
     @if (randomGame$ | async; as randomGame) {
     <app-game-card purpose="Randomly selected game" [game]="randomGame"></app-game-card>
     }
