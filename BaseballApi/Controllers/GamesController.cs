@@ -166,6 +166,7 @@ namespace BaseballApi.Controllers
             var gameCount = await gamesQuery.CountAsync();
             var parksCount = await gamesQuery.Where(g => g.Location != null)
                 .Select(g => g.Location).Distinct().CountAsync();
+            int teamsCount = await gamesQuery.Select(g => g.Away.Id).Union(gamesQuery.Select(g => g.Home.Id)).CountAsync();
             int playerCount = await boxScoresQuery.SelectMany(bs => bs.Batters.Select(b => b.PlayerId))
                                 .Union(boxScoresQuery.SelectMany(bs => bs.Pitchers.Select(p => p.PlayerId)))
                                 .Union(boxScoresQuery.SelectMany(bs => bs.Fielders.Select(f => f.PlayerId)))
@@ -184,6 +185,12 @@ namespace BaseballApi.Controllers
                     Category = StatCategory.General,
                     Definition = Stat.Parks,
                     Value = parksCount
+                },
+                new()
+                {
+                    Category = StatCategory.General,
+                    Definition = Stat.Teams,
+                    Value = teamsCount
                 },
                 new()
                 {
