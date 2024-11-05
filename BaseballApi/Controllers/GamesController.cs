@@ -150,14 +150,26 @@ namespace BaseballApi.Controllers
         {
             IQueryable<Game> gamesQuery = _context.Games;
 
+            IQueryable<BoxScore?> nullableBoxScoresQuery;
             if (teamId.HasValue)
             {
+                nullableBoxScoresQuery = gamesQuery.Where(g => g.Away.Id == teamId).Select(g => g.AwayBoxScore)
+                    .Concat(gamesQuery.Where(g => g.Home.Id == teamId).Select(g => g.HomeBoxScore));
                 gamesQuery = gamesQuery.Where(g => g.Away.Id == teamId || g.Home.Id == teamId);
             }
+            else
+            {
+                nullableBoxScoresQuery = gamesQuery.Select(g => g.HomeBoxScore).Concat(gamesQuery.Select(g => g.AwayBoxScore));
+            }
+            IQueryable<BoxScore> boxScoresQuery = nullableBoxScoresQuery.Where(bs => bs != null).Select(bs => bs!);
 
             var gameCount = await gamesQuery.CountAsync();
             var parksCount = await gamesQuery.Where(g => g.Location != null)
                 .Select(g => g.Location).Distinct().CountAsync();
+            int playerCount = await boxScoresQuery.SelectMany(bs => bs.Batters.Select(b => b.PlayerId))
+                                .Union(boxScoresQuery.SelectMany(bs => bs.Pitchers.Select(p => p.PlayerId)))
+                                .Union(boxScoresQuery.SelectMany(bs => bs.Fielders.Select(f => f.PlayerId)))
+                                .CountAsync();
 
             var result = new List<SummaryStat>
             {
@@ -172,6 +184,12 @@ namespace BaseballApi.Controllers
                     Category = StatCategory.General,
                     Definition = Stat.Parks,
                     Value = parksCount
+                },
+                new()
+                {
+                    Category = StatCategory.General,
+                    Definition = Stat.Players,
+                    Value = playerCount
                 }
             };
 
