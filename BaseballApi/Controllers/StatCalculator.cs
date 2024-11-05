@@ -1,15 +1,7 @@
-using System;
-using System.Collections.ObjectModel;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq.Expressions;
-using System.Reflection;
-using Amazon.S3.Model;
 using BaseballApi.Contracts;
 using BaseballApi.Models;
-using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Npgsql;
 
 namespace BaseballApi.Controllers;
