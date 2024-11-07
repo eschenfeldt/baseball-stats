@@ -61,6 +61,7 @@ namespace BaseballApi.Controllers
                 WHERE b.""Id"" IS NOT NULL
                     OR pi.""Id"" IS NOT NULL
                     OR f.""Id"" IS NOT NULL
+                GROUP BY p.""Id""
                 ORDER BY RANDOM() LIMIT 1")
                 .SingleOrDefaultAsync();
 
