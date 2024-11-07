@@ -13,6 +13,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterModule } from '@angular/router';
 import { Team } from '../../contracts/team';
 import { Utils } from '../../utils';
+import { MatDividerModule } from '@angular/material/divider';
 
 @Component({
     selector: 'app-game-card',
@@ -22,6 +23,7 @@ import { Utils } from '../../utils';
         MatCardModule,
         MatIconModule,
         MatTooltipModule,
+        MatDividerModule,
         ThumbnailComponent,
         AsyncPipe,
         RouterModule
@@ -55,5 +57,9 @@ export class GameCardComponent implements OnInit {
 
     public color(team: Team): string {
         return Utils.teamColorOrDefault(team);
+    }
+
+    formatTime(datetime?: string): string {
+        return Utils.formatTime(datetime);
     }
 }
