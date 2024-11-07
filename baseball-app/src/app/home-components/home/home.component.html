@@ -2,6 +2,20 @@
     @if (summaryStats$ | async; as summaryStats) {
     <app-summary-stats-card [summaryStats]="summaryStats" title="All Games" class="home-card"></app-summary-stats-card>
     }
+    @if (gamesOnDate$ | async; as gamesOnDate) {
+    @if (gamesOnDate.length > 0) {
+    @for (game of gamesOnDate; track game.id) {
+    <app-game-card [purpose]="gamePurpose(game)" [game]="game" class="home-card"></app-game-card>
+    }
+    }
+    @else {
+    @if (gamesOnOppositeDate$ | async; as gamesOnOppositeDate) {
+    @for (game of gamesOnOppositeDate; track game.id) {
+    <app-game-card [purpose]="gamePurpose(game, false)" [game]="game" class="home-card"></app-game-card>
+    }
+    }
+    }
+    }
     @if (randomGame$ | async; as randomGame) {
     <app-game-card purpose="Randomly selected game" [game]="randomGame" class="home-card"></app-game-card>
     }
