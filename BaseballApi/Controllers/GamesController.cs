@@ -133,6 +133,26 @@ namespace BaseballApi.Controllers
                 .FirstOrDefaultAsync();
         }
 
+        [HttpGet("on-date")]
+        public async Task<ActionResult<List<GameSummary>>> GetGamesOnDate(int month, int day)
+        {
+            IQueryable<Game> query = _context.Games
+                .Where(g => g.Date.Month == month && g.Date.Day == day)
+                .Include(nameof(Game.Away))
+                .Include(nameof(Game.Home))
+                .Include(nameof(Game.Location))
+                .Include(nameof(Game.WinningTeam))
+                .Include(nameof(Game.LosingTeam))
+                .Include(nameof(Game.WinningPitcher))
+                .Include(nameof(Game.LosingPitcher))
+                .Include(nameof(Game.LosingTeam))
+                .Include(g => g.Media);
+
+            return await query.OrderBy(g => g.Date).ThenBy(g => g.StartTime)
+                            .Select(g => new GameSummary(g))
+                            .ToListAsync();
+        }
+
         [HttpGet("years")]
         public async Task<ActionResult<List<int>>> GetGameYears(long? teamId = null)
         {
