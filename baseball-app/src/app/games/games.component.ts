@@ -44,7 +44,7 @@ import { GameSummary } from '../contracts/game-summary';
     templateUrl: './games.component.html',
     styleUrl: './games.component.scss'
 })
-export class GamesComponent extends BaseballTableComponent<GamesListParams, GameSummary> implements OnInit, AfterViewInit {
+export class GamesComponent extends BaseballTableComponent<GamesListParams, GameSummary> implements OnInit, OnChanges {
 
     @Input()
     public team?: Team
@@ -96,12 +96,15 @@ export class GamesComponent extends BaseballTableComponent<GamesListParams, Game
 
     public override ngOnInit(): void {
         super.ngOnInit();
+        this.yearOptions$ = this.api.makeApiGet<number[]>('games/years', { teamId: this.team?.id });
+    }
+
+    ngOnChanges(_changes: SimpleChanges): void {
         if (this.team) {
             this.filterService.setFilterValue<GamesListParams>(this.uniqueIdentifier, 'teamId', this.team.id);
         } else {
             this.filterService.unsetFilterValue<GamesListParams>(this.uniqueIdentifier, 'teamId');
         }
-        this.yearOptions$ = this.api.makeApiGet<number[]>('games/years', { teamId: this.team?.id });
     }
 
     public gameDate(game: GameSummary): string {
