@@ -49,3 +49,23 @@ app-thumbnail {
     touch-action: auto !important;
     -webkit-user-drag: auto !important;
 }
+
+.game-details {
+    padding-left: 1em;
+    padding-right: 1em;
+
+    dl {
+        display: grid;
+        gap: 0.5em 2em;
+        grid-template-columns: max-content;
+    }
+
+    dt {
+        font-weight: bold;
+    }
+
+    dd {
+        margin: 0;
+        grid-column-start: 2;
+    }
+}
