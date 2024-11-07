@@ -71,7 +71,7 @@ class BucketConnector:
         key = self.get_key(photo, name_modifier, ext, has_alternate_formats)
         self.upload_by_key(path, key)
 
-    def upload_all_files(self, root_path: str, photo: PhotoInfo, override: bool = False):
+    def get_upload_params(self, root_path: str, photo: PhotoInfo, override: bool = False):
         original_formats_count = 0
         for file in os.listdir(root_path):
             name, ext = os.path.splitext(file)
@@ -90,12 +90,14 @@ class BucketConnector:
             full_path = os.path.join(root_path, file)
             params.append(UploadParams(override, key, full_path))
 
-        with Pool(12) as pool:
+        return params
+
+    def upload_many_files(self, params: list[UploadParams], pool_size=12):
+        with Pool(pool_size) as pool:
             results = pool.map(self.upload_parallelizable, params)
         for result in results:
             if result:
                 print('Error: ', result)
-
 
     def upload_parallelizable(self, params: UploadParams):
         try:
