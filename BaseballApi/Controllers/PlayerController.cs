@@ -35,7 +35,11 @@ namespace BaseballApi.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<PlayerSummary>> GetPlayer(long id)
         {
-            var player = await _context.Players.FindAsync(id);
+            Player? player = await _context.Players
+                .Include(p => p.Media)
+                    .ThenInclude(m => m.Files)
+                .Where(p => p.Id == id)
+                .SingleOrDefaultAsync();
 
             if (player == null)
             {
@@ -48,17 +52,24 @@ namespace BaseballApi.Controllers
         [HttpGet("random")]
         public async Task<ActionResult<PlayerSummary>> GetRandomPlayer(bool withMedia = false)
         {
-            IQueryable<Player> playerQuery = _context.Players
+            var playerId = await _context.Database.SqlQuery<long?>($@"
+                SELECT p.""Id"" AS ""Value""
+                FROM ""Players"" p
+                LEFT JOIN ""Batters"" b ON b.""PlayerId"" = p.""Id""
+                LEFT JOIN ""Pitchers"" pi ON pi.""PlayerId"" = p.""Id""
+                LEFT JOIN ""Fielders"" f ON f.""PlayerId"" = p.""Id""
+                WHERE b.""Id"" IS NOT NULL
+                    OR pi.""Id"" IS NOT NULL
+                    OR f.""Id"" IS NOT NULL
+                GROUP BY p.""Id""
+                ORDER BY RANDOM() LIMIT 1")
+                .SingleOrDefaultAsync();
+
+            Player? player = await _context.Players
                 .Include(p => p.Media)
-                    .ThenInclude(m => m.Files);
-
-            if (withMedia)
-            {
-                playerQuery = playerQuery.Where(p => p.Media.Count > 0);
-            }
-
-            var player = await playerQuery.OrderBy(p => Guid.NewGuid())
-                .FirstOrDefaultAsync();
+                    .ThenInclude(m => m.Files)
+                .Where(p => p.Id == playerId)
+                .SingleOrDefaultAsync();
 
             if (player == null)
             {
