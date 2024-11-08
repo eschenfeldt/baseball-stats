@@ -7,6 +7,7 @@ import requests
 from osxphotos import PhotoInfo
 import os
 from path_management import PathManager
+from multiprocessing import Pool
 
 @dataclass
 class BucketConfig:
@@ -15,6 +16,12 @@ class BucketConfig:
     bucket: str
     access_key: str
     secret_key: str
+
+@dataclass
+class UploadParams:
+    override: bool
+    key: str
+    file_path: str
 
 class BucketConnector:
 
@@ -64,7 +71,7 @@ class BucketConnector:
         key = self.get_key(photo, name_modifier, ext, has_alternate_formats)
         self.upload_by_key(path, key)
 
-    def upload_all_files(self, root_path: str, photo: PhotoInfo, override: bool = False):
+    def get_upload_params(self, root_path: str, photo: PhotoInfo, override: bool = False):
         original_formats_count = 0
         for file in os.listdir(root_path):
             name, ext = os.path.splitext(file)
@@ -74,9 +81,27 @@ class BucketConnector:
 
         has_alternate_formats = original_formats_count > 1
 
+        params: list[UploadParams] = []
+
         for file in os.listdir(root_path):
             name, ext = os.path.splitext(file)
             name_modifier = self.path_manager.get_name_modifier(name)
-            if override or not self.file_exists(photo, name_modifier, ext, has_alternate_formats):
-                full_path = os.path.join(root_path, file)
-                self.upload_file(full_path, photo, name_modifier, ext, has_alternate_formats)
+            key = self.get_key(photo, name_modifier, ext, has_alternate_formats)
+            full_path = os.path.join(root_path, file)
+            params.append(UploadParams(override, key, full_path))
+
+        return params
+
+    def upload_many_files(self, params: list[UploadParams], pool_size=12):
+        with Pool(pool_size) as pool:
+            results = pool.map(self.upload_parallelizable, params)
+        for result in results:
+            if result:
+                print('Error: ', result)
+
+    def upload_parallelizable(self, params: UploadParams):
+        try:
+            if params.override or not self.file_exists_by_key(params.key):
+                self.upload_by_key(params.file_path, params.key)
+        except Exception as e:
+            return e
