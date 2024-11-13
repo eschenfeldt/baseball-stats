@@ -65,7 +65,7 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "--source-file /Users/peschen/Programming/Scorecards/data/iScoreDbs/2024-07-28/iScore_baseball.sqlite"
+            argument = "--source-file /Users/peschen/Programming/Scorecards/data/iScoreDbs/2024-11-11/iScore_baseball.sqlite"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
@@ -73,7 +73,7 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--included-types Teams"
+            argument = "--included-types Games"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
