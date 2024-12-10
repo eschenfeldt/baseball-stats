@@ -208,16 +208,6 @@ public class TestGameManager
             var home = Teams[gameInfo.Home.TeamNumber];
             var away = Teams[gameInfo.Away.TeamNumber];
             var park = Parks[gameInfo.ParkNumber];
-            var homeBox = new BoxScore
-            {
-                Game = null,
-                Team = home,
-            };
-            var awayBox = new BoxScore
-            {
-                Game = null,
-                Team = away
-            };
             var game = new Game
             {
                 Date = gameInfo.Date,
@@ -229,7 +219,7 @@ public class TestGameManager
                 Away = away,
                 AwayScore = gameInfo.AwayScore,
                 AwayTeamName = gameInfo.Away.TeamName ?? DefaultName(away),
-                BoxScores = [homeBox, awayBox]
+                BoxScores = []
             };
             if (game.HomeScore > game.AwayScore)
             {
@@ -242,11 +232,19 @@ public class TestGameManager
                 game.LosingTeam = home;
             }
             Context.AddRange(
-                homeBox,
-                awayBox,
                 game
             );
             Context.SaveChanges();
+            var homeBox = new BoxScore
+            {
+                Game = game,
+                Team = home,
+            };
+            var awayBox = new BoxScore
+            {
+                Game = game,
+                Team = away
+            };
             game.HomeBoxScore = homeBox;
             game.AwayBoxScore = awayBox;
             Context.SaveChanges();
