@@ -3,7 +3,7 @@ using BaseballApi.Models;
 
 namespace BaseballApi.Contracts;
 
-public struct GameFielder(Fielder fielder)
+public class GameFielder(Fielder fielder)
 {
     public PlayerInfo Player { get; set; } = new(fielder.Player);
     public int Number { get; set; } = fielder.Number;
