@@ -131,35 +131,74 @@ public class TestGameManager
         Assert.Equal(game.AwayScore, awayBatterRuns);
         Assert.Equal(game.AwayScore, homePitcherRuns);
 
-        foreach (var batter in game.HomeBoxScore.Value.Batters)
+        Assert.Equal(gameInfo.Home.Batters.Count, game.HomeBoxScore.Value.Batters.Count);
+        Assert.All(gameInfo.Home.Batters, (batterInfo) =>
         {
-            Assert.NotNull(batter.Player);
-        }
+            ValidateBatter(batterInfo, game.HomeBoxScore.Value.Batters);
+        });
 
-        foreach (var batter in game.AwayBoxScore.Value.Batters)
+        Assert.Equal(gameInfo.Away.Batters.Count, game.AwayBoxScore.Value.Batters.Count);
+        Assert.All(gameInfo.Away.Batters, (batterInfo) =>
         {
-            Assert.NotNull(batter.Player);
-        }
+            ValidateBatter(batterInfo, game.AwayBoxScore.Value.Batters);
+        });
 
-        foreach (var pitcher in game.HomeBoxScore.Value.Pitchers)
+        Assert.Equal(gameInfo.Home.Pitchers.Count, game.HomeBoxScore.Value.Pitchers.Count);
+        Assert.All(gameInfo.Home.Pitchers, (pitcherInfo) =>
         {
-            Assert.NotNull(pitcher.Player);
-        }
+            ValidatePitcher(pitcherInfo, game.HomeBoxScore.Value.Pitchers);
+        });
 
-        foreach (var pitcher in game.HomeBoxScore.Value.Pitchers)
+        Assert.Equal(gameInfo.Away.Pitchers.Count, game.AwayBoxScore.Value.Pitchers.Count);
+        Assert.All(gameInfo.Away.Pitchers, (pitcherInfo) =>
         {
-            Assert.NotNull(pitcher.Player);
-        }
+            ValidatePitcher(pitcherInfo, game.AwayBoxScore.Value.Pitchers);
+        });
 
-        foreach (var fielder in game.HomeBoxScore.Value.Fielders)
+        Assert.Equal(gameInfo.Home.Fielders.Count, game.HomeBoxScore.Value.Fielders.Count);
+        Assert.All(gameInfo.Home.Fielders, (fielderInfo) =>
         {
-            Assert.NotNull(fielder.Player);
-        }
+            ValidateFielder(fielderInfo, game.HomeBoxScore.Value.Fielders);
+        });
 
-        foreach (var fielder in game.HomeBoxScore.Value.Fielders)
+        Assert.Equal(gameInfo.Away.Fielders.Count, game.AwayBoxScore.Value.Fielders.Count);
+        Assert.All(gameInfo.Away.Fielders, (fielderInfo) =>
         {
-            Assert.NotNull(fielder.Player);
-        }
+            ValidateFielder(fielderInfo, game.AwayBoxScore.Value.Fielders);
+        });
+    }
+
+    void ValidateBatter(BatterInfo expected, ICollection<GameBatter> allActual)
+    {
+        var batterId = GetPlayerId(batterNumber: expected.BatterNumber);
+        var actual = allActual.FirstOrDefault(b => b.Player.Id == batterId);
+        Assert.NotNull(actual);
+        Assert.Equal(expected.AtBats, actual.Stats[Stat.AtBats.Name]);
+        Assert.Equal(expected.Hits, actual.Stats[Stat.Hits.Name]);
+        Assert.Equal(expected.Homeruns, actual.Stats[Stat.Homeruns.Name]);
+        Assert.Equal(expected.PlateAppearances, actual.Stats[Stat.PlateAppearances.Name]);
+        Assert.Equal(expected.Runs, actual.Stats[Stat.Runs.Name]);
+    }
+
+    void ValidatePitcher(PitcherInfo expected, ICollection<GamePitcher> allActual)
+    {
+        var pitcherId = GetPlayerId(pitcherNumber: expected.PitcherNumber);
+        var actual = allActual.FirstOrDefault(b => b.Player.Id == pitcherId);
+        Assert.NotNull(actual);
+        Assert.Equal(expected.EarnedRuns, actual.Stats[Stat.EarnedRuns.Name]);
+        Assert.Equal(expected.Outs, actual.Stats[Stat.ThirdInningsPitched.Name]);
+        Assert.Equal(expected.Runs, actual.Stats[Stat.Runs.Name]);
+    }
+
+
+    void ValidateFielder(FielderInfo expected, ICollection<GameFielder> allActual)
+    {
+        var pitcherId = GetPlayerId(batterNumber: expected.BatterNumber, pitcherNumber: expected.PitcherNumber);
+        var actual = allActual.FirstOrDefault(b => b.Player.Id == pitcherId);
+        Assert.NotNull(actual);
+        Assert.Equal(expected.Assists, actual.Stats[Stat.Assists.Name]);
+        Assert.Equal(expected.Errors, actual.Stats[Stat.Errors.Name]);
+        Assert.Equal(expected.Putouts, actual.Stats[Stat.Putouts.Name]);
     }
 
     public void AddAllGames()
@@ -169,16 +208,6 @@ public class TestGameManager
             var home = Teams[gameInfo.Home.TeamNumber];
             var away = Teams[gameInfo.Away.TeamNumber];
             var park = Parks[gameInfo.ParkNumber];
-            var homeBox = new BoxScore
-            {
-                Game = null,
-                Team = home,
-            };
-            var awayBox = new BoxScore
-            {
-                Game = null,
-                Team = away
-            };
             var game = new Game
             {
                 Date = gameInfo.Date,
@@ -190,7 +219,7 @@ public class TestGameManager
                 Away = away,
                 AwayScore = gameInfo.AwayScore,
                 AwayTeamName = gameInfo.Away.TeamName ?? DefaultName(away),
-                BoxScores = [homeBox, awayBox]
+                BoxScores = []
             };
             if (game.HomeScore > game.AwayScore)
             {
@@ -203,11 +232,19 @@ public class TestGameManager
                 game.LosingTeam = home;
             }
             Context.AddRange(
-                homeBox,
-                awayBox,
                 game
             );
             Context.SaveChanges();
+            var homeBox = new BoxScore
+            {
+                Game = game,
+                Team = home,
+            };
+            var awayBox = new BoxScore
+            {
+                Game = game,
+                Team = away
+            };
             game.HomeBoxScore = homeBox;
             game.AwayBoxScore = awayBox;
             Context.SaveChanges();

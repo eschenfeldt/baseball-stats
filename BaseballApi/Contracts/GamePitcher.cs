@@ -2,7 +2,7 @@
 
 namespace BaseballApi.Contracts;
 
-public struct GamePitcher(Pitcher pitcher)
+public class GamePitcher(Pitcher pitcher)
 {
     public PlayerInfo Player { get; set; } = new(pitcher.Player);
 

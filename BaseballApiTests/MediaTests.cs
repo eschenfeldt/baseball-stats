@@ -3,6 +3,7 @@ using BaseballApi.Controllers;
 using BaseballApi.Models;
 using BaseballApi.Import;
 using System.Security.Cryptography;
+using Microsoft.Extensions.Configuration;
 
 namespace BaseballApiTests;
 
@@ -12,7 +13,10 @@ public class MediaTests : BaseballTests
     TestGameManager TestGameManager { get; }
     public MediaTests(TestDatabaseFixture fixture) : base(fixture)
     {
-        Controller = new MediaController(Context, null);
+        var builder = new ConfigurationBuilder().AddUserSecrets<TestDatabaseFixture>();
+        IConfiguration configuration = builder.Build();
+        RemoteFileManager remoteFileManager = new(configuration, nameof(GameTests));
+        Controller = new MediaController(Context, remoteFileManager);
         TestGameManager = new TestGameManager(Context);
     }
 

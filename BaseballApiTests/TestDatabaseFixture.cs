@@ -25,6 +25,7 @@ public class TestDatabaseFixture
                     AddTeams(context);
                     AddPlayers(context);
                     AddLocations(context);
+                    AddConstants(context);
                     context.SaveChanges();
                     AddGames(context);
                 }
@@ -58,6 +59,15 @@ public class TestDatabaseFixture
         context.AddRange(
             new Park { Name = "Test Park" },
             new Park { Name = "Test Stadium" }
+        );
+    }
+
+    void AddConstants(BaseballContext context)
+    {
+        context.AddRange(
+            new FangraphsConstants { Year = 2024 },
+            new FangraphsConstants { Year = 2023 },
+            new FangraphsConstants { Year = 2022 }
         );
     }
 

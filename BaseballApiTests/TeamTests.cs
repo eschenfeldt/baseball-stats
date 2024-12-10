@@ -28,9 +28,9 @@ public class TeamTests : BaseballTests
     [InlineData("Test City", "Testers", 4, 2, 1, "2024-06-30")]
     [InlineData("New Tester Town", "Tubes", 3, 0, 2, "2023-06-27")]
     [InlineData("St. Test", "Guinea Pigs", 1, 1, 0, "2024-06-30")]
-    public async void TestGetTeamSummaries(string city, string name, int games, int wins, int losses, string lastGameDate)
+    public void TestGetTeamSummaries(string city, string name, int games, int wins, int losses, string lastGameDate)
     {
-        var teams = await Controller.GetTeamSummaries(0, 10);
+        var teams = Controller.GetTeamSummaries(0, 10);
         Assert.NotNull(teams.Value);
         var team = teams.Value.Results.FirstOrDefault(t => t.Team.City == city && t.Team.Name == name);
         Assert.NotNull(team);

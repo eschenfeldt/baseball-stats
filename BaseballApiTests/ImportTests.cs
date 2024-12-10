@@ -5,6 +5,7 @@ using BaseballApi.Import;
 using BaseballApi.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 
 namespace BaseballApiTests;
@@ -17,14 +18,16 @@ public class ImportTests(TestImportDatabaseFixture fixture) : IClassFixture<Test
     public async void TestImportGameViaController()
     {
         using BaseballContext context = Fixture.CreateContext();
-        RemoteFileManager remoteFileManager = new(nameof(ImportTests));
+        var builder = new ConfigurationBuilder().AddUserSecrets<TestDatabaseFixture>();
+        IConfiguration configuration = builder.Build();
+        RemoteFileManager remoteFileManager = new(configuration, nameof(ImportTests));
         var gamesController = new GamesController(context, remoteFileManager);
         var playerController = new PlayerController(context);
         var teamsController = new TeamsController(context);
 
         var remoteValidator = new RemoteFileValidator(remoteFileManager);
 
-        // add one of the teams and players from the test game before importingto be sure the importer doesn't duplicate them
+        // add one of the teams and players from the test game before importing to be sure the importer doesn't duplicate them
         context.Teams.Add(new Team { City = "Washington", Name = "Nationals" });
         context.Players.Add(new Player { Name = "Willson Contreras" });
         await context.SaveChangesAsync();
