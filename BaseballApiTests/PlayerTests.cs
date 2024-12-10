@@ -35,14 +35,13 @@ public class PlayerTests : BaseballTests
     static readonly string Batter1Name = "Test Batter 1";
     static readonly string Batter2Name = "Test Batter 2";
     static readonly string Batter3Name = "Test Batter 3";
-    static readonly Func<LeaderboardPlayer, int> GetGames = (lb) => lb.Games;
-    static readonly Func<LeaderboardPlayer, int> GetAb = (lb) => lb.AtBats;
-    static readonly Func<LeaderboardPlayer, int> GetH = (lb) => lb.Hits;
+    static readonly Func<LeaderboardPlayer, int> GetGames = (lb) => Convert.ToInt32(lb.Stats[Stat.Games.Name]);
+    static readonly Func<LeaderboardPlayer, int> GetAb = (lb) => Convert.ToInt32(lb.Stats[Stat.AtBats.Name]);
     static readonly Func<LeaderboardPlayer, decimal?> GetBattingAverage = (lb) =>
     {
-        if (lb.BattingAverage.HasValue)
+        if (lb.Stats.TryGetValue(Stat.BattingAverage.Name, out decimal? ba) && ba.HasValue)
         {
-            return decimal.Round(lb.BattingAverage.Value, 3);
+            return decimal.Round(ba.Value, 3);
         }
         else
         {
