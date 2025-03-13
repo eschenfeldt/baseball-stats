@@ -9,8 +9,12 @@
                 </a>
             </mat-card-title>
         </mat-card-header>
-        <mat-card-content [style.color]="color(game.away)">
-            {{game.awayScore}}
+        <mat-card-content>
+            <div class="game-score-container">
+                <div class="game-score" [style.background-color]="color(game.away)">
+                    {{game.awayScore}}
+                </div>
+            </div>
         </mat-card-content>
         @if (boxScoresActive) {
         <mat-card-actions>
@@ -31,8 +35,12 @@
                 </a>
             </mat-card-title>
         </mat-card-header>
-        <mat-card-content [style.color]="color(game.home)">
-            {{game.homeScore}}
+        <mat-card-content>
+            <div class="game-score-container">
+                <div class="game-score" [style.background-color]="color(game.home)">
+                    {{game.homeScore}}
+                </div>
+            </div>
         </mat-card-content>
         @if (boxScoresActive) {
         <mat-card-actions>
