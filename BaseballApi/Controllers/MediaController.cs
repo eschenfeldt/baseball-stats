@@ -21,7 +21,8 @@ namespace BaseballApi.Controllers
         private static readonly HashSet<string> VIDEO_EXTENSIONS =
         [
             ".mov",
-            ".MOV"
+            ".MOV",
+            ".mp4"
         ];
 
         [HttpGet("original/{assetIdentifier}")]
