@@ -57,7 +57,7 @@
     <Content Include="data\FanGraphs Leaderboard.csv">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="data\hevc.MOV">
+    <Content Include="data\media\video\hevc.MOV">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="data\media\live photos\IMG_4762.HEIC">

@@ -1,7 +1,7 @@
 using System;
 using System.Text.Json.Serialization;
 
-namespace BaseballApi.Video;
+namespace BaseballApi.Media;
 
 public class VideoInfo
 {

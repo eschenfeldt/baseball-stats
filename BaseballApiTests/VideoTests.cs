@@ -1,6 +1,4 @@
-using System;
-using BaseballApi.Import;
-using BaseballApi.Video;
+using BaseballApi.Media;
 
 namespace BaseballApiTests;
 
@@ -10,7 +8,7 @@ public class VideoTests
     [InlineData("hevc.MOV", "hevc")]
     public void TestConversion(string fileName, string expectedOriginalCodecName)
     {
-        FileInfo original = new(Path.Join("data", fileName));
+        FileInfo original = new(Path.Join("data", "media", "video", fileName));
         VideoConverter converter = new();
 
         VideoInfo originalInfo = converter.GetVideoInfo(original);

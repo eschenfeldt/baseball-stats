@@ -1,9 +1,8 @@
 using System;
 using System.Diagnostics;
 using System.Text.Json;
-using BaseballApi.Video;
 
-namespace BaseballApi.Import;
+namespace BaseballApi.Media;
 
 public class VideoConverter
 {
