@@ -27,7 +27,8 @@ public class TestDatabaseFixture
                     AddLocations(context);
                     AddConstants(context);
                     context.SaveChanges();
-                    AddGames(context);
+                    var testGameManager = new TestGameManager(context);
+                    testGameManager.AddAllGames(context);
                 }
                 _dbInitialized = true;
             }
@@ -69,15 +70,6 @@ public class TestDatabaseFixture
             new FangraphsConstants { Year = 2023 },
             new FangraphsConstants { Year = 2022 }
         );
-    }
-
-    /// <summary>
-    /// Add *and save* test games. Requires players and teams already be saved.
-    /// </summary>
-    void AddGames(BaseballContext context)
-    {
-        var manager = new TestGameManager(context);
-        manager.AddAllGames();
     }
 
     public BaseballContext CreateContext()

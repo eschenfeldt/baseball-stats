@@ -216,5 +216,13 @@ namespace BaseballApi.Controllers
 
             return Ok(new { scorecard = toReturn });
         }
+
+        [HttpPost("import-media")]
+        [Authorize]
+        public async Task<IActionResult> ImportMedia([FromForm] List<IFormFile> files, [FromForm] string serializedGameId)
+        {
+            throw new NotImplementedException("ImportMedia is not implemented yet.");
+        }
+
     }
 }

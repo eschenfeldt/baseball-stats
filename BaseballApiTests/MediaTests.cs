@@ -2,8 +2,9 @@ using System;
 using BaseballApi.Controllers;
 using BaseballApi.Models;
 using BaseballApi.Import;
-using System.Security.Cryptography;
 using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json;
 
 namespace BaseballApiTests;
 
@@ -11,11 +12,12 @@ public class MediaTests : BaseballTests
 {
     MediaController Controller { get; }
     TestGameManager TestGameManager { get; }
+
     public MediaTests(TestDatabaseFixture fixture) : base(fixture)
     {
         var builder = new ConfigurationBuilder().AddUserSecrets<TestDatabaseFixture>();
         IConfiguration configuration = builder.Build();
-        RemoteFileManager remoteFileManager = new(configuration, nameof(GameTests));
+        RemoteFileManager remoteFileManager = new(configuration, nameof(MediaTests));
         Controller = new MediaController(Context, remoteFileManager);
         TestGameManager = new TestGameManager(Context);
     }
@@ -33,7 +35,7 @@ public class MediaTests : BaseballTests
         long? gameId = null;
         if (gameNumber.HasValue)
         {
-            gameId = TestGameManager.GetGameId(gameNumber.Value);
+            gameId = TestGameManager.GetGameId(Context, gameNumber.Value);
         }
         long? playerId = null;
         if (batterNumber.HasValue || pitcherNumber.HasValue)
@@ -51,12 +53,47 @@ public class MediaTests : BaseballTests
             Assert.Equal(expected.DateTime, actual.DateTime);
         });
     }
+
+    [Fact]
+    public async Task TestImportLivePhotos()
+    {
+        var gameId = TestGameManager.GetGameId(Context, 1);
+
+        var mediaBefore = await Controller.GetThumbnails(gameId: gameId);
+        Assert.NotNull(mediaBefore);
+        Assert.NotNull(mediaBefore.Value);
+        var countBefore = mediaBefore.Value.TotalCount;
+
+        // now import two live photos to the game
+        var files = new List<IFormFile>();
+        var livePhotoDirectory = Path.Join("data", "media", "live photos");
+        foreach (var filePath in Directory.EnumerateFiles(livePhotoDirectory))
+        {
+            var fileName = Path.GetFileName(filePath);
+            using var fileStream = File.OpenRead(filePath);
+            var memoryStream = new MemoryStream();
+            fileStream.CopyTo(memoryStream);
+            var formFile = new FormFile(memoryStream, 0, memoryStream.Length, fileName, fileName);
+            files.Add(formFile);
+        }
+
+        await Controller.ImportMedia(files, JsonConvert.SerializeObject(gameId));
+
+        var mediaAfter = await Controller.GetThumbnails(gameId: gameId);
+        Assert.NotNull(mediaAfter);
+        Assert.NotNull(mediaAfter.Value);
+        var countAfter = mediaAfter.Value.TotalCount;
+        Assert.Equal(countBefore + 2, countAfter);
+
+        Assert.Fail("Add better assertions here.");
+    }
+
 }
 
 public struct MockResource
 {
-    public int? GameId { get; set; }
-    public int? PlayerId { get; set; }
+    public long? GameId { get; set; }
+    public long? PlayerId { get; set; }
     public required Guid AssetIdentifier { get; set; }
     public MockFile? OriginalPhoto { get; set; }
     public MockFile? OriginalVideo { get; set; }

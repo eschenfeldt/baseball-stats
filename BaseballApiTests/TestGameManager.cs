@@ -6,16 +6,13 @@ namespace BaseballApiTests;
 
 public class TestGameManager
 {
-    private BaseballContext Context { get; }
     private Dictionary<int, Team> Teams { get; } = [];
     private Dictionary<int, Player> Batters { get; } = [];
     private Dictionary<int, Player> Pitchers { get; } = [];
     private Dictionary<int, Park> Parks { get; } = [];
-    private Dictionary<int, long> GameIds { get; } = [];
 
     public TestGameManager(BaseballContext context)
     {
-        Context = context;
         Teams.Add(1, context.Teams.First(t => t.City == "Test City"));
         Teams.Add(2, context.Teams.First(t => t.City == "New Tester Town"));
         Teams.Add(3, context.Teams.First(t => t.City == "St. Test"));
@@ -41,11 +38,20 @@ public class TestGameManager
         }
     }
 
-    public long GetGameId(int gameNumber)
+    public long GetGameId(BaseballContext context, int gameNumber)
     {
-        if (GameIds.TryGetValue(gameNumber, out long gameId))
+        if (TestGames.TryGetValue(gameNumber, out GameInfo gameInfo))
         {
-            return gameId;
+            var gameId = context.Games.FirstOrDefault(g => g.Name == gameInfo.Name)?.Id;
+            if (gameId == null)
+            {
+                Assert.Fail($"Test game with number {gameNumber} not found in database");
+                return 0;
+            }
+            else
+            {
+                return gameId.Value;
+            }
         }
         else
         {
@@ -201,7 +207,7 @@ public class TestGameManager
         Assert.Equal(expected.Putouts, actual.Stats[Stat.Putouts.Name]);
     }
 
-    public void AddAllGames()
+    public void AddAllGames(BaseballContext context)
     {
         foreach (var (gameNumber, gameInfo) in TestGames)
         {
@@ -231,10 +237,10 @@ public class TestGameManager
                 game.WinningTeam = away;
                 game.LosingTeam = home;
             }
-            Context.AddRange(
+            context.AddRange(
                 game
             );
-            Context.SaveChanges();
+            context.SaveChanges();
             var homeBox = new BoxScore
             {
                 Game = game,
@@ -247,14 +253,13 @@ public class TestGameManager
             };
             game.HomeBoxScore = homeBox;
             game.AwayBoxScore = awayBox;
-            Context.SaveChanges();
-            PopulateBoxScore(homeBox, gameInfo.Home);
-            PopulateBoxScore(awayBox, gameInfo.Away);
-            GameIds.Add(gameNumber, game.Id);
+            context.SaveChanges();
+            PopulateBoxScore(context, homeBox, gameInfo.Home);
+            PopulateBoxScore(context, awayBox, gameInfo.Away);
         }
     }
 
-    void PopulateBoxScore(BoxScore boxScore, BoxScoreInfo info)
+    void PopulateBoxScore(BaseballContext context, BoxScore boxScore, BoxScoreInfo info)
     {
         foreach (var batterInfo in info.Batters)
         {
@@ -281,7 +286,7 @@ public class TestGameManager
             Runs = pitcherInfo.Runs,
             EarnedRuns = pitcherInfo.EarnedRuns
         });
-        Context.AddRange(pitchers);
+        context.AddRange(pitchers);
         var fielders = info.Fielders.Select(fielderInfo =>
         {
             Player player;
@@ -308,9 +313,9 @@ public class TestGameManager
                 Errors = fielderInfo.Errors
             };
         });
-        Context.AddRange(fielders);
+        context.AddRange(fielders);
 
-        Context.SaveChanges();
+        context.SaveChanges();
     }
 
     private string DefaultName(Team team)
