@@ -60,6 +60,9 @@
     <Content Include="data\media\video\hevc.MOV">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="data\media\photos\IMG_4721.HEIC">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="data\media\live photos\IMG_4762.HEIC">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
