@@ -1,12 +1,11 @@
 using BaseballApi.Contracts;
 using BaseballApi.Import;
+using BaseballApi.Media;
 using BaseballApi.Models;
 using Humanizer;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 
 namespace BaseballApi.Controllers
@@ -241,8 +240,63 @@ namespace BaseballApi.Controllers
         [Authorize]
         public async Task<IActionResult> ImportMedia([FromForm] List<IFormFile> files, [FromForm] string serializedGameId)
         {
-            throw new NotImplementedException("ImportMedia is not implemented yet.");
-        }
+            long gameId = JsonConvert.DeserializeObject<long>(serializedGameId);
+            Game? game = await _context.Games.FirstOrDefaultAsync(g => g.Id == gameId);
+            if (game == null)
+            {
+                return NotFound();
+            }
 
+            var resources = new Dictionary<string, MediaImportInfo>();
+            foreach (var formFile in files)
+            {
+                var filePath = Path.GetTempFileName();
+                using (var stream = System.IO.File.Create(filePath))
+                {
+                    await formFile.CopyToAsync(stream);
+                }
+                var baseName = Path.GetFileNameWithoutExtension(formFile.FileName);
+                if (resources.TryGetValue(baseName, out MediaImportInfo? resource))
+                {
+                    if (resource.ResourceType == MediaResourceType.Photo && formFile.ContentType.StartsWith("video/"))
+                    {
+                        resource.ResourceType = MediaResourceType.LivePhoto;
+                    }
+                    else if (resource.ResourceType == MediaResourceType.Video && formFile.ContentType.StartsWith("image/"))
+                    {
+                        resource.ResourceType = MediaResourceType.LivePhoto;
+                    }
+                    else
+                    {
+                        throw new ArgumentException($"Duplicate file name '{baseName}' with unexpected types: {resource.ResourceType} and {formFile.ContentType}");
+                    }
+                }
+                else
+                {
+                    resource = new MediaImportInfo
+                    {
+                        BaseName = baseName,
+                        ResourceType = formFile.ContentType.StartsWith("image/") ? MediaResourceType.Photo : MediaResourceType.Video,
+                    };
+                    resources[baseName] = resource;
+                }
+                resource.FilePaths[formFile.FileName] = filePath;
+            }
+
+            var importManager = new MediaImportManager([.. resources.Select(kvp => kvp.Value)]);
+
+            await foreach (var resource in importManager.GetUploadedResources())
+            {
+                resource.Game = game;
+                await _context.SaveChangesAsync();
+            }
+
+            var photoCount = resources.Values.Count(r => r.ResourceType == MediaResourceType.Photo);
+            var videoCount = resources.Values.Count(r => r.ResourceType == MediaResourceType.Video);
+            var livePhotoCount = resources.Values.Count(r => r.ResourceType == MediaResourceType.LivePhoto);
+            var message = $"Uploaded {photoCount} photos, {videoCount} videos, and {livePhotoCount} live photos.";
+
+            return Ok(new { message = message });
+        }
     }
 }
