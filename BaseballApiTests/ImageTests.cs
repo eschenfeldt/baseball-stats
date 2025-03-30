@@ -1,0 +1,65 @@
+using BaseballApi.Media;
+
+namespace BaseballApiTests;
+
+public class ImageTests
+{
+    [Theory]
+    [InlineData("live photos", "IMG_4762.HEIC", 120)]
+    [InlineData("live photos", "IMG_4762.HEIC", 400)]
+    [InlineData("live photos", "IMG_4762.HEIC", 1600)]
+    [InlineData("live photos", "IMG_4771.HEIC", 120)]
+    [InlineData("live photos", "IMG_4771.HEIC", 400)]
+    [InlineData("live photos", "IMG_4771.HEIC", 1600)]
+    public void TestImageThumbnailing(string folderName, string fileName, int size)
+    {
+        FileInfo original = new(Path.Join("data", "media", folderName, fileName));
+        ImageConverter converter = new();
+
+        ImageInfo originalInfo = converter.GetImageInfo(original);
+        Assert.Equal(original.Extension.TrimStart('.'), originalInfo.Extension);
+        Assert.True(originalInfo.Width > 0);
+        Assert.True(originalInfo.Height > 0);
+
+        FileInfo thumbnail = converter.CreateJpeg(original, ThumbnailSize.FromSize(size));
+        Assert.True(thumbnail.Exists);
+        Assert.True(thumbnail.Length > 0);
+
+        ImageInfo thumbnailInfo = converter.GetImageInfo(thumbnail);
+        Assert.Equal("jpeg", thumbnailInfo.Extension);
+        Assert.True(thumbnailInfo.Width > 0);
+        Assert.True(thumbnailInfo.Width <= size);
+        Assert.True(thumbnailInfo.Height > 0);
+        Assert.True(thumbnailInfo.Height <= size);
+
+        Assert.True(thumbnailInfo.Width <= originalInfo.Width);
+        Assert.True(thumbnailInfo.Height <= originalInfo.Height);
+
+        decimal originalAspectRatio = (decimal)originalInfo.Width / originalInfo.Height;
+        decimal thumbnailAspectRatio = (decimal)thumbnailInfo.Width / thumbnailInfo.Height;
+        Assert.Equal(originalAspectRatio, thumbnailAspectRatio, 2);
+    }
+
+    [Theory]
+    [InlineData("live photos", "IMG_4762.HEIC")]
+    [InlineData("live photos", "IMG_4771.HEIC")]
+    public void TestImageConversion(string folderName, string fileName)
+    {
+        FileInfo original = new(Path.Join("data", "media", folderName, fileName));
+        ImageConverter converter = new();
+
+        ImageInfo originalInfo = converter.GetImageInfo(original);
+        Assert.Equal(original.Extension.TrimStart('.'), originalInfo.Extension);
+        Assert.True(originalInfo.Width > 0);
+        Assert.True(originalInfo.Height > 0);
+
+        FileInfo converted = converter.CreateJpeg(original, null);
+        Assert.True(converted.Exists);
+        Assert.True(converted.Length > 0);
+
+        ImageInfo convertedInfo = converter.GetImageInfo(converted);
+        Assert.Equal("jpeg", convertedInfo.Extension);
+        Assert.Equal(originalInfo.Width, convertedInfo.Width);
+        Assert.Equal(originalInfo.Height, convertedInfo.Height);
+    }
+}
