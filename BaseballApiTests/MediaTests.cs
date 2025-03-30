@@ -326,6 +326,8 @@ public class MediaTests : BaseballTests
         Assert.NotNull(original.Value.AlternatePhoto);
         Assert.NotNull(original.Value.AlternateVideo);
         Assert.Equal(originalFileName, original.Value.Photo.Value.OriginalFileName);
+        var expectedTime = ExpectedResourceTimes[originalFileName];
+        Assert.Equal(expectedTime, original.Value.Photo.Value.DateTime);
 
         await RemoteValidator.ValidateFileExists(original.Value.Photo.Value);
         await RemoteValidator.ValidateFileExists(original.Value.Video.Value);
@@ -365,6 +367,8 @@ public class MediaTests : BaseballTests
         Assert.NotNull(original.Value.AlternatePhoto);
         Assert.Null(original.Value.AlternateVideo);
         Assert.Equal(originalFileName, original.Value.Photo.Value.OriginalFileName);
+        var expectedTime = ExpectedResourceTimes[originalFileName];
+        Assert.Equal(expectedTime, original.Value.Photo.Value.DateTime);
 
         await RemoteValidator.ValidateFileExists(original.Value.Photo.Value);
         await RemoteValidator.ValidateFileExists(original.Value.AlternatePhoto.Value);
@@ -400,6 +404,8 @@ public class MediaTests : BaseballTests
         Assert.Null(original.Value.AlternatePhoto);
         Assert.NotNull(original.Value.AlternateVideo);
         Assert.Equal(originalFileName, original.Value.Video.Value.OriginalFileName);
+        var expectedTime = ExpectedResourceTimes[originalFileName];
+        Assert.Equal(expectedTime, original.Value.Video.Value.DateTime);
 
         await RemoteValidator.ValidateFileExists(original.Value.Video.Value);
         await RemoteValidator.ValidateFileExists(original.Value.AlternateVideo.Value);
@@ -425,6 +431,14 @@ public class MediaTests : BaseballTests
             toBeDeleted.Add(thumbnailDetail.Value.Value);
         }
     }
+
+    private Dictionary<string, DateTimeOffset> ExpectedResourceTimes = new()
+    {
+        {"IMG_4721.HEIC", new DateTimeOffset(2023, 9, 28, 12, 43, 11, TimeSpan.FromHours(-5))},
+        {"IMG_4762.HEIC", new DateTimeOffset(2024, 9, 28, 14, 19, 30, TimeSpan.FromHours(-5))},
+        {"IMG_4771.HEIC", new DateTimeOffset(2024, 9, 28, 14, 47, 12, TimeSpan.FromHours(-5))},
+        {"hevc.MOV", new DateTimeOffset(2021, 7, 28, 16, 12, 52, TimeSpan.FromHours(-4))}
+    };
 }
 
 public struct MockResource
