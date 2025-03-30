@@ -5,13 +5,13 @@ namespace BaseballApiTests;
 public class ImageTests
 {
     [Theory]
-    [InlineData("live photos", "IMG_4762.HEIC", 120)]
-    [InlineData("live photos", "IMG_4762.HEIC", 400)]
-    [InlineData("live photos", "IMG_4762.HEIC", 1600)]
-    [InlineData("live photos", "IMG_4771.HEIC", 120)]
-    [InlineData("live photos", "IMG_4771.HEIC", 400)]
-    [InlineData("live photos", "IMG_4771.HEIC", 1600)]
-    public void TestImageThumbnailing(string folderName, string fileName, int size)
+    [InlineData("live photos", "IMG_4762.HEIC", "small")]
+    [InlineData("live photos", "IMG_4762.HEIC", "medium")]
+    [InlineData("live photos", "IMG_4762.HEIC", "large")]
+    [InlineData("live photos", "IMG_4771.HEIC", "small")]
+    [InlineData("live photos", "IMG_4771.HEIC", "medium")]
+    [InlineData("live photos", "IMG_4771.HEIC", "large")]
+    public void TestImageThumbnailing(string folderName, string fileName, string sizeModifier)
     {
         FileInfo original = new(Path.Join("data", "media", folderName, fileName));
         ImageConverter converter = new();
@@ -21,16 +21,21 @@ public class ImageTests
         Assert.True(originalInfo.Width > 0);
         Assert.True(originalInfo.Height > 0);
 
-        FileInfo thumbnail = converter.CreateJpeg(original, ThumbnailSize.FromSize(size));
+        var size = ThumbnailSize.FromModifier(sizeModifier);
+
+        FileInfo thumbnail = converter.CreateJpeg(original, size);
         Assert.True(thumbnail.Exists);
         Assert.True(thumbnail.Length > 0);
+        Assert.Contains(size.Modifier, thumbnail.Name);
 
         ImageInfo thumbnailInfo = converter.GetImageInfo(thumbnail);
         Assert.Equal("jpeg", thumbnailInfo.Extension);
         Assert.True(thumbnailInfo.Width > 0);
-        Assert.True(thumbnailInfo.Width <= size);
+        Assert.True(thumbnailInfo.Width <= originalInfo.Width);
+        Assert.True(thumbnailInfo.Width <= size.MaxSize);
         Assert.True(thumbnailInfo.Height > 0);
-        Assert.True(thumbnailInfo.Height <= size);
+        Assert.True(thumbnailInfo.Height <= originalInfo.Height);
+        Assert.True(thumbnailInfo.Height <= size.MaxSize);
 
         Assert.True(thumbnailInfo.Width <= originalInfo.Width);
         Assert.True(thumbnailInfo.Height <= originalInfo.Height);
