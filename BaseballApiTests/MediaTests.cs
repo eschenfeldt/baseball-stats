@@ -171,6 +171,56 @@ public class MediaTests : BaseballTests
     public async Task TestImportPhoto()
     {
         var remoteValidator = new RemoteFileValidator(RemoteFileManager);
+        var gameId = TestGameManager.GetGameId(Context, 4);
+
+        var mediaBefore = await Controller.GetThumbnails(gameId: gameId);
+        Assert.NotNull(mediaBefore);
+        Assert.NotNull(mediaBefore.Value);
+        var countBefore = mediaBefore.Value.TotalCount;
+
+        var files = new List<IFormFile>();
+        var photoDirectory = Path.Join("data", "media", "photos");
+        foreach (var filePath in Directory.EnumerateFiles(photoDirectory))
+        {
+            var fileName = Path.GetFileName(filePath);
+            using var fileStream = File.OpenRead(filePath);
+            var memoryStream = new MemoryStream();
+            fileStream.CopyTo(memoryStream);
+            var formFile = new FormFile(memoryStream, 0, memoryStream.Length, fileName, fileName);
+            files.Add(formFile);
+        }
+
+        await Controller.ImportMedia(files, JsonConvert.SerializeObject(gameId));
+
+        var mediaAfter = await Controller.GetThumbnails(gameId: gameId);
+        Assert.NotNull(mediaAfter);
+        Assert.NotNull(mediaAfter.Value);
+        var countAfter = mediaAfter.Value.TotalCount;
+        Assert.Equal(countBefore + 1, countAfter);
+
+        var file1 = mediaAfter.Value.Results.FirstOrDefault(x => x.OriginalFileName == "IMG_4721.HEIC");
+        Assert.NotNull(file1.Key);
+
+        List<RemoteFileDetail> toBeDeleted = [];
+
+        await ValidatePhoto(file1.AssetIdentifier, file1.OriginalFileName, toBeDeleted);
+
+        // now delete the resources and validate that the files are deleted from the remote
+        var resource1 = await Context.MediaResources
+            .FirstOrDefaultAsync(x => x.AssetIdentifier == file1.AssetIdentifier);
+        Assert.NotNull(resource1);
+        await RemoteFileManager.DeleteResource(resource1);
+
+        foreach (var file in toBeDeleted)
+        {
+            await remoteValidator.ValidateFileDeleted(file);
+        }
+    }
+
+    [Fact]
+    public async Task TestImportMedia()
+    {
+        var remoteValidator = new RemoteFileValidator(RemoteFileManager);
         var gameId = TestGameManager.GetGameId(Context, 3);
 
         var mediaBefore = await Controller.GetThumbnails(gameId: gameId);
@@ -178,7 +228,8 @@ public class MediaTests : BaseballTests
         Assert.NotNull(mediaBefore.Value);
         var countBefore = mediaBefore.Value.TotalCount;
 
-        // now import one hevc video to the game
+        // now import several different media files to the game
+        // this includes a video, two live photos, and a regular photo
         var files = new List<IFormFile>();
         var videoDirectory = Path.Join("data", "media", "video");
         var photoDirectory = Path.Join("data", "media", "photos");
@@ -259,58 +310,6 @@ public class MediaTests : BaseballTests
             Assert.NotNull(resource);
             await RemoteFileManager.DeleteResource(resource);
         }
-
-        foreach (var file in toBeDeleted)
-        {
-            await remoteValidator.ValidateFileDeleted(file);
-        }
-    }
-
-    [Fact]
-    private async void TestImportMedia()
-    {
-        var remoteValidator = new RemoteFileValidator(RemoteFileManager);
-        var gameId = TestGameManager.GetGameId(Context, 4);
-
-        var mediaBefore = await Controller.GetThumbnails(gameId: gameId);
-        Assert.NotNull(mediaBefore);
-        Assert.NotNull(mediaBefore.Value);
-        var countBefore = mediaBefore.Value.TotalCount;
-
-        // now import several different media files to the game
-        // this includes a video, two live photos, and a regular photo
-        var files = new List<IFormFile>();
-        var photoDirectory = Path.Join("data", "media", "photos");
-        foreach (var filePath in Directory.EnumerateFiles(photoDirectory))
-        {
-            var fileName = Path.GetFileName(filePath);
-            using var fileStream = File.OpenRead(filePath);
-            var memoryStream = new MemoryStream();
-            fileStream.CopyTo(memoryStream);
-            var formFile = new FormFile(memoryStream, 0, memoryStream.Length, fileName, fileName);
-            files.Add(formFile);
-        }
-
-        await Controller.ImportMedia(files, JsonConvert.SerializeObject(gameId));
-
-        var mediaAfter = await Controller.GetThumbnails(gameId: gameId);
-        Assert.NotNull(mediaAfter);
-        Assert.NotNull(mediaAfter.Value);
-        var countAfter = mediaAfter.Value.TotalCount;
-        Assert.Equal(countBefore + 1, countAfter);
-
-        var file1 = mediaAfter.Value.Results.FirstOrDefault(x => x.OriginalFileName == "IMG_4721.HEIC");
-        Assert.NotNull(file1.Key);
-
-        List<RemoteFileDetail> toBeDeleted = [];
-
-        await ValidatePhoto(file1.AssetIdentifier, file1.OriginalFileName, toBeDeleted);
-
-        // now delete the resources and validate that the files are deleted from the remote
-        var resource1 = await Context.MediaResources
-            .FirstOrDefaultAsync(x => x.AssetIdentifier == file1.AssetIdentifier);
-        Assert.NotNull(resource1);
-        await RemoteFileManager.DeleteResource(resource1);
 
         foreach (var file in toBeDeleted)
         {
