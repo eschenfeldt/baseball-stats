@@ -5,20 +5,23 @@ using BaseballApi.Import;
 using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
+using Microsoft.EntityFrameworkCore;
+using BaseballApi.Contracts;
 
 namespace BaseballApiTests;
 
 public class MediaTests : BaseballTests
 {
     MediaController Controller { get; }
+    RemoteFileManager RemoteFileManager { get; }
     TestGameManager TestGameManager { get; }
 
     public MediaTests(TestDatabaseFixture fixture) : base(fixture)
     {
         var builder = new ConfigurationBuilder().AddUserSecrets<TestDatabaseFixture>();
         IConfiguration configuration = builder.Build();
-        RemoteFileManager remoteFileManager = new(configuration, nameof(MediaTests));
-        Controller = new MediaController(Context, remoteFileManager);
+        RemoteFileManager = new(configuration, nameof(MediaTests));
+        Controller = new MediaController(Context, RemoteFileManager);
         TestGameManager = new TestGameManager(Context);
     }
 
@@ -57,6 +60,7 @@ public class MediaTests : BaseballTests
     [Fact]
     public async Task TestImportLivePhotos()
     {
+        var remoteValidator = new RemoteFileValidator(RemoteFileManager);
         var gameId = TestGameManager.GetGameId(Context, 1);
 
         var mediaBefore = await Controller.GetThumbnails(gameId: gameId);
@@ -85,7 +89,70 @@ public class MediaTests : BaseballTests
         var countAfter = mediaAfter.Value.TotalCount;
         Assert.Equal(countBefore + 2, countAfter);
 
-        Assert.Fail("Add better assertions here.");
+        var file1 = mediaAfter.Value.Results.FirstOrDefault(x => x.OriginalFileName == "IMG_4762.HEIC");
+        Assert.NotNull(file1.Key);
+        var file2 = mediaAfter.Value.Results.FirstOrDefault(x => x.OriginalFileName == "IMG_4771.HEIC");
+        Assert.NotNull(file2.Key);
+        Assert.NotEqual(file1.AssetIdentifier, file2.AssetIdentifier);
+
+        List<RemoteFileDetail> toBeDeleted = [];
+
+        async Task ValidateLivePhoto(Guid assetIdentifier, string originalFileName)
+        {
+            var original = await Controller.GetOriginal(assetIdentifier);
+            Assert.NotNull(original);
+            Assert.NotNull(original.Value.Photo);
+            Assert.NotNull(original.Value.Video);
+            Assert.NotNull(original.Value.AlternatePhoto);
+            Assert.NotNull(original.Value.AlternateVideo);
+            Assert.Equal(originalFileName, original.Value.Photo.Value.OriginalFileName);
+
+            await remoteValidator.ValidateFileExists(original.Value.Photo.Value);
+            await remoteValidator.ValidateFileExists(original.Value.Video.Value);
+            await remoteValidator.ValidateFileExists(original.Value.AlternatePhoto.Value);
+            await remoteValidator.ValidateFileExists(original.Value.AlternateVideo.Value);
+
+            toBeDeleted.Add(original.Value.Photo.Value);
+            toBeDeleted.Add(original.Value.Video.Value);
+            toBeDeleted.Add(original.Value.AlternatePhoto.Value);
+            toBeDeleted.Add(original.Value.AlternateVideo.Value);
+
+            var thumbnails = await Context.MediaResources
+                .Where(x => x.AssetIdentifier == assetIdentifier)
+                .SelectMany(x => x.Files.Where(f => f.Purpose == RemoteFilePurpose.Thumbnail))
+                .ToListAsync();
+
+            Assert.Equal(3, thumbnails.Count);
+
+            foreach (var thumbnail in thumbnails)
+            {
+                Assert.NotNull(thumbnail.NameModifier);
+                var thumbnailDetail = await Controller.GetThumbnail(assetIdentifier, thumbnail.NameModifier);
+                Assert.NotNull(thumbnailDetail);
+                Assert.NotNull(thumbnailDetail.Value);
+                await remoteValidator.ValidateFileExists(thumbnailDetail.Value.Value);
+
+                toBeDeleted.Add(thumbnailDetail.Value.Value);
+            }
+        }
+
+        await ValidateLivePhoto(file1.AssetIdentifier, file1.OriginalFileName);
+        await ValidateLivePhoto(file2.AssetIdentifier, file2.OriginalFileName);
+
+        // now delete the resources and validate that the files are deleted from the remote
+        var resource1 = await Context.MediaResources
+            .FirstOrDefaultAsync(x => x.AssetIdentifier == file1.AssetIdentifier);
+        Assert.NotNull(resource1);
+        var resource2 = await Context.MediaResources
+            .FirstOrDefaultAsync(x => x.AssetIdentifier == file2.AssetIdentifier);
+        Assert.NotNull(resource2);
+        await RemoteFileManager.DeleteResource(resource1);
+        await RemoteFileManager.DeleteResource(resource2);
+
+        foreach (var file in toBeDeleted)
+        {
+            await remoteValidator.ValidateFileDeleted(file);
+        }
     }
 
 }

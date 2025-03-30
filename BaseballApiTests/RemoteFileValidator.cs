@@ -1,7 +1,4 @@
-using System;
-using System.Diagnostics;
 using Amazon.S3;
-using Amazon.S3.Model.Internal.MarshallTransformations;
 using BaseballApi.Contracts;
 using BaseballApi.Import;
 

@@ -135,6 +135,25 @@ namespace BaseballApi.Controllers
             };
         }
 
+        [HttpGet("thumbnail/{assetIdentifier}")]
+        public async Task<ActionResult<RemoteFileDetail?>> GetThumbnail(Guid assetIdentifier, string size = "small")
+        {
+            return await _context.MediaResources
+                .Where(r => r.AssetIdentifier == assetIdentifier)
+                .Select(r => r.Files.First(f =>
+                    f.Purpose == RemoteFilePurpose.Thumbnail && f.NameModifier != null && f.NameModifier == size))
+                .Select(f => new RemoteFileDetail
+                {
+                    AssetIdentifier = f.Resource.AssetIdentifier,
+                    DateTime = f.Resource.DateTime,
+                    FileType = (f.Resource as MediaResource).ResourceType.Humanize(),
+                    OriginalFileName = f.Resource.OriginalFileName,
+                    NameModifier = f.NameModifier,
+                    Purpose = f.Purpose,
+                    Extension = f.Extension
+                }).SingleOrDefaultAsync();
+        }
+
         [HttpGet("random")]
         public async Task<ActionResult<RemoteFileDetail?>> GetRandomThumbnail(
             string size = "medium",
