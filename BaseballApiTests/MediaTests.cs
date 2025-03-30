@@ -74,12 +74,7 @@ public class MediaTests : BaseballTests
         var livePhotoDirectory = Path.Join("data", "media", "live photos");
         foreach (var filePath in Directory.EnumerateFiles(livePhotoDirectory))
         {
-            var fileName = Path.GetFileName(filePath);
-            using var fileStream = File.OpenRead(filePath);
-            var memoryStream = new MemoryStream();
-            fileStream.CopyTo(memoryStream);
-            var formFile = new FormFile(memoryStream, 0, memoryStream.Length, fileName, fileName);
-            files.Add(formFile);
+            files.Add(CreateFormFile(filePath, out _));
         }
 
         await Controller.ImportMedia(files, JsonConvert.SerializeObject(gameId));
@@ -132,12 +127,7 @@ public class MediaTests : BaseballTests
         var videoDirectory = Path.Join("data", "media", "video");
         foreach (var filePath in Directory.EnumerateFiles(videoDirectory))
         {
-            var fileName = Path.GetFileName(filePath);
-            using var fileStream = File.OpenRead(filePath);
-            var memoryStream = new MemoryStream();
-            fileStream.CopyTo(memoryStream);
-            var formFile = new FormFile(memoryStream, 0, memoryStream.Length, fileName, fileName);
-            files.Add(formFile);
+            files.Add(CreateFormFile(filePath, out _));
         }
 
         await Controller.ImportMedia(files, JsonConvert.SerializeObject(gameId));
@@ -182,12 +172,7 @@ public class MediaTests : BaseballTests
         var photoDirectory = Path.Join("data", "media", "photos");
         foreach (var filePath in Directory.EnumerateFiles(photoDirectory))
         {
-            var fileName = Path.GetFileName(filePath);
-            using var fileStream = File.OpenRead(filePath);
-            var memoryStream = new MemoryStream();
-            fileStream.CopyTo(memoryStream);
-            var formFile = new FormFile(memoryStream, 0, memoryStream.Length, fileName, fileName);
-            files.Add(formFile);
+            files.Add(CreateFormFile(filePath, out _));
         }
 
         await Controller.ImportMedia(files, JsonConvert.SerializeObject(gameId));
@@ -237,32 +222,17 @@ public class MediaTests : BaseballTests
         Dictionary<string, MediaResourceType> resourceTypes = [];
         foreach (var filePath in Directory.EnumerateFiles(photoDirectory))
         {
-            var fileName = Path.GetFileName(filePath);
-            using var fileStream = File.OpenRead(filePath);
-            var memoryStream = new MemoryStream();
-            fileStream.CopyTo(memoryStream);
-            var formFile = new FormFile(memoryStream, 0, memoryStream.Length, fileName, fileName);
-            files.Add(formFile);
+            files.Add(CreateFormFile(filePath, out string fileName));
             resourceTypes[fileName] = MediaResourceType.Photo;
         }
         foreach (var filePath in Directory.EnumerateFiles(videoDirectory))
         {
-            var fileName = Path.GetFileName(filePath);
-            using var fileStream = File.OpenRead(filePath);
-            var memoryStream = new MemoryStream();
-            fileStream.CopyTo(memoryStream);
-            var formFile = new FormFile(memoryStream, 0, memoryStream.Length, fileName, fileName);
-            files.Add(formFile);
+            files.Add(CreateFormFile(filePath, out string fileName));
             resourceTypes[fileName] = MediaResourceType.Video;
         }
         foreach (var filePath in Directory.EnumerateFiles(livePhotoDirectory))
         {
-            var fileName = Path.GetFileName(filePath);
-            using var fileStream = File.OpenRead(filePath);
-            var memoryStream = new MemoryStream();
-            fileStream.CopyTo(memoryStream);
-            var formFile = new FormFile(memoryStream, 0, memoryStream.Length, fileName, fileName);
-            files.Add(formFile);
+            files.Add(CreateFormFile(filePath, out string fileName));
             resourceTypes[fileName] = MediaResourceType.LivePhoto;
         }
 
@@ -315,6 +285,32 @@ public class MediaTests : BaseballTests
         {
             await remoteValidator.ValidateFileDeleted(file);
         }
+    }
+
+    private FormFile CreateFormFile(string filePath, out string fileName)
+    {
+        fileName = Path.GetFileName(filePath);
+        using var fileStream = File.OpenRead(filePath);
+        var memoryStream = new MemoryStream();
+        fileStream.CopyTo(memoryStream);
+        var formFile = new FormFile(memoryStream, 0, memoryStream.Length, fileName, fileName)
+        {
+            Headers = new HeaderDictionary(),
+        };
+        formFile.ContentType = GetContentType(fileName);
+        return formFile;
+    }
+
+    private string GetContentType(string fileName)
+    {
+        var extension = Path.GetExtension(fileName).ToLowerInvariant();
+        return extension switch
+        {
+            ".heic" => "image/heic",
+            ".mov" => "video/quicktime",
+            ".mp4" => "video/mp4",
+            _ => throw new NotSupportedException($"Unsupported file type: {extension}")
+        };
     }
 
     private async Task ValidateLivePhoto(Guid assetIdentifier, string originalFileName, List<RemoteFileDetail> toBeDeleted)

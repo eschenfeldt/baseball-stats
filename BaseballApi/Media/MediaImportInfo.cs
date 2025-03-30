@@ -7,5 +7,8 @@ public class MediaImportInfo
 {
     public required string BaseName { get; set; }
     public MediaResourceType ResourceType { get; set; }
-    public Dictionary<string, string> FilePaths { get; } = [];
+    public string? PhotoFilePath { get; set; }
+    public string? PhotoFileName { get; set; }
+    public string? VideoFilePath { get; set; }
+    public string? VideoFileName { get; set; }
 }

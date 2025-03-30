@@ -8,6 +8,11 @@ var corsLocal = "_corsLocalPolicy";
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = null; // unlimited
+});
+
 // Add services to the container.
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

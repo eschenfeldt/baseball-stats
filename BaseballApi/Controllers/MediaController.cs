@@ -260,10 +260,14 @@ namespace BaseballApi.Controllers
                 {
                     if (resource.ResourceType == MediaResourceType.Photo && formFile.ContentType.StartsWith("video/"))
                     {
+                        resource.VideoFileName = formFile.FileName;
+                        resource.VideoFilePath = filePath;
                         resource.ResourceType = MediaResourceType.LivePhoto;
                     }
                     else if (resource.ResourceType == MediaResourceType.Video && formFile.ContentType.StartsWith("image/"))
                     {
+                        resource.PhotoFileName = formFile.FileName;
+                        resource.PhotoFilePath = filePath;
                         resource.ResourceType = MediaResourceType.LivePhoto;
                     }
                     else
@@ -271,19 +275,35 @@ namespace BaseballApi.Controllers
                         throw new ArgumentException($"Duplicate file name '{baseName}' with unexpected types: {resource.ResourceType} and {formFile.ContentType}");
                     }
                 }
-                else
+                else if (formFile.ContentType.StartsWith("image/"))
                 {
                     resource = new MediaImportInfo
                     {
                         BaseName = baseName,
-                        ResourceType = formFile.ContentType.StartsWith("image/") ? MediaResourceType.Photo : MediaResourceType.Video,
+                        ResourceType = MediaResourceType.Photo,
+                        PhotoFileName = formFile.FileName,
+                        PhotoFilePath = filePath
                     };
                     resources[baseName] = resource;
                 }
-                resource.FilePaths[formFile.FileName] = filePath;
+                else if (formFile.ContentType.StartsWith("video/"))
+                {
+                    resource = new MediaImportInfo
+                    {
+                        BaseName = baseName,
+                        ResourceType = MediaResourceType.Video,
+                        VideoFileName = formFile.FileName,
+                        VideoFilePath = filePath
+                    };
+                    resources[baseName] = resource;
+                }
+                else
+                {
+                    throw new ArgumentException($"Unsupported file type '{formFile.ContentType}' for file '{formFile.FileName}'");
+                }
             }
 
-            var importManager = new MediaImportManager([.. resources.Select(kvp => kvp.Value)]);
+            var importManager = new MediaImportManager([.. resources.Select(kvp => kvp.Value)], RemoteFileManager);
 
             await foreach (var resource in importManager.GetUploadedResources())
             {
