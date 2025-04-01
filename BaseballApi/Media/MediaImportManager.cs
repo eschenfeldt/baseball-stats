@@ -209,7 +209,13 @@ public class MediaImportManager(List<MediaImportInfo> resources, IRemoteFileMana
             await RemoteFileManager.UploadFile(altVideoFile, altVideo.FullName);
             mediaResource.Files.Add(altVideoFile);
         }
-        // TODO: generate video thumbnails
+
+        if (mediaResource.ResourceType == MediaResourceType.Video)
+        {
+            // live photo will get its thumbnails from the photo
+            var frame = VideoConverter.CreateJpeg(videoFile);
+            await this.GeneratePhotoThumbnails(mediaResource, frame);
+        }
     }
 
     private async Task GeneratePhotoThumbnails(MediaResource mediaResource, FileInfo photo)
