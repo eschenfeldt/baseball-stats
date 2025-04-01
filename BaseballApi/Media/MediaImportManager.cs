@@ -45,6 +45,7 @@ public class MediaImportManager(List<MediaImportInfo> resources, IRemoteFileMana
         }
         var mediaResource = new MediaResource
         {
+            AssetIdentifier = Guid.NewGuid(),
             ResourceType = MediaResourceType.Photo,
             OriginalFileName = resource.PhotoFileName
         };
@@ -66,6 +67,7 @@ public class MediaImportManager(List<MediaImportInfo> resources, IRemoteFileMana
         }
         var mediaResource = new MediaResource
         {
+            AssetIdentifier = Guid.NewGuid(),
             ResourceType = MediaResourceType.Video,
             OriginalFileName = resource.VideoFileName
         };
@@ -87,6 +89,7 @@ public class MediaImportManager(List<MediaImportInfo> resources, IRemoteFileMana
         }
         var mediaResource = new MediaResource
         {
+            AssetIdentifier = Guid.NewGuid(),
             ResourceType = MediaResourceType.LivePhoto,
             OriginalFileName = resource.PhotoFileName
         };
@@ -108,7 +111,8 @@ public class MediaImportManager(List<MediaImportInfo> resources, IRemoteFileMana
             throw new ArgumentException("Photo must have a photo file name");
         }
 
-        var photoInfo = ImageConverter.GetImageInfo(new FileInfo(photoFilePath));
+        var photoFile = new FileInfo(photoFilePath);
+        var photoInfo = ImageConverter.GetImageInfo(photoFile);
         if (photoInfo == null)
         {
             throw new ArgumentException($"Failed to process photo file {photoFileName}");
@@ -128,7 +132,7 @@ public class MediaImportManager(List<MediaImportInfo> resources, IRemoteFileMana
         {
             Resource = mediaResource,
             Purpose = RemoteFilePurpose.Original,
-            Extension = photoInfo.Extension
+            Extension = photoFile.Extension
         };
         await RemoteFileManager.UploadFile(originalPhoto, photoFilePath);
         mediaResource.Files.Add(originalPhoto);
@@ -158,8 +162,8 @@ public class MediaImportManager(List<MediaImportInfo> resources, IRemoteFileMana
         FileInfo? altVideo = null;
         if (convertedVideoStream.CodecName != "h264")
         {
-            var convertedVideo = VideoConverter.ConvertVideo(new FileInfo(videoFilePath));
-            if (convertedVideo == null)
+            altVideo = VideoConverter.ConvertVideo(new FileInfo(videoFilePath));
+            if (altVideo == null)
             {
                 throw new ArgumentException($"Failed to convert video file {videoFileName} to H264");
             }
@@ -200,7 +204,8 @@ public class MediaImportManager(List<MediaImportInfo> resources, IRemoteFileMana
                 {
                     Resource = mediaResource,
                     Purpose = RemoteFilePurpose.Thumbnail,
-                    Extension = thumbnail.Extension
+                    Extension = thumbnail.Extension,
+                    NameModifier = size.Modifier
                 };
                 await RemoteFileManager.UploadFile(thumbnailFile, thumbnail.FullName);
                 mediaResource.Files.Add(thumbnailFile);

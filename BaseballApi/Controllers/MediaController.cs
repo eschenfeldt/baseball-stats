@@ -251,6 +251,7 @@ namespace BaseballApi.Controllers
             foreach (var formFile in files)
             {
                 var filePath = Path.GetTempFileName();
+                filePath = Path.ChangeExtension(filePath, Path.GetExtension(formFile.FileName));
                 using (var stream = System.IO.File.Create(filePath))
                 {
                     await formFile.CopyToAsync(stream);
@@ -308,15 +309,18 @@ namespace BaseballApi.Controllers
             await foreach (var resource in importManager.GetUploadedResources())
             {
                 resource.Game = game;
-                await _context.SaveChangesAsync();
+                game.Media.Add(resource);
+                _context.MediaResources.Add(resource);
             }
+
+            await _context.SaveChangesAsync();
 
             var photoCount = resources.Values.Count(r => r.ResourceType == MediaResourceType.Photo);
             var videoCount = resources.Values.Count(r => r.ResourceType == MediaResourceType.Video);
             var livePhotoCount = resources.Values.Count(r => r.ResourceType == MediaResourceType.LivePhoto);
             var message = $"Uploaded {photoCount} photos, {videoCount} videos, and {livePhotoCount} live photos.";
 
-            return Ok(new { message = message });
+            return Ok(new { message });
         }
     }
 }

@@ -28,7 +28,7 @@ public class MediaTests : BaseballTests
 
     public static TheoryData<int?, int?, int?, List<MockFile>> Thumbnails => new()
     {
-        {null, null, null, []},
+        {null, 1, null, []},
         // {4, 4, null, []}
     };
 
@@ -318,9 +318,13 @@ public class MediaTests : BaseballTests
         var original = await Controller.GetOriginal(assetIdentifier);
         Assert.NotNull(original);
         Assert.NotNull(original.Value.Photo);
+        Assert.Equal(".HEIC", original.Value.Photo.Value.Extension);
         Assert.NotNull(original.Value.Video);
+        Assert.Equal(".MOV", original.Value.Video.Value.Extension);
         Assert.NotNull(original.Value.AlternatePhoto);
+        Assert.Equal(".jpeg", original.Value.AlternatePhoto.Value.Extension);
         Assert.NotNull(original.Value.AlternateVideo);
+        Assert.Equal(".mp4", original.Value.AlternateVideo.Value.Extension);
         Assert.Equal(originalFileName, original.Value.Photo.Value.OriginalFileName);
         var expectedTime = ExpectedResourceTimes[originalFileName];
         Assert.Equal(expectedTime, original.Value.Photo.Value.DateTime);
@@ -359,8 +363,10 @@ public class MediaTests : BaseballTests
         var original = await Controller.GetOriginal(assetIdentifier);
         Assert.NotNull(original);
         Assert.NotNull(original.Value.Photo);
+        Assert.Equal(".HEIC", original.Value.Photo.Value.Extension);
         Assert.Null(original.Value.Video);
         Assert.NotNull(original.Value.AlternatePhoto);
+        Assert.Equal(".jpeg", original.Value.AlternatePhoto.Value.Extension);
         Assert.Null(original.Value.AlternateVideo);
         Assert.Equal(originalFileName, original.Value.Photo.Value.OriginalFileName);
         var expectedTime = ExpectedResourceTimes[originalFileName];
@@ -397,8 +403,10 @@ public class MediaTests : BaseballTests
         Assert.NotNull(original);
         Assert.Null(original.Value.Photo);
         Assert.NotNull(original.Value.Video);
+        Assert.Equal(".MOV", original.Value.Video.Value.Extension);
         Assert.Null(original.Value.AlternatePhoto);
         Assert.NotNull(original.Value.AlternateVideo);
+        Assert.Equal(".mp4", original.Value.AlternateVideo.Value.Extension);
         Assert.Equal(originalFileName, original.Value.Video.Value.OriginalFileName);
         var expectedTime = ExpectedResourceTimes[originalFileName];
         Assert.Equal(expectedTime, original.Value.Video.Value.DateTime);
