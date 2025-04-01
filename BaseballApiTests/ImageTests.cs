@@ -43,6 +43,9 @@ public class ImageTests
         decimal originalAspectRatio = (decimal)originalInfo.Width / originalInfo.Height;
         decimal thumbnailAspectRatio = (decimal)thumbnailInfo.Width / thumbnailInfo.Height;
         Assert.Equal(originalAspectRatio, thumbnailAspectRatio, 2);
+
+        thumbnail.Delete();
+        Assert.False(thumbnail.Exists);
     }
 
     [Theory]
@@ -66,5 +69,28 @@ public class ImageTests
         Assert.Equal("jpeg", convertedInfo.Extension);
         Assert.Equal(originalInfo.Width, convertedInfo.Width);
         Assert.Equal(originalInfo.Height, convertedInfo.Height);
+
+        converted.Delete();
+        Assert.False(converted.Exists);
+    }
+
+    [Theory]
+    [InlineData("live photos", "IMG_4762.HEIC")]
+    [InlineData("live photos", "IMG_4771.HEIC")]
+    [InlineData("photos", "IMG_4721.HEIC")]
+    [InlineData("video", "hevc.MOV")]
+    public void TestExifDate(string folderName, string fileName)
+    {
+        if (!MediaTests.ExpectedResourceTimes.TryGetValue(fileName, out DateTimeOffset expectedDateTime))
+        {
+            Assert.Fail($"No expected date time for {fileName}");
+            return;
+        }
+
+        FileInfo original = new(Path.Join("data", "media", folderName, fileName));
+        ImageConverter converter = new();
+
+        ExifInfo exif = converter.GetExifInfo(original);
+        Assert.Equal(expectedDateTime, exif.CreationDate);
     }
 }

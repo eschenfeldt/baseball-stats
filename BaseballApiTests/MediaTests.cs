@@ -320,7 +320,7 @@ public class MediaTests : BaseballTests
         Assert.NotNull(original.Value.Photo);
         Assert.Equal(".HEIC", original.Value.Photo.Value.Extension);
         Assert.NotNull(original.Value.Video);
-        Assert.Equal(".MOV", original.Value.Video.Value.Extension);
+        Assert.Equal(".mov", original.Value.Video.Value.Extension);
         Assert.NotNull(original.Value.AlternatePhoto);
         Assert.Equal(".jpeg", original.Value.AlternatePhoto.Value.Extension);
         Assert.NotNull(original.Value.AlternateVideo);
@@ -436,9 +436,9 @@ public class MediaTests : BaseballTests
         }
     }
 
-    private Dictionary<string, DateTimeOffset> ExpectedResourceTimes = new()
+    internal static Dictionary<string, DateTimeOffset> ExpectedResourceTimes = new()
     {
-        {"IMG_4721.HEIC", new DateTimeOffset(2023, 9, 28, 12, 43, 11, TimeSpan.FromHours(-5))},
+        {"IMG_4721.HEIC", new DateTimeOffset(2024, 9, 28, 12, 43, 11, TimeSpan.FromHours(-5))},
         {"IMG_4762.HEIC", new DateTimeOffset(2024, 9, 28, 14, 19, 30, TimeSpan.FromHours(-5))},
         {"IMG_4771.HEIC", new DateTimeOffset(2024, 9, 28, 14, 47, 12, TimeSpan.FromHours(-5))},
         {"hevc.MOV", new DateTimeOffset(2021, 7, 28, 16, 12, 52, TimeSpan.FromHours(-4))}

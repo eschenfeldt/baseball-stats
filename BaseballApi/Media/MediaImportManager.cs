@@ -43,6 +43,7 @@ public class MediaImportManager(List<MediaImportInfo> resources, IRemoteFileMana
         {
             throw new ArgumentException("Photo must have a photo file name");
         }
+
         var mediaResource = new MediaResource
         {
             AssetIdentifier = Guid.NewGuid(),
@@ -118,6 +119,13 @@ public class MediaImportManager(List<MediaImportInfo> resources, IRemoteFileMana
             throw new ArgumentException($"Failed to process photo file {photoFileName}");
         }
 
+        var exifInfo = ImageConverter.GetExifInfo(photoFile);
+        if (exifInfo == null)
+        {
+            throw new ArgumentException($"Failed to read exif data from photo file {photoFileName}");
+        }
+        mediaResource.DateTime = exifInfo.CreationDate.ToUniversalTime(); // Postgres must be UTC
+
         FileInfo? altPhoto = null;
         if (photoInfo.Extension != ".jpg" && photoInfo.Extension != ".jpeg")
         {
@@ -153,7 +161,19 @@ public class MediaImportManager(List<MediaImportInfo> resources, IRemoteFileMana
 
     private async Task ProcessVideoInternal(MediaResource mediaResource, string videoFilePath, string videoFileName)
     {
-        var videoInfo = VideoConverter.GetVideoInfo(new FileInfo(videoFilePath));
+        var videoFile = new FileInfo(videoFilePath);
+        if (mediaResource.DateTime == default)
+        {
+            // If the date time is not set, this isn't a live photo, so we should set it from the video file
+            var exifInfo = ImageConverter.GetExifInfo(videoFile);
+            if (exifInfo == null)
+            {
+                throw new ArgumentException($"Failed to read exif data from video file {videoFileName}");
+            }
+            mediaResource.DateTime = exifInfo.CreationDate.ToUniversalTime(); // Postgres must be UTC
+        }
+
+        var videoInfo = VideoConverter.GetVideoInfo(videoFile);
         if (videoInfo == null)
         {
             throw new ArgumentException($"Failed to process video file {videoFileName}");
@@ -162,7 +182,7 @@ public class MediaImportManager(List<MediaImportInfo> resources, IRemoteFileMana
         FileInfo? altVideo = null;
         if (convertedVideoStream.CodecName != "h264")
         {
-            altVideo = VideoConverter.ConvertVideo(new FileInfo(videoFilePath));
+            altVideo = VideoConverter.ConvertVideo(videoFile);
             if (altVideo == null)
             {
                 throw new ArgumentException($"Failed to convert video file {videoFileName} to H264");
