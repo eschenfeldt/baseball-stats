@@ -72,7 +72,7 @@ public class MediaTests : BaseballTests
         // now import two HEIC live photos to the game
         var files = new List<IFormFile>();
         var livePhotoDirectory = Path.Join("data", "media", "live photos");
-        foreach (var filePath in Directory.EnumerateFiles(livePhotoDirectory))
+        foreach (var filePath in EnumerateMediaFiles(livePhotoDirectory))
         {
             files.Add(CreateFormFile(filePath, out _));
         }
@@ -125,7 +125,7 @@ public class MediaTests : BaseballTests
         // now import one hevc video to the game
         var files = new List<IFormFile>();
         var videoDirectory = Path.Join("data", "media", "video");
-        foreach (var filePath in Directory.EnumerateFiles(videoDirectory))
+        foreach (var filePath in EnumerateMediaFiles(videoDirectory))
         {
             files.Add(CreateFormFile(filePath, out _));
         }
@@ -170,7 +170,7 @@ public class MediaTests : BaseballTests
 
         var files = new List<IFormFile>();
         var photoDirectory = Path.Join("data", "media", "photos");
-        foreach (var filePath in Directory.EnumerateFiles(photoDirectory))
+        foreach (var filePath in EnumerateMediaFiles(photoDirectory))
         {
             files.Add(CreateFormFile(filePath, out _));
         }
@@ -220,17 +220,17 @@ public class MediaTests : BaseballTests
         var photoDirectory = Path.Join("data", "media", "photos");
         var livePhotoDirectory = Path.Join("data", "media", "live photos");
         Dictionary<string, MediaResourceType> resourceTypes = [];
-        foreach (var filePath in Directory.EnumerateFiles(photoDirectory))
+        foreach (var filePath in EnumerateMediaFiles(photoDirectory))
         {
             files.Add(CreateFormFile(filePath, out string fileName));
             resourceTypes[fileName] = MediaResourceType.Photo;
         }
-        foreach (var filePath in Directory.EnumerateFiles(videoDirectory))
+        foreach (var filePath in EnumerateMediaFiles(videoDirectory))
         {
             files.Add(CreateFormFile(filePath, out string fileName));
             resourceTypes[fileName] = MediaResourceType.Video;
         }
-        foreach (var filePath in Directory.EnumerateFiles(livePhotoDirectory))
+        foreach (var filePath in EnumerateMediaFiles(livePhotoDirectory))
         {
             files.Add(CreateFormFile(filePath, out string fileName));
             resourceTypes[fileName] = MediaResourceType.LivePhoto;
@@ -285,6 +285,106 @@ public class MediaTests : BaseballTests
         {
             await remoteValidator.ValidateFileDeleted(file);
         }
+    }
+
+    [Fact]
+    public async Task TestReimportMedia()
+    {
+        var remoteValidator = new RemoteFileValidator(RemoteFileManager);
+        var gameId = TestGameManager.GetGameId(Context, 3);
+
+        var mediaBefore = await Controller.GetThumbnails(gameId: gameId);
+        Assert.NotNull(mediaBefore);
+        Assert.NotNull(mediaBefore.Value);
+        var countBefore = mediaBefore.Value.TotalCount;
+
+        // now import several different media files to the game
+        // skip the photo on the first import
+        var files = new List<IFormFile>();
+        var videoDirectory = Path.Join("data", "media", "video");
+        var livePhotoDirectory = Path.Join("data", "media", "live photos");
+        Dictionary<string, MediaResourceType> resourceTypes = [];
+        foreach (var filePath in EnumerateMediaFiles(videoDirectory))
+        {
+            files.Add(CreateFormFile(filePath, out string fileName));
+            resourceTypes[fileName] = MediaResourceType.Video;
+        }
+        foreach (var filePath in EnumerateMediaFiles(livePhotoDirectory))
+        {
+            files.Add(CreateFormFile(filePath, out string fileName));
+            resourceTypes[fileName] = MediaResourceType.LivePhoto;
+        }
+
+        await Controller.ImportMedia(files, JsonConvert.SerializeObject(gameId));
+
+        var mediaAfter = await Controller.GetThumbnails(gameId: gameId);
+        Assert.NotNull(mediaAfter);
+        Assert.NotNull(mediaAfter.Value);
+        var countAfter = mediaAfter.Value.TotalCount;
+        Assert.Equal(countBefore + 3, countAfter);
+
+        var photoDirectory = Path.Join("data", "media", "photos");
+        foreach (var filePath in EnumerateMediaFiles(photoDirectory))
+        {
+            files.Add(CreateFormFile(filePath, out string fileName));
+            resourceTypes[fileName] = MediaResourceType.Photo;
+        }
+        await Controller.ImportMedia(files, JsonConvert.SerializeObject(gameId));
+
+        // Make sure we don't duplicate the video or live photos
+        var mediaAfterReimport = await Controller.GetThumbnails(gameId: gameId);
+        Assert.NotNull(mediaAfterReimport);
+        Assert.NotNull(mediaAfterReimport.Value);
+        var countAfterReimport = mediaAfterReimport.Value.TotalCount;
+        Assert.Equal(countBefore + 4, countAfterReimport);
+
+        List<RemoteFileDetail> toBeDeleted = [];
+        foreach (var file in mediaAfter.Value.Results)
+        {
+            Assert.NotNull(file.Key);
+            if (resourceTypes.TryGetValue(file.OriginalFileName, out MediaResourceType resourceType))
+            {
+                switch (resourceType)
+                {
+                    case MediaResourceType.Photo:
+                        await ValidatePhoto(file.AssetIdentifier, file.OriginalFileName, toBeDeleted);
+                        break;
+                    case MediaResourceType.Video:
+                        await ValidateVideo(file.AssetIdentifier, file.OriginalFileName, toBeDeleted);
+                        break;
+                    case MediaResourceType.LivePhoto:
+                        await ValidateLivePhoto(file.AssetIdentifier, file.OriginalFileName, toBeDeleted);
+                        break;
+                    default:
+                        Assert.Fail($"Unknown resource type {resourceType} for file {file.OriginalFileName}");
+                        break;
+                }
+            }
+            else
+            {
+                Assert.Fail($"No identified resource type for file {file.OriginalFileName}");
+            }
+        }
+
+        foreach (var file in mediaAfter.Value.Results)
+        {
+            // now delete the resources and validate that the files are deleted from the remote
+            var resource = await Context.MediaResources
+                .FirstOrDefaultAsync(x => x.AssetIdentifier == file.AssetIdentifier);
+            Assert.NotNull(resource);
+            await RemoteFileManager.DeleteResource(resource);
+        }
+
+        foreach (var file in toBeDeleted)
+        {
+            await remoteValidator.ValidateFileDeleted(file);
+        }
+    }
+
+    private IEnumerable<string> EnumerateMediaFiles(string directoryPath)
+    {
+        return Directory.EnumerateFiles(directoryPath, "*.*", SearchOption.AllDirectories)
+            .Where(file => !Path.GetExtension(file).Equals(".DS_Store", StringComparison.OrdinalIgnoreCase));
     }
 
     private FormFile CreateFormFile(string filePath, out string fileName)

@@ -304,7 +304,7 @@ namespace BaseballApi.Controllers
                 }
             }
 
-            var importManager = new MediaImportManager([.. resources.Select(kvp => kvp.Value)], RemoteFileManager);
+            var importManager = new MediaImportManager([.. resources.Select(kvp => kvp.Value)], RemoteFileManager, _context, game);
 
             await foreach (var resource in importManager.GetUploadedResources())
             {

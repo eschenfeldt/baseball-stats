@@ -1,10 +1,13 @@
 using BaseballApi.Import;
 using BaseballApi.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace BaseballApi.Media;
 
-public class MediaImportManager(List<MediaImportInfo> resources, IRemoteFileManager remoteFileManager)
+public class MediaImportManager(List<MediaImportInfo> resources, IRemoteFileManager remoteFileManager, BaseballContext context, Game? game = null)
 {
+    BaseballContext Context { get; } = context;
+    Game? Game { get; } = game;
     List<MediaImportInfo> Resources { get; } = resources;
     private IRemoteFileManager RemoteFileManager { get; } = remoteFileManager;
     private VideoConverter VideoConverter { get; } = new VideoConverter();
@@ -14,23 +17,33 @@ public class MediaImportManager(List<MediaImportInfo> resources, IRemoteFileMana
     {
         foreach (var resource in Resources)
         {
-            switch (resource.ResourceType)
+            if (!await ResourceExists(resource))
             {
-                case MediaResourceType.Scorecard:
-                    throw new NotSupportedException("Scorecard import is not supported via this endpoint");
-                case MediaResourceType.Photo:
-                    yield return await ProcessPhoto(resource);
-                    break;
-                case MediaResourceType.LivePhoto:
-                    yield return await ProcessLivePhoto(resource);
-                    break;
-                case MediaResourceType.Video:
-                    yield return await ProcessVideo(resource);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(resource.ResourceType), "Invalid media resource type");
+                switch (resource.ResourceType)
+                {
+                    case MediaResourceType.Scorecard:
+                        throw new NotSupportedException("Scorecard import is not supported via this endpoint");
+                    case MediaResourceType.Photo:
+                        yield return await ProcessPhoto(resource);
+                        break;
+                    case MediaResourceType.LivePhoto:
+                        yield return await ProcessLivePhoto(resource);
+                        break;
+                    case MediaResourceType.Video:
+                        yield return await ProcessVideo(resource);
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(resource.ResourceType), "Invalid media resource type");
+                }
             }
         }
+    }
+
+    private async Task<bool> ResourceExists(MediaImportInfo resource)
+    {
+        var gameId = Game?.Id;
+        var fileName = resource.ResourceType == MediaResourceType.Video ? resource.VideoFileName : resource.PhotoFileName;
+        return await Context.MediaResources.AnyAsync(r => r.OriginalFileName == fileName && r.Game != null && r.Game.Id == gameId);
     }
 
     private async Task<MediaResource> ProcessPhoto(MediaImportInfo resource)
@@ -43,7 +56,6 @@ public class MediaImportManager(List<MediaImportInfo> resources, IRemoteFileMana
         {
             throw new ArgumentException("Photo must have a photo file name");
         }
-
         var mediaResource = new MediaResource
         {
             AssetIdentifier = Guid.NewGuid(),
