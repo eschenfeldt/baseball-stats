@@ -1,0 +1,23 @@
+<h2 mat-dialog-title>
+    Upload media for {{game.name}}
+</h2>
+<mat-dialog-content>
+    <mat-form-field>
+        @if (filesUploaded) {
+        <ul>
+            @for (fileName of fileNames; track fileName) {
+            <li>
+                {{fileName}}
+            </li>
+            }
+        </ul>
+        }
+        <input type="file" class="file-input" (change)="onFileSelected($event)" #filesUpload multiple>
+        <input matInput>
+        <button mat-button (click)="filesUpload.click()">Upload</button>
+    </mat-form-field>
+</mat-dialog-content>
+<mat-dialog-actions>
+    <button mat-button [disabled]="!filesUploaded" (click)="import()">Import</button>
+    <button mat-button mat-dialog-close>Close</button>
+</mat-dialog-actions>

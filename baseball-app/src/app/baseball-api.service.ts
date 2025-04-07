@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpEvent } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { BehaviorSubject, Observable, of } from 'rxjs';
@@ -53,6 +53,15 @@ export class BaseballApiService {
         const uri = BaseballApiService.apiBaseUrl + serviceUri;
         let req = this.http.post<T>(uri, body, { responseType: 'json', withCredentials: true });
 
+        if (handleErrors) {
+            req = req.pipe(catchError((error) => this.throwError(error)));
+        }
+        return req;
+    }
+
+    public makeApiPostWithProgress<T>(serviceUri: string, body: any, handleErrors: boolean = true): Observable<HttpEvent<T>> {
+        const uri = BaseballApiService.apiBaseUrl + serviceUri;
+        let req = this.http.post<T>(uri, body, { responseType: 'json', withCredentials: true, reportProgress: true, observe: 'events' });
         if (handleErrors) {
             req = req.pipe(catchError((error) => this.throwError(error)));
         }
