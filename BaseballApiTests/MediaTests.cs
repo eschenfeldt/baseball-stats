@@ -170,12 +170,14 @@ public class MediaTests : BaseballTests
 
         var files = new List<IFormFile>();
         var photoDirectory = Path.Join("data", "media", "photos");
+        Dictionary<string, MediaResourceType> resourceTypes = [];
         foreach (var filePath in EnumerateMediaFiles(photoDirectory))
         {
             files.Add(CreateFormFile(filePath, out _));
+            resourceTypes[filePath] = MediaResourceType.Photo;
         }
 
-        await Controller.ImportMedia(files, JsonConvert.SerializeObject(gameId));
+        await this.ImportMedia(files, gameId, resourceTypes);
 
         var mediaAfter = await Controller.GetThumbnails(gameId: gameId);
         Assert.NotNull(mediaAfter);
@@ -379,6 +381,36 @@ public class MediaTests : BaseballTests
         {
             await remoteValidator.ValidateFileDeleted(file);
         }
+    }
+
+    private async Task ImportMedia(List<IFormFile> files, long gameId, Dictionary<string, MediaResourceType> resourceTypes)
+    {
+        var importTask = await Controller.ImportMedia(files, JsonConvert.SerializeObject(gameId));
+        Assert.NotNull(importTask);
+        Assert.Equal(ImportTaskStatus.InProgress, importTask.Value.Status);
+        Assert.Equal(0, importTask.Value.Progress);
+
+        var photoCount = resourceTypes.Values.Count(r => r == MediaResourceType.Photo);
+        var videoCount = resourceTypes.Values.Count(r => r == MediaResourceType.Video);
+        var livePhotoCount = resourceTypes.Values.Count(r => r == MediaResourceType.LivePhoto);
+        string expectedMessage = $"Importing {photoCount} photos, {videoCount} videos, and {livePhotoCount} live photos";
+        Assert.Equal(expectedMessage, importTask.Value.Message);
+
+        int i = 0;
+        do
+        {
+            await Task.Delay(1000);
+            importTask = await Controller.GetImportStatus(importTask.Value.Id);
+            Assert.NotNull(importTask);
+            Assert.Equal(ImportTaskStatus.InProgress, importTask.Value.Status);
+            Assert.True(importTask.Value.Progress > 0 && importTask.Value.Progress < 1);
+            Assert.Equal(expectedMessage, importTask.Value.Message);
+            i++;
+        } while (importTask.Value.Status == ImportTaskStatus.InProgress && i < 100);
+
+        Assert.Equal(ImportTaskStatus.Completed, importTask.Value.Status);
+        expectedMessage = $"Imported {photoCount} photos, {videoCount} videos, and {livePhotoCount} live photos";
+        Assert.Equal(expectedMessage, importTask.Value.Message);
     }
 
     private IEnumerable<string> EnumerateMediaFiles(string directoryPath)
