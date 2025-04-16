@@ -82,7 +82,10 @@ public class TestDatabaseFixture
 
     public BaseballContext CreateContext()
     {
-        var builder = new ConfigurationBuilder().AddUserSecrets<TestDatabaseFixture>();
+        var configPath = Path.Join("/", "run", "secrets", "app_settings");
+        var builder = new ConfigurationBuilder()
+            .AddJsonFile(configPath, optional: true)
+            .AddUserSecrets<TestDatabaseFixture>();
         IConfiguration configuration = builder.Build();
         var ownerConnectionString = configuration["Baseball:OwnerConnectionString"];
         return new BaseballContext(new DbContextOptionsBuilder<BaseballContext>()

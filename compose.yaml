@@ -3,22 +3,33 @@ services:
   baseball-api:
     build:
       context: BaseballApi
+      target: development
+      secrets:
+        - app_settings
     restart: always
     image: baseball-api
     depends_on:
       db:
         condition: "service_healthy"
         required: false
-    secrets:
-      - app_settings
+    develop:
+      watch:
+        - action: rebuild
+          path: .
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    secrets:
+      - app_settings
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
 
   app:
     build:
       context: baseball-app
     restart: always
     image: eschenfeldt/baseball-app
+    profiles:
+      - prod
     depends_on:
       - baseball-api
 
