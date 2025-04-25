@@ -18,7 +18,9 @@ public class ImportTests(TestImportDatabaseFixture fixture) : IClassFixture<Test
     public async void TestImportGameViaController()
     {
         using BaseballContext context = Fixture.CreateContext();
-        var builder = new ConfigurationBuilder().AddUserSecrets<TestDatabaseFixture>();
+        var builder = new ConfigurationBuilder()
+            .AddJsonFile("/run/secrets/app_settings", optional: true)
+            .AddUserSecrets<TestDatabaseFixture>();
         IConfiguration configuration = builder.Build();
         RemoteFileManager remoteFileManager = new(configuration, nameof(ImportTests));
         var gamesController = new GamesController(context, remoteFileManager);
@@ -178,8 +180,6 @@ public class ImportTests(TestImportDatabaseFixture fixture) : IClassFixture<Test
 
         await remoteValidator.ValidateFileDeleted(scoreCard.Value.File);
     }
-
-
 
     public void Dispose()
     {

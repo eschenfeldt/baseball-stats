@@ -29,6 +29,14 @@ ARG TARGETARCH
 RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages \
     dotnet publish -a ${TARGETARCH/amd64/x64} --use-current-runtime --self-contained false -o /app
 
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS development
+COPY . /source
+WORKDIR /source/Api
+CMD ["dotnet", "run", "--no-launch-profile"]
+
+# above dev target can run tests via the following command
+# docker compose --profile test run --remove-orphans --rm baseball-api-dev dotnet test /source
+
 # If you need to enable globalization and time zones:
 # https://github.com/dotnet/dotnet-docker/blob/main/samples/enable-globalization.md
 ################################################################################

@@ -18,7 +18,9 @@ public class MediaTests : BaseballTests
 
     public MediaTests(TestDatabaseFixture fixture) : base(fixture)
     {
-        var builder = new ConfigurationBuilder().AddUserSecrets<TestDatabaseFixture>();
+        var builder = new ConfigurationBuilder()
+            .AddJsonFile("/run/secrets/app_settings", optional: true)
+            .AddUserSecrets<TestDatabaseFixture>();
         IConfiguration configuration = builder.Build();
         RemoteFileManager = new(configuration, nameof(MediaTests));
         RemoteValidator = new(RemoteFileManager);

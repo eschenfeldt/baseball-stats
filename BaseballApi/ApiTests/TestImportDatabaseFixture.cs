@@ -29,7 +29,10 @@ public class TestImportDatabaseFixture : IDisposable
 
     public BaseballContext CreateContext()
     {
-        var builder = new ConfigurationBuilder().AddUserSecrets<TestDatabaseFixture>();
+        var configPath = Path.Join("/", "run", "secrets", "app_settings");
+        var builder = new ConfigurationBuilder()
+            .AddJsonFile(configPath, optional: true)
+            .AddUserSecrets<TestImportDatabaseFixture>();
         IConfiguration configuration = builder.Build();
         var ownerConnectionString = configuration["Baseball:OwnerConnectionString"];
         // separate database for each fixture

@@ -1,49 +1,109 @@
 services:
-    baseball-api:
-        build:
-            context: BaseballApi
-        restart: always
-        image: baseball-api
-        extra_hosts:
-            - "host.docker.internal:host-gateway"
 
-    app:
-        build:
-            context: baseball-app
-        restart: always
-        image: eschenfeldt/baseball-app
-        depends_on:
-            - baseball-api
+  baseball-api-dev:
+    build:
+      context: BaseballApi
+      target: development
+      secrets:
+        - app_settings
+    restart: always
+    image: baseball-api
+    depends_on:
+      db:
+        condition: "service_healthy"
+    develop:
+      watch:
+        - action: rebuild
+          path: .
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    secrets:
+      - app_settings
+    profiles:
+      - test
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
 
-    proxy:
-        build: proxy
-        restart: always
-        ports:
-            - 80:80
-            - 443:443
-        depends_on:
-            - baseball-api
-            - app
-        image: baseball-gateway
-        volumes:
-            - certbot-etc:/etc/letsencrypt:ro
-            - certbot-var:/var/lib/letsencrypt:ro
-            - web-root:/var/www/html:ro
-        command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
+  baseball-api:
+    build:
+      context: BaseballApi
+    restart: always
+    image: baseball-api
+    profiles:
+      - prod
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
-    certbot:
-        image: certbot/certbot
-        restart: unless-stopped
-        container_name: certbot
-        volumes:
-            - certbot-etc:/etc/letsencrypt:rw
-            - certbot-var:/var/lib/letsencrypt:rw
-            - web-root:/var/www/html:rw
-        depends_on:
-            - proxy
-        entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+  app:
+    build:
+      context: baseball-app
+    restart: always
+    image: eschenfeldt/baseball-app
+    profiles:
+      - prod
+    depends_on:
+      - baseball-api
+
+  proxy:
+    build: proxy
+    restart: always
+    ports:
+      - 80:80
+      - 443:443
+    depends_on:
+      - baseball-api
+      - app
+    image: baseball-gateway
+    profiles:
+      - prod
+    volumes:
+      - certbot-etc:/etc/letsencrypt:ro
+      - certbot-var:/var/lib/letsencrypt:ro
+      - web-root:/var/www/html:ro
+    command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
+
+  certbot:
+    image: certbot/certbot
+    restart: unless-stopped
+    container_name: certbot
+    profiles:
+      - prod
+    volumes:
+      - certbot-etc:/etc/letsencrypt:rw
+      - certbot-var:/var/lib/letsencrypt:rw
+      - web-root:/var/www/html:rw
+    depends_on:
+      - proxy
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+
+  db:
+    image: postgres:15.8
+    profiles:
+      - test
+    ports:
+      - 5433:5432
+    restart: always
+    user: postgres
+    environment:
+      POSTGRES_USER: baseball owner
+      POSTGRES_DB: Baseball
+      POSTGRES_PASSWORD_FILE: /run/secrets/baseball_password
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -d Baseball -U 'baseball owner'" ]
+      interval: 1s
+      timeout: 5s
+      retries: 10
+    secrets:
+      - baseball_password
 
 volumes:
-    certbot-etc:
-    certbot-var:
-    web-root:
+  certbot-etc:
+  certbot-var:
+  web-root:
+
+
+secrets:
+  app_settings:
+    file: ./appsettings.Test.json
+  baseball_password:
+    file: ./baseball_password.txt
