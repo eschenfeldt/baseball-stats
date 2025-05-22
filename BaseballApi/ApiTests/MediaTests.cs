@@ -140,7 +140,7 @@ public class MediaTests : BaseballTests
         var countAfter = mediaAfter.Value.TotalCount;
         Assert.Equal(countBefore + 1, countAfter);
 
-        var file1 = mediaAfter.Value.Results.FirstOrDefault(x => x.OriginalFileName == "hevc.MOV");
+        var file1 = mediaAfter.Value.Results.FirstOrDefault(x => x.OriginalFileName == "hevc.mov");
         Assert.NotNull(file1.Key);
 
         List<RemoteFileDetail> toBeDeleted = [];
@@ -214,6 +214,7 @@ public class MediaTests : BaseballTests
         Assert.NotNull(mediaBefore);
         Assert.NotNull(mediaBefore.Value);
         var countBefore = mediaBefore.Value.TotalCount;
+        Assert.Equal(0, countBefore);
 
         // now import several different media files to the game
         // this includes a video, two live photos, and a regular photo
@@ -244,7 +245,7 @@ public class MediaTests : BaseballTests
         Assert.NotNull(mediaAfter);
         Assert.NotNull(mediaAfter.Value);
         var countAfter = mediaAfter.Value.TotalCount;
-        Assert.Equal(countBefore + 4, countAfter);
+        Assert.Equal(4, countAfter);
 
         List<RemoteFileDetail> toBeDeleted = [];
         foreach (var file in mediaAfter.Value.Results)
@@ -293,7 +294,7 @@ public class MediaTests : BaseballTests
     public async Task TestReimportMedia()
     {
         var remoteValidator = new RemoteFileValidator(RemoteFileManager);
-        var gameId = TestGameManager.GetGameId(Context, 3);
+        var gameId = TestGameManager.GetGameId(Context, 5);
 
         var mediaBefore = await Controller.GetThumbnails(gameId: gameId);
         Assert.NotNull(mediaBefore);
@@ -505,7 +506,7 @@ public class MediaTests : BaseballTests
         Assert.NotNull(original);
         Assert.Null(original.Value.Photo);
         Assert.NotNull(original.Value.Video);
-        Assert.Equal(".MOV", original.Value.Video.Value.Extension);
+        Assert.Equal(".mov", original.Value.Video.Value.Extension);
         Assert.Null(original.Value.AlternatePhoto);
         Assert.NotNull(original.Value.AlternateVideo);
         Assert.Equal(".mp4", original.Value.AlternateVideo.Value.Extension);
@@ -543,7 +544,7 @@ public class MediaTests : BaseballTests
         {"IMG_4721.HEIC", new DateTimeOffset(2024, 9, 28, 12, 43, 11, TimeSpan.FromHours(-5))},
         {"IMG_4762.HEIC", new DateTimeOffset(2024, 9, 28, 14, 19, 30, TimeSpan.FromHours(-5))},
         {"IMG_4771.HEIC", new DateTimeOffset(2024, 9, 28, 14, 47, 12, TimeSpan.FromHours(-5))},
-        {"hevc.MOV", new DateTimeOffset(2021, 7, 28, 16, 12, 52, TimeSpan.FromHours(-4))}
+        {"hevc.mov", new DateTimeOffset(2021, 7, 28, 16, 12, 52, TimeSpan.FromHours(-4))}
     };
 }
 

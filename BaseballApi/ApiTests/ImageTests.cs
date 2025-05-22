@@ -78,7 +78,7 @@ public class ImageTests
     [InlineData("live photos", "IMG_4762.HEIC")]
     [InlineData("live photos", "IMG_4771.HEIC")]
     [InlineData("photos", "IMG_4721.HEIC")]
-    [InlineData("video", "hevc.MOV")]
+    [InlineData("video", "hevc.mov")]
     public void TestExifDate(string folderName, string fileName)
     {
         if (!MediaTests.ExpectedResourceTimes.TryGetValue(fileName, out DateTimeOffset expectedDateTime))

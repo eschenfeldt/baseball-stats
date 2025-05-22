@@ -5,7 +5,7 @@ namespace BaseballApiTests;
 public class VideoTests
 {
     [Theory]
-    [InlineData("hevc.MOV", "hevc")]
+    [InlineData("hevc.mov", "hevc")]
     public void TestConversion(string fileName, string expectedOriginalCodecName)
     {
         FileInfo original = new(Path.Join("data", "media", "video", fileName));
