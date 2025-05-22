@@ -16,6 +16,9 @@
         <input matInput>
         <button mat-button (click)="filesUpload.click()">Upload</button>
     </mat-form-field>
+    @if (uploading) {
+    <mat-spinner> </mat-spinner>
+    }
 </mat-dialog-content>
 <mat-dialog-actions>
     <button mat-button [disabled]="!filesUploaded" (click)="import()">Import</button>

@@ -8,6 +8,7 @@ import { MatFormField } from '@angular/material/form-field';
 import { HttpEventType } from '@angular/common/http';
 import { MatButton } from '@angular/material/button';
 import { MatInput } from '@angular/material/input';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @Component({
     selector: 'app-import-media-dialog',
@@ -20,7 +21,8 @@ import { MatInput } from '@angular/material/input';
         MatDialogActions,
         MatDialogClose,
         MatButton,
-        MatInput
+        MatInput,
+        MatProgressSpinnerModule
     ],
     templateUrl: './import-media-dialog.component.html',
     styleUrl: './import-media-dialog.component.scss'
@@ -32,6 +34,7 @@ export class ImportMediaDialogComponent {
     get filesUploaded(): boolean {
         return this.fileNames.length > 0;
     }
+    uploading = false;
 
     constructor(
         private api: BaseballApiService,
@@ -49,6 +52,7 @@ export class ImportMediaDialogComponent {
 
     import() {
         if (this.filesUploaded) {
+            this.uploading = true;
             const formData = new FormData();
             this.files.forEach(f => {
                 formData.append('files', f);
@@ -57,6 +61,7 @@ export class ImportMediaDialogComponent {
             this.api.makeApiPostWithProgress<{ message: string }>('Media/import-media', formData).subscribe(result => {
                 if (result.type === HttpEventType.Response) {
                     this.dialogRef.close(result.body?.message);
+                    this.uploading = false;
                 } else if (result.type === HttpEventType.UploadProgress) {
                     console.log('Upload progress:', result.loaded);
                     console.log('Total bytes expected:', result.total);

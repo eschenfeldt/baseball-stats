@@ -53,6 +53,12 @@ h5 {
     margin-left: 2em;
     margin-right: 2em;
     font-size: larger;
+    display: flex;
+    justify-content: space-between;
+
+    mat-icon {
+        color: var(--primary-color);
+    }
 }
 
 .game-score-container {
