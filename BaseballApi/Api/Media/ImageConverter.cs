@@ -9,7 +9,6 @@ public class ImageConverter
     {
         using Process process = new();
         process.StartInfo.FileName = "magick";
-        // process.StartInfo.Arguments = $"identify -ping -format \'{{\\\"Extension\\\":\\\"%e\\\",\"Height\\\":%h,\\\"Width\\\":%h}}\' \"{file.FullName}\"";
         process.StartInfo.Arguments = $"identify -ping -format \"%e %w %h\" \"{file.FullName}\"";
         process.StartInfo.UseShellExecute = false;
         process.StartInfo.RedirectStandardOutput = true;
@@ -91,11 +90,6 @@ public class ImageConverter
         process.BeginErrorReadLine();
         string output = process.StandardOutput.ReadToEnd();
         process.WaitForExit();
-
-        // if (process.ExitCode != 0)
-        // {
-        //     throw new Exception($"exiftool failed with exit code {process.ExitCode}: {error}");
-        // }
 
         var results = JsonSerializer.Deserialize<RawExif[]>(output);
         if (results == null)

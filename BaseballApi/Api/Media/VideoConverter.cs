@@ -57,7 +57,7 @@ public class VideoConverter
         process.BeginErrorReadLine();
 
         string output = process.StandardOutput.ReadToEnd();
-        process.WaitForExit(TimeSpan.FromMinutes(1));
+        process.WaitForExit();
 
         if (!process.HasExited)
         {
