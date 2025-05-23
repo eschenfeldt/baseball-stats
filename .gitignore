@@ -1,7 +1,7 @@
 *.dll
 *.pdb
-*/bin/Debug/*
-*/obj/*
+**/bin/Debug/*
+**/obj/*
 **/.DS_Store
 xcuserdata/
 *.postgres_config
@@ -13,11 +13,14 @@ xcuserdata/
 [Ll]ib64
 [Ll]ocal
 [Ss]cripts
+obj
 pyvenv.cfg
 .venv
 pip-selfcheck.json
 media-importer/exported
 BaseballApi/appsettings.Production.json
+appsettings.Test.json
+baseball_password.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

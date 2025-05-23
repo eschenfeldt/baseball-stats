@@ -29,6 +29,17 @@ ARG TARGETARCH
 RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages \
     dotnet publish -a ${TARGETARCH/amd64/x64} --use-current-runtime --self-contained false -o /app
 
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS development
+COPY . /source
+
+RUN apk add --no-cache imagemagick imagemagick-heic exiftool ffmpeg
+
+WORKDIR /source/Api
+CMD ["dotnet", "run", "--no-launch-profile"]
+
+# above dev target can run tests via the following command
+# docker compose --profile test run --remove-orphans --rm baseball-api-dev dotnet test /source
+
 # If you need to enable globalization and time zones:
 # https://github.com/dotnet/dotnet-docker/blob/main/samples/enable-globalization.md
 ################################################################################
@@ -43,6 +54,9 @@ RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages \
 # version (e.g., aspnet:7.0.10-alpine-3.18),
 # or SHA (e.g., mcr.microsoft.com/dotnet/aspnet@sha256:f3d99f54d504a21d38e4cc2f13ff47d67235efeeb85c109d3d1ff1808b38d034).
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS final
+
+RUN apk add --no-cache imagemagick imagemagick-heic exiftool ffmpeg
+
 WORKDIR /app
 
 # Copy everything needed to run the app from the "build" stage.

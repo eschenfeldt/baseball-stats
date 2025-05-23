@@ -151,6 +151,10 @@ $dark-theme: mat.define-theme((color: (theme-type: dark,
             color: var(--secondary-color)
         }
     }
+
+    h5 {
+        color: var(--primary-color);
+    }
 }
 
 @mixin customize-dark($dark-theme) {
@@ -187,5 +191,9 @@ $dark-theme: mat.define-theme((color: (theme-type: dark,
 
     a:visited {
         color: mat.get-theme-color($dark-theme, 'tertiary', 50);
+    }
+
+    h5 {
+        color: var(--secondary-color);
     }
 }

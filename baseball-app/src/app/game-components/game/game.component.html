@@ -1,5 +1,12 @@
 @if (game$ | async; as game) {
-<h5>{{game.name}}</h5>
+<h5>
+    {{game.name}}
+    @if (isLoggedIn$ | async) {
+    <button mat-icon-button (click)="openImportMediaDialog(game)">
+        <mat-icon>cloud_upload</mat-icon>
+    </button>
+    }
+</h5>
 <div class="game-teams">
     <mat-card appearance="raised">
         <mat-card-header>

@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { BaseballApiService } from '../../baseball-api.service';
 import { param } from '../../param.decorator';
 import { BASEBALL_ROUTES } from '../../app.routes';
@@ -23,6 +23,10 @@ import { ScorecardComponent } from '../scorecard/scorecard.component';
 import { MediaGalleryComponent } from '../../media-components/media-gallery/media-gallery.component';
 import { Team } from '../../contracts/team';
 import { Utils } from '../../utils';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { ImportMediaDialogComponent } from '../import-media-dialog/import-media-dialog.component';
+import { MatIcon } from '@angular/material/icon';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
     selector: 'app-game',
@@ -36,6 +40,8 @@ import { Utils } from '../../utils';
         ReactiveFormsModule,
         MatTabsModule,
         MatProgressSpinnerModule,
+        MatDialogModule,
+        MatIcon,
         GameDetailsComponent,
         BoxScoreBattersComponent,
         BoxScorePitchersComponent,
@@ -95,17 +101,20 @@ export class GameComponent implements OnInit {
         return Utils.teamColorOrDefault(team);
     }
 
+    get isLoggedIn$(): Observable<boolean> {
+        return this.api.isLoggedIn;
+    }
+
     constructor(
         private breakpointObserver: BreakpointObserver,
-        private api: BaseballApiService
+        private api: BaseballApiService,
+        private importDialog: MatDialog,
+        private snackBar: MatSnackBar,
     ) { }
 
     public ngOnInit(): void {
 
-        this.game$ = this.gameId$.pipe(
-            switchMap((gameId) => {
-                return this.api.makeApiGet<GameDetail>(`games/${gameId}`);
-            }));
+        this.loadGame();
 
         this.breakpointObserver.observe([
             Breakpoints.XSmall,
@@ -119,12 +128,15 @@ export class GameComponent implements OnInit {
         });
     }
 
-    public hasMedia(game: GameDetail): boolean {
-        return game.hasMedia;
+    private loadGame(): void {
+        this.game$ = this.gameId$.pipe(
+            switchMap((gameId) => {
+                return this.api.makeApiGet<GameDetail>(`games/${gameId}`);
+            }));
     }
 
-    scorecardUrl(game: GameDetail): string {
-        return 'https://eschenfeldt-baseball-media.nyc3.cdn.digitaloceanspaces.com/scorecards/scorecard.pdf';
+    public hasMedia(game: GameDetail): boolean {
+        return game.hasMedia;
     }
 
     public get batterLabel(): string {
@@ -135,6 +147,17 @@ export class GameComponent implements OnInit {
     }
     public get fielderLabel(): string {
         return this.abbreviateBoxScoreOptions ? 'F' : 'Fielders';
+    }
+
+    openImportMediaDialog(game: GameDetail) {
+        this.importDialog.open(ImportMediaDialogComponent, { data: game }).afterClosed().subscribe(result => {
+            if (result) {
+                this.snackBar.open(result, 'Cool', {
+                    duration: 5000
+                });
+                this.loadGame();
+            }
+        })
     }
 }
 
