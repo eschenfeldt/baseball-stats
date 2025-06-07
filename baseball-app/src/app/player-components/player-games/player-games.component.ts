@@ -117,6 +117,7 @@ export class PlayerGamesComponent extends BaseballTableComponent<PlayerGamesPara
     }
 
     public override ngOnInit(): void {
+        // TODO: Rerun this when the playerId changes (or just trigger a reload on navigation from one player to another)
         this.filterService.setFilterValue<PlayerGamesParameters>(this.uniqueIdentifier, 'playerId', this.playerId);
         this.yearOptions$ = this.api.makeApiGet<number[]>('player/years', { playerId: this.playerId }, false, false);
         this.uniqueIdentifierSet.emit(this.uniqueIdentifier);
