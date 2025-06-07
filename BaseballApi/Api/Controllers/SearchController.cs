@@ -1,4 +1,5 @@
 using BaseballApi.Contracts;
+using BaseballApi.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,12 +9,19 @@ namespace MyApp.Namespace
     [ApiController]
     public class SearchController : ControllerBase
     {
+        private readonly BaseballContext _context;
+
+        public SearchController(BaseballContext context)
+        {
+            _context = context;
+        }
+
         [HttpGet("{searchQuery}")]
         public async Task<ActionResult<IEnumerable<SearchResult>>> Search(string searchQuery)
         {
             if (searchQuery.Length < 3)
             {
-                return Ok(new List<SearchResult>
+                return new List<SearchResult>
                 {
                     new() {
                         Name = "Mike Trout",
@@ -27,12 +35,11 @@ namespace MyApp.Namespace
                         Type = SearchResultType.Player,
                         Id = 1
                     }
-                }
-                );
+                };
             }
             else
             {
-                return Ok(new List<SearchResult>
+                return new List<SearchResult>
                 {
                     new() {
                         Name = "Mike Trout",
@@ -52,7 +59,7 @@ namespace MyApp.Namespace
                         Type = SearchResultType.Team,
                         Id = 2
                     }
-                });
+                };
             }
         }
     }
