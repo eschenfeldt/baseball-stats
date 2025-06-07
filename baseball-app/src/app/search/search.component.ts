@@ -7,7 +7,7 @@ import { MatInputModule } from '@angular/material/input';
 import { Observable } from 'rxjs/internal/Observable';
 import { BaseballApiService } from '../baseball-api.service';
 import { startWith } from 'rxjs/internal/operators/startWith';
-import { mergeMap } from 'rxjs';
+import { switchMap } from 'rxjs';
 import { SearchResult, SearchResultType } from '../contracts/search-result';
 import { Router } from '@angular/router';
 
@@ -41,19 +41,26 @@ export class SearchComponent {
         // Simulate fetching options from a service
         this.filteredOptions$ = this.searchQuery.valueChanges.pipe(
             startWith(''),
-            mergeMap(value => this.search(value || ''))
+            switchMap(value => this.search(value || ''))
         );
     }
 
-    private search(value: string): Observable<SearchResult[]> {
-        // TODO: debounce and cancel previous requests
+    private search(value: string | SearchResult): Observable<SearchResult[]> {
+        // TODO: debounce?
         if (!value) {
             return new Observable<SearchResult[]>(observer => {
                 observer.next([]);
                 observer.complete();
             });
-        } else {
+        } else if (typeof value === 'string') {
             return this.api.makeApiGet<SearchResult[]>(`search/${value}`);
+        } else {
+            // value is already a SearchResult, which only happens
+            // when the user selects an option from the autocomplete
+            return new Observable<SearchResult[]>(observer => {
+                observer.next([]);
+                observer.complete();
+            });
         }
     }
 
