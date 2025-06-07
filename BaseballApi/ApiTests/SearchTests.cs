@@ -18,20 +18,19 @@ public class SearchTests : BaseballTests
     [InlineData("Test", "Test Batter 1", "Test Batter 2", "Test Batter 3", "Test Pitcher 1", "Test Pitcher 2", "Test City Testers", "New Tester Town Tubes", "St. Test Guinea Pigs")]
     [InlineData("Batter", "Test Batter 1", "Test Batter 2", "Test Batter 3")]
     [InlineData("Pitcher", "Test Pitcher 1", "Test Pitcher 2")]
-    [InlineData("Team", "Test Team 1", "Test Team 2")]
     [InlineData("Test Batter 1", "Test Batter 1")]
+    [InlineData("test batter 1", "Test Batter 1")]
     [InlineData("Test Pitcher 1", "Test Pitcher 1")]
     [InlineData("Test City Testers", "Test City Testers")]
-    [InlineData("1", "Test Batter 1", "Test Pitcher 1", "Test Team 1")]
-    [InlineData("2", "Test Batter 2", "Test Pitcher 2", "Test Team 2")]
+    [InlineData("1", "Test Batter 1", "Test Pitcher 1")]
+    [InlineData("2", "Test Batter 2", "Test Pitcher 2")]
     [InlineData("Mike Trout")]
-    [InlineData("alternate", "St. Test Guninea Pigs")] // Example for searching by alternate team names
+    [InlineData("alternate", "St. Test Guinea Pigs")] // Example for searching by alternate team names
     [InlineData("tct", "Test City Testers")] // Example for searching by team abbreviation
     public async void TestSearch(string searchQuery, params string[] expectedNames)
     {
         var result = await Controller.Search(searchQuery);
         Assert.NotNull(result.Value);
-        Assert.NotEmpty(result.Value);
 
         Assert.Equal(expectedNames.Length, result.Value.Count());
         foreach (var name in expectedNames)
