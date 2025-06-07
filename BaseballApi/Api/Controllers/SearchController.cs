@@ -1,7 +1,6 @@
 using System.Text;
 using BaseballApi.Contracts;
 using BaseballApi.Models;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -29,23 +28,6 @@ namespace MyApp.Namespace
             var results = new List<SearchResult>();
             string ilikeQuery = $"%{searchQuery}%";
 
-            // Search for players
-            var players = await _context.Players
-                .Where(p => EF.Functions.ILike(p.Name, ilikeQuery))
-                .Take(10)
-                .ToListAsync();
-
-            foreach (var player in players)
-            {
-                results.Add(new SearchResult
-                {
-                    Name = player.Name,
-                    Description = await GetPlayerDescription(player),
-                    Type = SearchResultType.Player,
-                    Id = player.Id
-                });
-            }
-
             // Search for teams
             var teams = await _context.Teams
                 .Where(t => EF.Functions.ILike(t.City, ilikeQuery) ||
@@ -63,6 +45,23 @@ namespace MyApp.Namespace
                     Description = team.Abbreviation ?? "",
                     Type = SearchResultType.Team,
                     Id = team.Id
+                });
+            }
+
+            // Search for players
+            var players = await _context.Players
+                .Where(p => EF.Functions.ILike(p.Name, ilikeQuery))
+                .Take(10)
+                .ToListAsync();
+
+            foreach (var player in players)
+            {
+                results.Add(new SearchResult
+                {
+                    Name = player.Name,
+                    Description = await GetPlayerDescription(player),
+                    Type = SearchResultType.Player,
+                    Id = player.Id
                 });
             }
 

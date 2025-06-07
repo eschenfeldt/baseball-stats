@@ -1,12 +1,12 @@
 <form>
     <mat-form-field>
         <mat-label>Search</mat-label>
-        <input type="text" matInput placeholder="Search for player, teams, or games" aria-label="Search"
-            [formControl]="searchQuery" name="searchQuery" [matAutocomplete]="auto">
-        <mat-autocomplete #auto="matAutocomplete">
-            @for (option of filteredOptions$ | async; track option) {
+        <input type="text" matInput placeholder="Search for player or team" aria-label="Search"
+            [formControl]="searchQuery" name="searchQuery" id="searchInput" [matAutocomplete]="auto">
+        <mat-autocomplete #auto="matAutocomplete" [displayWith]="resultDisplay">
+            @for (option of filteredOptions$ | async; track optionId(option)) {
             <mat-option [value]="option" (onSelectionChange)="onOptionSelected(option)">
-                {{ option }}
+                {{ option.name }} {{ option.description }}
             </mat-option>
             }
         </mat-autocomplete>
