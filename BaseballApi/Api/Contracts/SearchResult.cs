@@ -14,5 +14,4 @@ public enum SearchResultType
 {
     Player,
     Team,
-    Game,
 }

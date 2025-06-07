@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
+using BaseballApi.Contracts;
 using MyApp.Namespace;
 
 namespace BaseballApiTests;
@@ -20,7 +21,7 @@ public class SearchTests : BaseballTests
     [InlineData("Team", "Test Team 1", "Test Team 2")]
     [InlineData("Test Batter 1", "Test Batter 1")]
     [InlineData("Test Pitcher 1", "Test Pitcher 1")]
-    [InlineData("Test Team 1", "Test Team 1")]
+    [InlineData("Test City Testers", "Test City Testers")]
     [InlineData("1", "Test Batter 1", "Test Pitcher 1", "Test Team 1")]
     [InlineData("2", "Test Batter 2", "Test Pitcher 2", "Test Team 2")]
     [InlineData("Mike Trout")]
@@ -40,5 +41,36 @@ public class SearchTests : BaseballTests
             Assert.NotNull(found.Description);
             Assert.NotEqual(0, found.Id);
         }
+    }
+
+    [Theory]
+    [InlineData("Test Batter 1", "TCT 22-23")]
+    [InlineData("Test Pitcher 1", "TCT 22-23")]
+    [InlineData("Test Batter 3", "NTT 22-23")]
+    public async void TestPlayerSearch(string playerName, string expectedDescription)
+    {
+        var result = await Controller.Search(playerName);
+        Assert.NotNull(result.Value);
+        Assert.NotEmpty(result.Value);
+
+        var playerResult = result.Value.FirstOrDefault(r => r.Name == playerName);
+        Assert.Equal(expectedDescription, playerResult.Description);
+        Assert.Equal(SearchResultType.Player, playerResult.Type);
+        Assert.NotEqual(0, playerResult.Id);
+    }
+
+    [Theory]
+    [InlineData("Test City Testers", "TCT")]
+    [InlineData("New Tester Town Tubes", "NTT")]
+    public async void TestTeamSearch(string teamName, string expectedDescription)
+    {
+        var result = await Controller.Search(teamName);
+        Assert.NotNull(result.Value);
+        Assert.NotEmpty(result.Value);
+
+        var teamResult = result.Value.FirstOrDefault(r => r.Name == teamName);
+        Assert.Equal(expectedDescription, teamResult.Description);
+        Assert.Equal(SearchResultType.Team, teamResult.Type);
+        Assert.NotEqual(0, teamResult.Id);
     }
 }
