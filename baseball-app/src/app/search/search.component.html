@@ -1,0 +1,14 @@
+<form>
+    <mat-form-field>
+        <mat-label>Search</mat-label>
+        <input type="text" matInput placeholder="Search for player, teams, or games" aria-label="Search"
+            [formControl]="searchQuery" name="searchQuery" [matAutocomplete]="auto">
+        <mat-autocomplete #auto="matAutocomplete">
+            @for (option of filteredOptions$ | async; track option) {
+            <mat-option [value]="option" (onSelectionChange)="onOptionSelected(option)">
+                {{ option }}
+            </mat-option>
+            }
+        </mat-autocomplete>
+    </mat-form-field>
+</form>

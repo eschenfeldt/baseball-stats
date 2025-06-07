@@ -51,3 +51,8 @@ mat-toolbar {
         height: 100%;
     }
 }
+
+mat-toolbar {
+    display: flex;
+    justify-content: space-between;
+}
