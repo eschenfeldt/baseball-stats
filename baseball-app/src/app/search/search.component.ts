@@ -39,7 +39,6 @@ export class SearchComponent {
     ) { }
 
     ngOnInit() {
-        // Simulate fetching options from a service
         this.filteredOptions$ = this.searchQuery.valueChanges.pipe(
             startWith(''),
             switchMap(value => this.search(value || ''))
@@ -47,7 +46,6 @@ export class SearchComponent {
     }
 
     private search(value: string | SearchResult): Observable<SearchResult[]> {
-        // TODO: debounce?
         if (!value) {
             return new Observable<SearchResult[]>(observer => {
                 observer.next([]);
