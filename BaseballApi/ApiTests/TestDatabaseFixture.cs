@@ -57,7 +57,8 @@ public class TestDatabaseFixture
             new Player { Name = "Test Batter 1" },
             new Player { Name = "Test Pitcher 2" },
             new Player { Name = "Test Batter 2" },
-            new Player { Name = "Test Batter 3" }
+            new Player { Name = "Test Batter 3" },
+            new Player { Name = "Test Bench Player" }
         );
     }
 

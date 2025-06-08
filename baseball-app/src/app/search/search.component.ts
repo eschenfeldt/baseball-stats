@@ -10,6 +10,7 @@ import { startWith } from 'rxjs/internal/operators/startWith';
 import { switchMap } from 'rxjs';
 import { SearchResult, SearchResultType } from '../contracts/search-result';
 import { Router } from '@angular/router';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
     selector: 'app-search',
@@ -20,6 +21,7 @@ import { Router } from '@angular/router';
         MatInputModule,
         MatAutocompleteModule,
         ReactiveFormsModule,
+        MatIconModule,
         AsyncPipe
     ],
     templateUrl: './search.component.html',
@@ -31,6 +33,8 @@ export class SearchComponent {
     // TODO: get this to actually work
     @ViewChild('searchInput') searchInput?: ElementRef<HTMLInputElement>;
     options: string[] = [];
+
+    SearchResultType = SearchResultType;
 
     constructor(
         private router: Router,

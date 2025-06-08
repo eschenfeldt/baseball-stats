@@ -55,4 +55,13 @@ mat-toolbar {
 mat-toolbar {
     display: flex;
     justify-content: space-between;
+    align-items: center;
+
+    app-search {
+        padding-top: 0.5em;
+        min-width: min(20em, 60vw);
+        max-width: min(25em, 70vw);
+        flex-grow: 1;
+        height: 100%;
+    }
 }

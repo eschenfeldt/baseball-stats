@@ -15,7 +15,7 @@ public class SearchTests : BaseballTests
     }
 
     [Theory]
-    [InlineData("Test", "Test Batter 1", "Test Batter 2", "Test Batter 3", "Test Pitcher 1", "Test Pitcher 2", "Test City Testers", "New Tester Town Tubes", "St. Test Guinea Pigs")]
+    [InlineData("Test", "Test Batter 1", "Test Batter 2", "Test Batter 3", "Test Pitcher 1", "Test Pitcher 2", "Test Bench Player", "Test City Testers", "New Tester Town Tubes", "St. Test Guinea Pigs")]
     [InlineData("Batter", "Test Batter 1", "Test Batter 2", "Test Batter 3")]
     [InlineData("Pitcher", "Test Pitcher 1", "Test Pitcher 2")]
     [InlineData("Test Batter 1", "Test Batter 1")]
@@ -43,9 +43,10 @@ public class SearchTests : BaseballTests
     }
 
     [Theory]
-    [InlineData("Test Batter 1", "TCT 22-23")]
-    [InlineData("Test Pitcher 1", "TCT 22-23")]
-    [InlineData("Test Batter 3", "NTT 22-23")]
+    [InlineData("Test Batter 1", "TCT '22-'23")]
+    [InlineData("Test Pitcher 1", "TCT '22-'23")]
+    [InlineData("Test Batter 3", "NTT '22-'23")]
+    [InlineData("Test Bench Player", "No Games")]
     public async void TestPlayerSearch(string playerName, string expectedDescription)
     {
         var result = await Controller.Search(playerName);

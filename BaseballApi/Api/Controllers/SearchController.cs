@@ -100,16 +100,23 @@ namespace MyApp.Namespace
                     Years = g.Select(x => x.Year).Distinct()
                 }).OrderBy(g => g.MinYear);
 
-            var description = new StringBuilder();
-            foreach (var teamYear in teamYears)
+            if (!teamYears.Any())
             {
-                if (description.Length > 0)
-                {
-                    description.Append(", ");
-                }
-                description.Append($"{teamYear.Team} {DisplayYears(teamYear.Years)}");
+                return "No Games";
             }
-            return description.ToString();
+            else
+            {
+                var description = new StringBuilder();
+                foreach (var teamYear in teamYears)
+                {
+                    if (description.Length > 0)
+                    {
+                        description.Append(", ");
+                    }
+                    description.Append($"{teamYear.Team} {DisplayYears(teamYear.Years)}");
+                }
+                return description.ToString();
+            }
         }
 
         private static string DisplayYears(IEnumerable<int> years)
@@ -124,11 +131,11 @@ namespace MyApp.Namespace
 
             if (minYear == maxYear)
             {
-                return $"{minYear}";
+                return $"'{minYear}";
             }
             else
             {
-                return $"{minYear}-{maxYear}";
+                return $"'{minYear}-'{maxYear}";
             }
         }
     }
