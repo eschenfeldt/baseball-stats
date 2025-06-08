@@ -38,9 +38,15 @@ public class TestDatabaseFixture
     void AddTeams(BaseballContext context)
     {
         context.AddRange(
-            new Team { City = "Test City", Name = "Testers" },
-            new Team { City = "New Tester Town", Name = "Tubes" },
-            new Team { City = "St. Test", Name = "Guinea Pigs" }
+            new Team { City = "Test City", Name = "Testers", Abbreviation = "TCT" },
+            new Team { City = "New Tester Town", Name = "Tubes", Abbreviation = "NTT" },
+            new Team
+            {
+                City = "St. Test",
+                Name = "Guinea Pigs",
+                Abbreviation = "STG",
+                AlternateTeamNames = { new AlternateTeamName { FullName = "St. Test Alternates" } }
+            }
         );
     }
 
@@ -51,7 +57,8 @@ public class TestDatabaseFixture
             new Player { Name = "Test Batter 1" },
             new Player { Name = "Test Pitcher 2" },
             new Player { Name = "Test Batter 2" },
-            new Player { Name = "Test Batter 3" }
+            new Player { Name = "Test Batter 3" },
+            new Player { Name = "Test Bench Player" }
         );
     }
 

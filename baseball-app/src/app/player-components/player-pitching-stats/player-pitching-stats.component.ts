@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, Input, OnChanges, OnInit, ViewChild } from '@angular/core';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { BaseballApiService, ApiMethod } from '../../baseball-api.service';
@@ -31,7 +31,7 @@ import { Utils } from '../../utils';
     templateUrl: './player-pitching-stats.component.html',
     styleUrl: './player-pitching-stats.component.scss'
 })
-export class PlayerPitchingStatsComponent extends BaseballTableComponent<PitcherLeaderboardParams, LeaderboardPlayer> implements OnInit {
+export class PlayerPitchingStatsComponent extends BaseballTableComponent<PitcherLeaderboardParams, LeaderboardPlayer> implements OnInit, OnChanges {
 
     @Input({ required: true })
     playerId!: number;
@@ -76,6 +76,14 @@ export class PlayerPitchingStatsComponent extends BaseballTableComponent<Pitcher
     }
 
     public override ngOnInit(): void {
+        this.initialize()
+    }
+
+    public ngOnChanges(): void {
+        this.initialize()
+    }
+
+    private initialize(): void {
         this.filterService.setFilterValue<PitcherLeaderboardParams>(this.uniqueIdentifier, 'playerId', this.playerId);
         this.dataSource.stats$.subscribe(stats => {
             this.stats = stats;

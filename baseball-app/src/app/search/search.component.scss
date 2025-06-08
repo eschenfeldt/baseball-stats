@@ -1,0 +1,16 @@
+@use '@angular/material' as mat;
+
+.full-width {
+    width: 100%;
+}
+
+small {
+    color: var(--secondary-color);
+    font-size: 0.8em;
+    word-break: keep-all;
+    white-space: nowrap;
+}
+
+:host {
+    @include mat.all-component-densities(-5);
+}

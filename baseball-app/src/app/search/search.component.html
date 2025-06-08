@@ -1,0 +1,21 @@
+<form>
+    <mat-form-field class="full-width">
+        <mat-label>Search</mat-label>
+        <input type="text" matInput placeholder="Search for player or team" aria-label="Search"
+            [formControl]="searchQuery" name="searchQuery" id="searchInput" [matAutocomplete]="auto">
+        <mat-icon matSuffix>search</mat-icon>
+        <mat-autocomplete #auto="matAutocomplete" [displayWith]="resultDisplay">
+            @for (option of filteredOptions$ | async; track optionId(option)) {
+            <mat-option [value]="option" (onSelectionChange)="onOptionSelected(option)">
+                @if (option.type === SearchResultType.player) {
+                <mat-icon>person</mat-icon>
+                } @else if (option.type === SearchResultType.team) {
+                <mat-icon>sports_baseball</mat-icon>
+                }
+                {{ option.name }}
+                <small>{{ option.description }}</small>
+            </mat-option>
+            }
+        </mat-autocomplete>
+    </mat-form-field>
+</form>
