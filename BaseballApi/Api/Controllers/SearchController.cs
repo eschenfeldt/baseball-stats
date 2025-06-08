@@ -35,6 +35,8 @@ namespace MyApp.Namespace
                             EF.Functions.ILike(t.City + " " + t.Name, ilikeQuery) ||
                             (t.Abbreviation != null && EF.Functions.ILike(t.Abbreviation, ilikeQuery)) ||
                             t.AlternateTeamNames.Any(a => EF.Functions.ILike(a.FullName, ilikeQuery)))
+                .OrderBy(t => t.City)
+                    .ThenBy(t => t.Name)
                 .ToListAsync();
 
             foreach (var team in teams)
@@ -51,6 +53,7 @@ namespace MyApp.Namespace
             // Search for players
             var players = await _context.Players
                 .Where(p => EF.Functions.ILike(p.Name, ilikeQuery))
+                .OrderBy(p => p.Name)
                 .Take(10)
                 .ToListAsync();
 
