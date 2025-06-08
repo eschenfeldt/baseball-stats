@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, Input, OnChanges, OnInit, ViewChild } from '@angular/core';
 import { BaseballTableComponent } from '../../baseball-table-component';
 import { BatterLeaderboardParams, LeaderboardBattersDataSource } from '../../leaderboard-batters/leaderboard-batters-datasource';
 import { LeaderboardPlayer } from '../../contracts/leaderboard-player';
@@ -8,7 +8,7 @@ import { BaseballApiFilter, BaseballFilterService } from '../../baseball-filter.
 import { ApiMethod, BaseballApiService } from '../../baseball-api.service';
 import { LeaderboardBattersComponent } from '../../leaderboard-batters/leaderboard-batters.component';
 import { StatDefCollection } from '../../contracts/stat-def';
-import { AsyncPipe, CommonModule } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { TypeSafeMatCellDef } from '../../type-safe-mat-cell-def.directive';
 import { TypeSafeMatRowDef } from '../../type-safe-mat-row-def.directive';
@@ -30,7 +30,7 @@ import { PlayerGamesParameters } from '../player-games/player-games-datasource';
     templateUrl: './player-batting-stats.component.html',
     styleUrl: './player-batting-stats.component.scss'
 })
-export class PlayerBattingStatsComponent extends BaseballTableComponent<BatterLeaderboardParams, LeaderboardPlayer> implements OnInit {
+export class PlayerBattingStatsComponent extends BaseballTableComponent<BatterLeaderboardParams, LeaderboardPlayer> implements OnInit, OnChanges {
 
     @Input({ required: true })
     playerId!: number;
@@ -75,6 +75,16 @@ export class PlayerBattingStatsComponent extends BaseballTableComponent<BatterLe
     }
 
     public override ngOnInit(): void {
+        this.initialize();
+    }
+
+    public ngOnChanges(): void {
+        if (this.playerId) {
+            this.initialize();
+        }
+    }
+
+    private initialize(): void {
         this.filterService.setFilterValue<BatterLeaderboardParams>(this.uniqueIdentifier, 'playerId', this.playerId);
         this.dataSource.stats$.subscribe(stats => {
             this.stats = stats;

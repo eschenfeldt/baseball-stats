@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, signal, ViewChild } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, signal, ViewChild } from '@angular/core';
 import { BaseballTableComponent } from '../../baseball-table-component';
 import { PlayerGamesDataSource, PlayerGamesParameters } from './player-games-datasource';
 import { PlayerGame } from '../../contracts/player-game';
@@ -15,7 +15,6 @@ import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { MatChipsModule } from '@angular/material/chips';
 import { RouterModule } from '@angular/router';
 import { StatDefCollection } from '../../contracts/stat-def';
 import { Utils } from '../../utils';
@@ -56,7 +55,7 @@ enum ColumnGroup {
     templateUrl: './player-games.component.html',
     styleUrl: './player-games.component.scss'
 })
-export class PlayerGamesComponent extends BaseballTableComponent<PlayerGamesParameters, PlayerGame> {
+export class PlayerGamesComponent extends BaseballTableComponent<PlayerGamesParameters, PlayerGame> implements OnChanges {
 
     @Input({ required: true })
     public playerId!: number
@@ -117,7 +116,16 @@ export class PlayerGamesComponent extends BaseballTableComponent<PlayerGamesPara
     }
 
     public override ngOnInit(): void {
-        // TODO: Rerun this when the playerId changes (or just trigger a reload on navigation from one player to another)
+        this.initialize();
+    }
+
+    public ngOnChanges(): void {
+        if (this.playerId) {
+            this.initialize();
+        }
+    }
+
+    private initialize(): void {
         this.filterService.setFilterValue<PlayerGamesParameters>(this.uniqueIdentifier, 'playerId', this.playerId);
         this.yearOptions$ = this.api.makeApiGet<number[]>('player/years', { playerId: this.playerId }, false, false);
         this.uniqueIdentifierSet.emit(this.uniqueIdentifier);
