@@ -28,12 +28,9 @@ import { MatIconModule } from '@angular/material/icon';
     styleUrl: './search.component.scss'
 })
 export class SearchComponent {
+
     searchQuery = new FormControl('');
     filteredOptions$: Observable<SearchResult[]> = new Observable<SearchResult[]>();
-    // TODO: get this to actually work
-    @ViewChild('searchInput') searchInput?: ElementRef<HTMLInputElement>;
-    options: string[] = [];
-
     SearchResultType = SearchResultType;
 
     constructor(
@@ -81,7 +78,6 @@ export class SearchComponent {
                 break;
         }
         this.searchQuery.reset();
-        this.searchInput?.nativeElement.blur();
     }
 
     resultDisplay(result: SearchResult): string {
