@@ -238,7 +238,7 @@ namespace BaseballApi.Controllers
 
         [HttpPost("import-media")]
         [Authorize]
-        public async Task<IActionResult> ImportMedia([FromForm] List<IFormFile> files, [FromForm] string serializedGameId)
+        public async Task<ActionResult<ImportTask>> ImportMedia([FromForm] List<IFormFile> files, [FromForm] string serializedGameId)
         {
             long gameId = JsonConvert.DeserializeObject<long>(serializedGameId);
             Game? game = await _context.Games.FirstOrDefaultAsync(g => g.Id == gameId);
@@ -321,6 +321,13 @@ namespace BaseballApi.Controllers
             var message = $"Uploaded {photoCount} photos, {videoCount} videos, and {livePhotoCount} live photos.";
 
             return Ok(new { message });
+        }
+
+        [HttpGet("import-status/{taskId}")]
+        [Authorize]
+        public async Task<ActionResult<ImportTask>> GetImportStatus(Guid taskId)
+        {
+            throw new NotImplementedException("This method is not implemented yet.");
         }
     }
 }
