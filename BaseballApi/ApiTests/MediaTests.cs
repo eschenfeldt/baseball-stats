@@ -74,12 +74,14 @@ public class MediaTests : BaseballTests
         // now import two HEIC live photos to the game
         var files = new List<IFormFile>();
         var livePhotoDirectory = Path.Join("data", "media", "live photos");
+        Dictionary<string, MediaResourceType> resourceTypes = [];
         foreach (var filePath in EnumerateMediaFiles(livePhotoDirectory))
         {
             files.Add(CreateFormFile(filePath, out _));
+            resourceTypes[filePath] = MediaResourceType.LivePhoto;
         }
 
-        await Controller.ImportMedia(files, JsonConvert.SerializeObject(gameId));
+        await ImportMedia(files, gameId, resourceTypes);
 
         var mediaAfter = await Controller.GetThumbnails(gameId: gameId);
         Assert.NotNull(mediaAfter);
@@ -127,12 +129,14 @@ public class MediaTests : BaseballTests
         // now import one hevc video to the game
         var files = new List<IFormFile>();
         var videoDirectory = Path.Join("data", "media", "video");
+        Dictionary<string, MediaResourceType> resourceTypes = [];
         foreach (var filePath in EnumerateMediaFiles(videoDirectory))
         {
             files.Add(CreateFormFile(filePath, out _));
+            resourceTypes[filePath] = MediaResourceType.Video;
         }
 
-        await Controller.ImportMedia(files, JsonConvert.SerializeObject(gameId));
+        await ImportMedia(files, gameId, resourceTypes);
 
         var mediaAfter = await Controller.GetThumbnails(gameId: gameId);
         Assert.NotNull(mediaAfter);
@@ -179,7 +183,7 @@ public class MediaTests : BaseballTests
             resourceTypes[filePath] = MediaResourceType.Photo;
         }
 
-        await this.ImportMedia(files, gameId, resourceTypes);
+        await ImportMedia(files, gameId, resourceTypes);
 
         var mediaAfter = await Controller.GetThumbnails(gameId: gameId);
         Assert.NotNull(mediaAfter);
@@ -241,7 +245,7 @@ public class MediaTests : BaseballTests
             resourceTypes[fileName] = MediaResourceType.LivePhoto;
         }
 
-        await Controller.ImportMedia(files, JsonConvert.SerializeObject(gameId));
+        await ImportMedia(files, gameId, resourceTypes);
 
         var mediaAfter = await Controller.GetThumbnails(gameId: gameId);
         Assert.NotNull(mediaAfter);
@@ -320,7 +324,7 @@ public class MediaTests : BaseballTests
             resourceTypes[fileName] = MediaResourceType.LivePhoto;
         }
 
-        await Controller.ImportMedia(files, JsonConvert.SerializeObject(gameId));
+        await ImportMedia(files, gameId, resourceTypes);
 
         var mediaAfter = await Controller.GetThumbnails(gameId: gameId);
         Assert.NotNull(mediaAfter);
@@ -334,7 +338,7 @@ public class MediaTests : BaseballTests
             files.Add(CreateFormFile(filePath, out string fileName));
             resourceTypes[fileName] = MediaResourceType.Photo;
         }
-        await Controller.ImportMedia(files, JsonConvert.SerializeObject(gameId));
+        await ImportMedia(files, gameId, resourceTypes);
 
         // Make sure we don't duplicate the video or live photos
         var mediaAfterReimport = await Controller.GetThumbnails(gameId: gameId);
@@ -388,7 +392,11 @@ public class MediaTests : BaseballTests
 
     private async Task ImportMedia(List<IFormFile> files, long gameId, Dictionary<string, MediaResourceType> resourceTypes)
     {
+        var startTime = DateTimeOffset.Now;
         var importTask = await Controller.ImportMedia(files, JsonConvert.SerializeObject(gameId));
+        var initializedTime = DateTimeOffset.Now;
+        var initializationTime = initializedTime - startTime;
+        Assert.InRange(initializationTime.TotalSeconds, 0, 5);
         Assert.NotNull(importTask);
         Assert.Equal(ImportTaskStatus.InProgress, importTask.Value.Status);
         Assert.Equal(0, importTask.Value.Progress);
@@ -406,7 +414,7 @@ public class MediaTests : BaseballTests
             importTask = await Controller.GetImportStatus(importTask.Value.Id);
             Assert.NotNull(importTask);
             Assert.Equal(ImportTaskStatus.InProgress, importTask.Value.Status);
-            Assert.True(importTask.Value.Progress > 0 && importTask.Value.Progress < 1);
+            Assert.True(importTask.Value.Progress > 0 && importTask.Value.Progress < 1, $"Progress should be between 0 and 1, but was {importTask.Value.Progress}");
             Assert.Equal(expectedMessage, importTask.Value.Message);
             i++;
         } while (importTask.Value.Status == ImportTaskStatus.InProgress && i < 100);
