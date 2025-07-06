@@ -24,6 +24,8 @@ public class BaseballContext : DbContext
 
     public DbSet<FangraphsConstants> Constants { get; set; }
 
+    public DbSet<MediaImportTask> MediaImportTasks { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

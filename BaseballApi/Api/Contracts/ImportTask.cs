@@ -4,6 +4,7 @@ namespace BaseballApi.Contracts;
 
 public enum ImportTaskStatus
 {
+    Queued,
     InProgress,
     Completed,
     Failed
