@@ -3,6 +3,7 @@ using BaseballApi.Models;
 using BaseballApi;
 using Microsoft.AspNetCore.Identity;
 using BaseballApi.Import;
+using BaseballApi.Services;
 
 var corsLocal = "_corsLocalPolicy";
 
@@ -31,6 +32,8 @@ builder.Services.AddIdentityApiEndpoints<IdentityUser>()
     .AddEntityFrameworkStores<AppIdentityDbContext>();
 
 builder.Services.AddScoped<IRemoteFileManager, RemoteFileManager>();
+builder.Services.AddSingleton<IMediaImportQueue, MediaImportQueue>();
+builder.Services.AddHostedService<MediaImportBackgroundService>();
 
 builder.Services.AddCors(options =>
 {

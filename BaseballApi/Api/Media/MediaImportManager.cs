@@ -65,6 +65,8 @@ public class MediaImportManager(List<MediaImportInfo> resources, IRemoteFileMana
 
         await ProcessPhotoInternal(mediaResource, resource.PhotoFilePath, resource.PhotoFileName);
 
+        resource.Status = MediaImportTaskStatus.Completed;
+
         return mediaResource;
     }
 
@@ -86,6 +88,8 @@ public class MediaImportManager(List<MediaImportInfo> resources, IRemoteFileMana
         };
 
         await ProcessVideoInternal(mediaResource, resource.VideoFilePath, resource.VideoFileName);
+
+        resource.Status = MediaImportTaskStatus.Completed;
 
         return mediaResource;
     }
@@ -109,6 +113,8 @@ public class MediaImportManager(List<MediaImportInfo> resources, IRemoteFileMana
 
         await ProcessPhotoInternal(mediaResource, resource.PhotoFilePath, resource.PhotoFileName);
         await ProcessVideoInternal(mediaResource, resource.VideoFilePath, resource.VideoFileName);
+
+        resource.Status = MediaImportTaskStatus.Completed;
 
         return mediaResource;
     }

@@ -6,6 +6,9 @@ using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using Microsoft.EntityFrameworkCore;
 using BaseballApi.Contracts;
+using BaseballApi.Services;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace BaseballApiTests;
 
@@ -15,6 +18,7 @@ public class MediaTests : BaseballTests
     RemoteFileManager RemoteFileManager { get; }
     RemoteFileValidator RemoteValidator { get; }
     TestGameManager TestGameManager { get; }
+    MediaImportBackgroundService MediaImportBackgroundService { get; }
 
     public MediaTests(TestDatabaseFixture fixture) : base(fixture)
     {
@@ -24,8 +28,22 @@ public class MediaTests : BaseballTests
         IConfiguration configuration = builder.Build();
         RemoteFileManager = new(configuration, nameof(MediaTests));
         RemoteValidator = new(RemoteFileManager);
-        Controller = new MediaController(Context, RemoteFileManager);
+        using ILoggerFactory loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+        var logger = loggerFactory.CreateLogger<MediaImportQueue>();
+        MediaImportQueue mediaImportQueue = new(logger);
+        Controller = new MediaController(Context, RemoteFileManager, mediaImportQueue);
         TestGameManager = new TestGameManager(Context);
+
+        // Start up the media import background service
+        IServiceCollection services = new ServiceCollection();
+        services.AddSingleton(RemoteFileManager);
+        // services.AddSingleton(fixture.CreateContext());
+        // using the same context as the tests themselves for the background service
+        // which doesn't seem like it should be necessary but the other way wasn't working
+        services.AddSingleton(Context);
+        var serviceProvider = services.BuildServiceProvider();
+        var backgroundLogger = loggerFactory.CreateLogger<MediaImportBackgroundService>();
+        MediaImportBackgroundService = new MediaImportBackgroundService(mediaImportQueue, serviceProvider, backgroundLogger);
     }
 
     public static TheoryData<int?, int?, int?, List<MockFile>> Thumbnails => new()
@@ -392,18 +410,21 @@ public class MediaTests : BaseballTests
 
     private async Task ImportMedia(List<IFormFile> files, long gameId, Dictionary<string, MediaResourceType> resourceTypes)
     {
+        // start up the media import background service
+        await MediaImportBackgroundService.StartAsync(CancellationToken.None);
+
         var startTime = DateTimeOffset.Now;
         var importTask = await Controller.ImportMedia(files, JsonConvert.SerializeObject(gameId));
         var initializedTime = DateTimeOffset.Now;
         var initializationTime = initializedTime - startTime;
         Assert.InRange(initializationTime.TotalSeconds, 0, 5);
         Assert.NotNull(importTask);
-        Assert.Equal(ImportTaskStatus.InProgress, importTask.Value.Status);
+        Assert.Equal(MediaImportTaskStatus.Queued, importTask.Value.Status);
         Assert.Equal(0, importTask.Value.Progress);
 
         var photoCount = resourceTypes.Values.Count(r => r == MediaResourceType.Photo);
         var videoCount = resourceTypes.Values.Count(r => r == MediaResourceType.Video);
-        var livePhotoCount = resourceTypes.Values.Count(r => r == MediaResourceType.LivePhoto);
+        var livePhotoCount = resourceTypes.Values.Count(r => r == MediaResourceType.LivePhoto) / 2; // each live photo consists of two files
         string expectedMessage = $"Importing {photoCount} photos, {videoCount} videos, and {livePhotoCount} live photos";
         Assert.Equal(expectedMessage, importTask.Value.Message);
 
@@ -413,15 +434,35 @@ public class MediaTests : BaseballTests
             await Task.Delay(1000);
             importTask = await Controller.GetImportStatus(importTask.Value.Id);
             Assert.NotNull(importTask);
-            Assert.Equal(ImportTaskStatus.InProgress, importTask.Value.Status);
-            Assert.True(importTask.Value.Progress > 0 && importTask.Value.Progress < 1, $"Progress should be between 0 and 1, but was {importTask.Value.Progress}");
+            if (importTask.Value.Status == MediaImportTaskStatus.Queued)
+            {
+                Assert.True(i < 10, "Import task is still queued after several checks, which is unexpected.");
+            }
+            else if (importTask.Value.Status == MediaImportTaskStatus.Failed)
+            {
+                Assert.Fail($"Import task failed with message: {importTask.Value.Message}");
+            }
+            else if (importTask.Value.Status == MediaImportTaskStatus.Completed)
+            {
+                Assert.Equal(MediaImportTaskStatus.Completed, importTask.Value.Status);
+                Assert.Equal($"Imported {photoCount} photos, {videoCount} videos, and {livePhotoCount} live photos", importTask.Value.Message);
+                break;
+            }
+            else
+            {
+                Assert.Equal(MediaImportTaskStatus.InProgress, importTask.Value.Status);
+                Assert.InRange(importTask.Value.Progress, 0, 1);
+            }
             Assert.Equal(expectedMessage, importTask.Value.Message);
             i++;
-        } while (importTask.Value.Status == ImportTaskStatus.InProgress && i < 100);
+        } while (i < 100);
 
-        Assert.Equal(ImportTaskStatus.Completed, importTask.Value.Status);
+        Assert.Equal(MediaImportTaskStatus.Completed, importTask.Value.Status);
         expectedMessage = $"Imported {photoCount} photos, {videoCount} videos, and {livePhotoCount} live photos";
         Assert.Equal(expectedMessage, importTask.Value.Message);
+
+        // stop the service again
+        await MediaImportBackgroundService.StopAsync(CancellationToken.None);
     }
 
     private IEnumerable<string> EnumerateMediaFiles(string directoryPath)

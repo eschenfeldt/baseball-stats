@@ -2,6 +2,7 @@ using BaseballApi.Contracts;
 using BaseballApi.Import;
 using BaseballApi.Media;
 using BaseballApi.Models;
+using BaseballApi.Services;
 using Humanizer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,10 +13,11 @@ namespace BaseballApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class MediaController(BaseballContext context, IRemoteFileManager remoteFileManager) : ControllerBase
+    public class MediaController(BaseballContext context, IRemoteFileManager remoteFileManager, IMediaImportQueue mediaImportQueue) : ControllerBase
     {
         private readonly BaseballContext _context = context;
         IRemoteFileManager RemoteFileManager { get; } = remoteFileManager;
+        IMediaImportQueue MediaImportQueue { get; } = mediaImportQueue;
 
         private static readonly HashSet<string> VIDEO_EXTENSIONS =
         [
@@ -304,30 +306,67 @@ namespace BaseballApi.Controllers
                 }
             }
 
-            var importManager = new MediaImportManager([.. resources.Select(kvp => kvp.Value)], RemoteFileManager, _context, game);
+            var task = this.SaveImportTask([.. resources.Select(kvp => kvp.Value)], game);
+            // queue the import task for processing
+            await MediaImportQueue.PushAsync(task.Id);
+            return task;
+        }
 
-            await foreach (var resource in importManager.GetUploadedResources())
+        private ImportTask SaveImportTask(List<MediaImportInfo> mediaToProcess, Game game)
+        {
+            var importTask = new MediaImportTask
             {
-                resource.Game = game;
-                game.Media.Add(resource);
-                _context.MediaResources.Add(resource);
+                Status = MediaImportTaskStatus.Queued,
+                Game = game,
+                MediaToProcess = mediaToProcess
+            };
+            _context.MediaImportTasks.Add(importTask);
+            _context.SaveChanges();
+            return ModelToContract(importTask);
+        }
+
+        private static ImportTask ModelToContract(MediaImportTask task)
+        {
+            int totalFiles = task.MediaToProcess.Count;
+            int processedFiles = task.MediaToProcess.Count(m => m.Status == MediaImportTaskStatus.Completed);
+            decimal progress = totalFiles > 0 ? (decimal)processedFiles / totalFiles : 0;
+            int photoCount = task.MediaToProcess.Count(m => m.ResourceType == MediaResourceType.Photo);
+            int videoCount = task.MediaToProcess.Count(m => m.ResourceType == MediaResourceType.Video);
+            int livePhotoCount = task.MediaToProcess.Count(m => m.ResourceType == MediaResourceType.LivePhoto);
+            string message;
+            if (task.Status == MediaImportTaskStatus.Completed)
+            {
+                message = $"Imported {photoCount} photos, {videoCount} videos, and {livePhotoCount} live photos";
             }
-
-            await _context.SaveChangesAsync();
-
-            var photoCount = resources.Values.Count(r => r.ResourceType == MediaResourceType.Photo);
-            var videoCount = resources.Values.Count(r => r.ResourceType == MediaResourceType.Video);
-            var livePhotoCount = resources.Values.Count(r => r.ResourceType == MediaResourceType.LivePhoto);
-            var message = $"Uploaded {photoCount} photos, {videoCount} videos, and {livePhotoCount} live photos.";
-
-            return Ok(new { message });
+            else if (task.Status == MediaImportTaskStatus.Failed)
+            {
+                message = "Import failed";
+            }
+            else
+            {
+                message = $"Importing {photoCount} photos, {videoCount} videos, and {livePhotoCount} live photos";
+            }
+            return new ImportTask
+            {
+                Id = task.Id,
+                Status = task.Status,
+                Progress = progress,
+                Message = message
+            };
         }
 
         [HttpGet("import-status/{taskId}")]
         [Authorize]
         public async Task<ActionResult<ImportTask>> GetImportStatus(Guid taskId)
         {
-            throw new NotImplementedException("This method is not implemented yet.");
+            var task = await _context.MediaImportTasks
+                .Include(t => t.MediaToProcess)
+                .SingleOrDefaultAsync(t => t.Id == taskId);
+            if (task == null)
+            {
+                return NotFound();
+            }
+            return ModelToContract(task);
         }
     }
 }
