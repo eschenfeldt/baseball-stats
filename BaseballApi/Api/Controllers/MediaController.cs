@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using BaseballApi.Contracts;
 using BaseballApi.Import;
 using BaseballApi.Media;
@@ -306,13 +307,13 @@ namespace BaseballApi.Controllers
                 }
             }
 
-            var task = this.SaveImportTask([.. resources.Select(kvp => kvp.Value)], game);
+            var task = await this.SaveImportTask([.. resources.Select(kvp => kvp.Value)], game);
             // queue the import task for processing
             await MediaImportQueue.PushAsync(task.Id);
             return task;
         }
 
-        private ImportTask SaveImportTask(List<MediaImportInfo> mediaToProcess, Game game)
+        private async Task<ImportTask> SaveImportTask(List<MediaImportInfo> mediaToProcess, Game game)
         {
             var importTask = new MediaImportTask
             {
@@ -321,7 +322,7 @@ namespace BaseballApi.Controllers
                 MediaToProcess = mediaToProcess
             };
             _context.MediaImportTasks.Add(importTask);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             return ModelToContract(importTask);
         }
 

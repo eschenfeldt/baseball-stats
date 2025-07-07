@@ -1,4 +1,3 @@
-using System;
 using BaseballApi.Import;
 using BaseballApi.Media;
 using BaseballApi.Models;
@@ -7,11 +6,11 @@ using Microsoft.EntityFrameworkCore;
 namespace BaseballApi.Services;
 
 public class MediaImportBackgroundService(
-        MediaImportQueue mediaImportQueue,
+        IMediaImportQueue mediaImportQueue,
         IServiceProvider serviceProvider,
         ILogger<MediaImportBackgroundService> logger) : BackgroundService
 {
-    private MediaImportQueue MediaImportQueue { get; } = mediaImportQueue;
+    private IMediaImportQueue MediaImportQueue { get; } = mediaImportQueue;
     private IServiceProvider ServiceProvider { get; } = serviceProvider;
     private ILogger<MediaImportBackgroundService> Logger { get; } = logger;
 
@@ -49,7 +48,9 @@ public class MediaImportBackgroundService(
     {
         // Retrieve the import task from the database
         var importTask = await context.MediaImportTasks
-            .FindAsync([importId], cancellationToken: cancellationToken);
+            .Include(t => t.Game)
+            .Include(t => t.MediaToProcess)
+            .SingleOrDefaultAsync(t => t.Id == importId, cancellationToken: cancellationToken);
         if (importTask == null)
         {
             Logger.LogWarning("Import task with ID {ImportId} not found.", importId);

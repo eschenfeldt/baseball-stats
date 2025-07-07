@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BaseballApi.Migrations
 {
     [DbContext(typeof(BaseballContext))]
-    [Migration("20250706233540_MediaImportTask")]
+    [Migration("20250707014202_MediaImportTask")]
     partial class MediaImportTask
     {
         /// <inheritdoc />
@@ -453,6 +453,9 @@ namespace BaseballApi.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<DateTimeOffset?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<Guid?>("MediaImportTaskId")
                         .HasColumnType("uuid");
 
@@ -464,6 +467,9 @@ namespace BaseballApi.Migrations
 
                     b.Property<int>("ResourceType")
                         .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset?>("StartedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("Status")
                         .HasColumnType("integer");
@@ -487,8 +493,14 @@ namespace BaseballApi.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<DateTimeOffset?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<long?>("GameId")
                         .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset?>("StartedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("Status")
                         .HasColumnType("integer");

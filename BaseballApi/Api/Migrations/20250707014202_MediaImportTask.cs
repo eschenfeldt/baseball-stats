@@ -17,7 +17,9 @@ namespace BaseballApi.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Status = table.Column<int>(type: "integer", nullable: false),
-                    GameId = table.Column<long>(type: "bigint", nullable: true)
+                    GameId = table.Column<long>(type: "bigint", nullable: true),
+                    StartedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    CompletedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -41,6 +43,8 @@ namespace BaseballApi.Migrations
                     VideoFilePath = table.Column<string>(type: "text", nullable: true),
                     VideoFileName = table.Column<string>(type: "text", nullable: true),
                     Status = table.Column<int>(type: "integer", nullable: false),
+                    StartedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    CompletedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     MediaImportTaskId = table.Column<Guid>(type: "uuid", nullable: true)
                 },
                 constraints: table =>

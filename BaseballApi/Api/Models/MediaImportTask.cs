@@ -8,4 +8,6 @@ public class MediaImportTask
     public MediaImportTaskStatus Status { get; set; }
     public Game? Game { get; set; }
     public ICollection<MediaImportInfo> MediaToProcess { get; set; } = [];
+    public DateTimeOffset? StartedAt { get; set; }
+    public DateTimeOffset? CompletedAt { get; set; }
 }

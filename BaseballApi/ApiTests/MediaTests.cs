@@ -37,10 +37,8 @@ public class MediaTests : BaseballTests
         // Start up the media import background service
         IServiceCollection services = new ServiceCollection();
         services.AddSingleton(RemoteFileManager);
-        // services.AddSingleton(fixture.CreateContext());
-        // using the same context as the tests themselves for the background service
-        // which doesn't seem like it should be necessary but the other way wasn't working
-        services.AddSingleton(Context);
+        services.AddDbContext<BaseballContext>(opt =>
+            opt.UseNpgsql(Context.Database.GetConnectionString()));
         var serviceProvider = services.BuildServiceProvider();
         var backgroundLogger = loggerFactory.CreateLogger<MediaImportBackgroundService>();
         MediaImportBackgroundService = new MediaImportBackgroundService(mediaImportQueue, serviceProvider, backgroundLogger);
@@ -119,9 +117,11 @@ public class MediaTests : BaseballTests
 
         // now delete the resources and validate that the files are deleted from the remote
         var resource1 = await Context.MediaResources
+            .Include(x => x.Files)
             .FirstOrDefaultAsync(x => x.AssetIdentifier == file1.AssetIdentifier);
         Assert.NotNull(resource1);
         var resource2 = await Context.MediaResources
+            .Include(x => x.Files)
             .FirstOrDefaultAsync(x => x.AssetIdentifier == file2.AssetIdentifier);
         Assert.NotNull(resource2);
         await RemoteFileManager.DeleteResource(resource1);
@@ -171,6 +171,7 @@ public class MediaTests : BaseballTests
 
         // now delete the resources and validate that the files are deleted from the remote
         var resource1 = await Context.MediaResources
+            .Include(x => x.Files)
             .FirstOrDefaultAsync(x => x.AssetIdentifier == file1.AssetIdentifier);
         Assert.NotNull(resource1);
         await RemoteFileManager.DeleteResource(resource1);
@@ -218,6 +219,7 @@ public class MediaTests : BaseballTests
 
         // now delete the resources and validate that the files are deleted from the remote
         var resource1 = await Context.MediaResources
+            .Include(x => x.Files)
             .FirstOrDefaultAsync(x => x.AssetIdentifier == file1.AssetIdentifier);
         Assert.NotNull(resource1);
         await RemoteFileManager.DeleteResource(resource1);
@@ -303,6 +305,7 @@ public class MediaTests : BaseballTests
         {
             // now delete the resources and validate that the files are deleted from the remote
             var resource = await Context.MediaResources
+                .Include(x => x.Files)
                 .FirstOrDefaultAsync(x => x.AssetIdentifier == file.AssetIdentifier);
             Assert.NotNull(resource);
             await RemoteFileManager.DeleteResource(resource);
@@ -397,6 +400,7 @@ public class MediaTests : BaseballTests
         {
             // now delete the resources and validate that the files are deleted from the remote
             var resource = await Context.MediaResources
+                .Include(x => x.Files)
                 .FirstOrDefaultAsync(x => x.AssetIdentifier == file.AssetIdentifier);
             Assert.NotNull(resource);
             await RemoteFileManager.DeleteResource(resource);
@@ -432,6 +436,12 @@ public class MediaTests : BaseballTests
         do
         {
             await Task.Delay(1000);
+            // force a refresh of the status since the background service updates it asynchronously in the db via a different context
+            var importDbEntry = await Context.MediaImportTasks.FirstOrDefaultAsync(x => x.Id == importTask.Value.Id);
+            if (importDbEntry != null)
+            {
+                Context.Entry(importDbEntry).Reload();
+            }
             importTask = await Controller.GetImportStatus(importTask.Value.Id);
             Assert.NotNull(importTask);
             if (importTask.Value.Status == MediaImportTaskStatus.Queued)

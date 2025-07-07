@@ -10,4 +10,6 @@ public class MediaImportInfo
     public string? VideoFilePath { get; set; }
     public string? VideoFileName { get; set; }
     public MediaImportTaskStatus Status { get; set; } = MediaImportTaskStatus.Queued;
+    public DateTimeOffset? StartedAt { get; set; }
+    public DateTimeOffset? CompletedAt { get; set; }
 }
