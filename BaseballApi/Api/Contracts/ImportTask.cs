@@ -8,4 +8,6 @@ public struct ImportTask()
     public MediaImportTaskStatus Status { get; set; }
     public decimal Progress { get; set; }
     public required string Message { get; set; }
+    public DateTimeOffset? StartTime { get; set; }
+    public DateTimeOffset? EndTime { get; set; }
 }

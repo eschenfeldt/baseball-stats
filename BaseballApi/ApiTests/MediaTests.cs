@@ -432,9 +432,13 @@ public class MediaTests : BaseballTests
         string expectedMessage = $"Importing {photoCount} photos, {videoCount} videos, and {livePhotoCount} live photos";
         Assert.Equal(expectedMessage, importTask.Value.Message);
 
+        ValidateGameData(gameId, importTask.Value.Id);
+
         int i = 0;
+        DateTimeOffset lastUpdateTime;
         do
         {
+            lastUpdateTime = DateTimeOffset.Now;
             await Task.Delay(1000);
             // force a refresh of the status since the background service updates it asynchronously in the db via a different context
             var importDbEntry = await Context.MediaImportTasks.FirstOrDefaultAsync(x => x.Id == importTask.Value.Id);
@@ -447,6 +451,7 @@ public class MediaTests : BaseballTests
             if (importTask.Value.Status == MediaImportTaskStatus.Queued)
             {
                 Assert.True(i < 10, "Import task is still queued after several checks, which is unexpected.");
+                ValidateGameData(gameId, importTask.Value.Id);
             }
             else if (importTask.Value.Status == MediaImportTaskStatus.Failed)
             {
@@ -462,6 +467,10 @@ public class MediaTests : BaseballTests
             {
                 Assert.Equal(MediaImportTaskStatus.InProgress, importTask.Value.Status);
                 Assert.InRange(importTask.Value.Progress, 0, 1);
+                ValidateGameData(gameId, importTask.Value.Id);
+                Assert.NotNull(importTask.Value.StartTime);
+                DateTimeOffset actualStartTime = importTask.Value.StartTime.Value;
+                Assert.InRange(actualStartTime, startTime, DateTimeOffset.Now);
             }
             Assert.Equal(expectedMessage, importTask.Value.Message);
             i++;
@@ -470,9 +479,21 @@ public class MediaTests : BaseballTests
         Assert.Equal(MediaImportTaskStatus.Completed, importTask.Value.Status);
         expectedMessage = $"Imported {photoCount} photos, {videoCount} videos, and {livePhotoCount} live photos";
         Assert.Equal(expectedMessage, importTask.Value.Message);
+        Assert.NotNull(importTask.Value.EndTime);
+        DateTimeOffset actualEndTime = importTask.Value.EndTime.Value;
+        Assert.InRange(actualEndTime, lastUpdateTime, DateTimeOffset.Now);
 
         // stop the service again
         await MediaImportBackgroundService.StopAsync(CancellationToken.None);
+    }
+
+    private async void ValidateGameData(long gameId, Guid expectedTaskId)
+    {
+        var taskFromGame = await Controller.GetImportTasks(gameId: gameId);
+        Assert.NotNull(taskFromGame);
+        Assert.NotNull(taskFromGame.Value);
+        Assert.Single(taskFromGame.Value);
+        Assert.Equal(expectedTaskId, taskFromGame.Value[0].Id);
     }
 
     private IEnumerable<string> EnumerateMediaFiles(string directoryPath)

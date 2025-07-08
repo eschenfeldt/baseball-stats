@@ -16,6 +16,7 @@ public class MediaImportBackgroundService(
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
+        // TODO: consider checking the db for abandoned import tasks on startup
         while (!cancellationToken.IsCancellationRequested)
         {
             try
@@ -65,6 +66,7 @@ public class MediaImportBackgroundService(
         }
 
         // Update the status to InProgress
+        importTask.StartedAt = DateTimeOffset.UtcNow;
         importTask.Status = MediaImportTaskStatus.InProgress;
         await context.SaveChangesAsync(cancellationToken);
 
@@ -83,6 +85,7 @@ public class MediaImportBackgroundService(
         }
 
         // Update the status to Completed
+        importTask.CompletedAt = DateTimeOffset.UtcNow;
         importTask.Status = MediaImportTaskStatus.Completed;
         await context.SaveChangesAsync(cancellationToken);
 

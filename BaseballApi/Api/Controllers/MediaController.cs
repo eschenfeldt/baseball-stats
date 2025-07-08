@@ -313,6 +313,67 @@ namespace BaseballApi.Controllers
             return task;
         }
 
+        [HttpPost("restart-import-task/{taskId}")]
+        [Authorize]
+        public async Task<ActionResult<ImportTask>> RestartImportTask(Guid taskId)
+        {
+            var task = await _context.MediaImportTasks
+                .Include(t => t.MediaToProcess)
+                .SingleOrDefaultAsync(t => t.Id == taskId);
+            if (task == null)
+            {
+                return NotFound();
+            }
+
+            if (task.Status == MediaImportTaskStatus.Completed ||
+                task.Status == MediaImportTaskStatus.Failed)
+            {
+                return BadRequest("Cannot restart a completed or failed import task. Please create a new import task.");
+            }
+
+            // Re-queue the import task for processing
+            await MediaImportQueue.PushAsync(task.Id);
+
+            return ModelToContract(task);
+        }
+
+        [HttpGet("import-status/{taskId}")]
+        [Authorize]
+        public async Task<ActionResult<ImportTask>> GetImportStatus(Guid taskId)
+        {
+            var task = await _context.MediaImportTasks
+                .Include(t => t.MediaToProcess)
+                .SingleOrDefaultAsync(t => t.Id == taskId);
+            if (task == null)
+            {
+                return NotFound();
+            }
+            return ModelToContract(task);
+        }
+
+        [HttpGet("import-tasks")]
+        [Authorize]
+        public async Task<ActionResult<List<ImportTask>>> GetImportTasks(long? gameId = null, bool includeCompleted = false)
+        {
+            IQueryable<MediaImportTask> tasks = _context.MediaImportTasks.Include(t => t.MediaToProcess);
+
+            if (gameId.HasValue)
+            {
+                tasks = tasks.Where(t => t.Game != null && t.Game.Id == gameId);
+            }
+
+            if (!includeCompleted)
+            {
+                tasks = tasks
+                    .Where(t => t.Status != MediaImportTaskStatus.Completed &&
+                                t.Status != MediaImportTaskStatus.Failed);
+            }
+
+            return await tasks
+                .Select(t => ModelToContract(t))
+                .ToListAsync();
+        }
+
         private async Task<ImportTask> SaveImportTask(List<MediaImportInfo> mediaToProcess, Game game)
         {
             var importTask = new MediaImportTask
@@ -352,22 +413,10 @@ namespace BaseballApi.Controllers
                 Id = task.Id,
                 Status = task.Status,
                 Progress = progress,
-                Message = message
+                Message = message,
+                StartTime = task.StartedAt,
+                EndTime = task.CompletedAt
             };
-        }
-
-        [HttpGet("import-status/{taskId}")]
-        [Authorize]
-        public async Task<ActionResult<ImportTask>> GetImportStatus(Guid taskId)
-        {
-            var task = await _context.MediaImportTasks
-                .Include(t => t.MediaToProcess)
-                .SingleOrDefaultAsync(t => t.Id == taskId);
-            if (task == null)
-            {
-                return NotFound();
-            }
-            return ModelToContract(task);
         }
     }
 }
