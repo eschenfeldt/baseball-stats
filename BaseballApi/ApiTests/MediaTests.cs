@@ -35,7 +35,7 @@ public class MediaTests : BaseballTests
         Controller = new MediaController(Context, RemoteFileManager, mediaImportQueue);
         TestGameManager = new TestGameManager(Context);
 
-        // Start up the media import background service
+        // Prepare the media import background service
         IServiceCollection services = new ServiceCollection();
         services.AddSingleton<IRemoteFileManager>(RemoteFileManager);
         services.AddDbContext<BaseballContext>(opt =>
