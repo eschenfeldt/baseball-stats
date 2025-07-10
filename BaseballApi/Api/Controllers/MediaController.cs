@@ -1,7 +1,9 @@
+using System.Threading.Tasks;
 using BaseballApi.Contracts;
 using BaseballApi.Import;
 using BaseballApi.Media;
 using BaseballApi.Models;
+using BaseballApi.Services;
 using Humanizer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,10 +14,11 @@ namespace BaseballApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class MediaController(BaseballContext context, IRemoteFileManager remoteFileManager) : ControllerBase
+    public class MediaController(BaseballContext context, IRemoteFileManager remoteFileManager, IMediaImportQueue mediaImportQueue) : ControllerBase
     {
         private readonly BaseballContext _context = context;
         IRemoteFileManager RemoteFileManager { get; } = remoteFileManager;
+        IMediaImportQueue MediaImportQueue { get; } = mediaImportQueue;
 
         private static readonly HashSet<string> VIDEO_EXTENSIONS =
         [
@@ -238,7 +241,7 @@ namespace BaseballApi.Controllers
 
         [HttpPost("import-media")]
         [Authorize]
-        public async Task<IActionResult> ImportMedia([FromForm] List<IFormFile> files, [FromForm] string serializedGameId)
+        public async Task<ActionResult<ImportTask>> ImportMedia([FromForm] List<IFormFile> files, [FromForm] string serializedGameId)
         {
             long gameId = JsonConvert.DeserializeObject<long>(serializedGameId);
             Game? game = await _context.Games.FirstOrDefaultAsync(g => g.Id == gameId);
@@ -304,23 +307,121 @@ namespace BaseballApi.Controllers
                 }
             }
 
-            var importManager = new MediaImportManager([.. resources.Select(kvp => kvp.Value)], RemoteFileManager, _context, game);
+            var task = await this.SaveImportTask([.. resources.Select(kvp => kvp.Value)], game);
+            // queue the import task for processing
+            await MediaImportQueue.PushAsync(task.Id);
+            return task;
+        }
 
-            await foreach (var resource in importManager.GetUploadedResources())
+        [HttpPost("restart-import-task/{taskId}")]
+        [Authorize]
+        public async Task<ActionResult<ImportTask>> RestartImportTask(Guid taskId)
+        {
+            var task = await _context.MediaImportTasks
+                .Include(t => t.MediaToProcess)
+                .SingleOrDefaultAsync(t => t.Id == taskId);
+            if (task == null)
             {
-                resource.Game = game;
-                game.Media.Add(resource);
-                _context.MediaResources.Add(resource);
+                return NotFound();
             }
 
+            if (task.Status == MediaImportTaskStatus.Completed ||
+                task.Status == MediaImportTaskStatus.Failed)
+            {
+                return BadRequest("Cannot restart a completed or failed import task. Please create a new import task.");
+            }
+
+            // Re-queue the import task for processing
+            await MediaImportQueue.PushAsync(task.Id);
+
+            return ModelToContract(task);
+        }
+
+        [HttpGet("import-status/{taskId}")]
+        [Authorize]
+        public async Task<ActionResult<ImportTask>> GetImportStatus(Guid taskId)
+        {
+            var task = await _context.MediaImportTasks
+                .Include(t => t.MediaToProcess)
+                .SingleOrDefaultAsync(t => t.Id == taskId);
+            if (task == null)
+            {
+                return NotFound();
+            }
+            return ModelToContract(task);
+        }
+
+        [HttpGet("import-tasks")]
+        [Authorize]
+        public async Task<ActionResult<List<ImportTask>>> GetImportTasks(long? gameId = null, bool includeCompleted = false)
+        {
+            IQueryable<MediaImportTask> tasks = _context.MediaImportTasks.Include(t => t.MediaToProcess);
+
+            if (gameId.HasValue)
+            {
+                tasks = tasks.Where(t => t.Game != null && t.Game.Id == gameId);
+            }
+
+            if (!includeCompleted)
+            {
+                tasks = tasks
+                    .Where(t => t.Status != MediaImportTaskStatus.Completed &&
+                                t.Status != MediaImportTaskStatus.Failed);
+            }
+
+            return await tasks
+                .Select(t => ModelToContract(t))
+                .ToListAsync();
+        }
+
+        private async Task<ImportTask> SaveImportTask(List<MediaImportInfo> mediaToProcess, Game game)
+        {
+            var importTask = new MediaImportTask
+            {
+                Status = MediaImportTaskStatus.Queued,
+                Game = game,
+                MediaToProcess = mediaToProcess
+            };
+            _context.MediaImportTasks.Add(importTask);
             await _context.SaveChangesAsync();
+            return ModelToContract(importTask);
+        }
 
-            var photoCount = resources.Values.Count(r => r.ResourceType == MediaResourceType.Photo);
-            var videoCount = resources.Values.Count(r => r.ResourceType == MediaResourceType.Video);
-            var livePhotoCount = resources.Values.Count(r => r.ResourceType == MediaResourceType.LivePhoto);
-            var message = $"Uploaded {photoCount} photos, {videoCount} videos, and {livePhotoCount} live photos.";
+        private static ImportTask ModelToContract(MediaImportTask task)
+        {
+            int totalFiles = task.MediaToProcess.Count;
+            int processedFiles = task.MediaToProcess.Count(m => m.Status == MediaImportTaskStatus.Completed);
+            decimal progress = totalFiles > 0 ? (decimal)processedFiles / totalFiles : 0;
+            int photoCount = task.MediaToProcess.Count(m => m.ResourceType == MediaResourceType.Photo);
+            int videoCount = task.MediaToProcess.Count(m => m.ResourceType == MediaResourceType.Video);
+            int livePhotoCount = task.MediaToProcess.Count(m => m.ResourceType == MediaResourceType.LivePhoto);
+            string message;
+            if (task.Status == MediaImportTaskStatus.Completed)
+            {
+                message = $"Imported {Pluralize(photoCount, "photo")}, {Pluralize(videoCount, "video")}, and {Pluralize(livePhotoCount, "live photo")}";
+            }
+            else if (task.Status == MediaImportTaskStatus.Failed)
+            {
+                message = "Import failed";
+            }
+            else
+            {
+                message = $"Importing {Pluralize(photoCount, "photo")}, {Pluralize(videoCount, "video")}, and {Pluralize(livePhotoCount, "live photo")}";
+            }
+            return new ImportTask
+            {
+                Id = task.Id,
+                Status = task.Status,
+                Progress = progress,
+                Message = message,
+                StartTime = task.StartedAt,
+                EndTime = task.CompletedAt
+            };
+        }
 
-            return Ok(new { message });
+        private static string Pluralize(int count, string singular)
+        {
+            return count == 1 ? $"{count} {singular}" : $"{count} {singular.Pluralize()}";
         }
     }
 }

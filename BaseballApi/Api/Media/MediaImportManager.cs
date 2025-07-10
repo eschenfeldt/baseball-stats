@@ -63,7 +63,14 @@ public class MediaImportManager(List<MediaImportInfo> resources, IRemoteFileMana
             OriginalFileName = resource.PhotoFileName
         };
 
+        resource.Status = MediaImportTaskStatus.InProgress;
+        resource.StartedAt = DateTimeOffset.UtcNow;
+        await Context.SaveChangesAsync();
+
         await ProcessPhotoInternal(mediaResource, resource.PhotoFilePath, resource.PhotoFileName);
+
+        resource.Status = MediaImportTaskStatus.Completed;
+        resource.CompletedAt = DateTimeOffset.UtcNow;
 
         return mediaResource;
     }
@@ -85,7 +92,14 @@ public class MediaImportManager(List<MediaImportInfo> resources, IRemoteFileMana
             OriginalFileName = resource.VideoFileName
         };
 
+        resource.Status = MediaImportTaskStatus.InProgress;
+        resource.StartedAt = DateTimeOffset.UtcNow;
+        await Context.SaveChangesAsync();
+
         await ProcessVideoInternal(mediaResource, resource.VideoFilePath, resource.VideoFileName);
+
+        resource.Status = MediaImportTaskStatus.Completed;
+        resource.CompletedAt = DateTimeOffset.UtcNow;
 
         return mediaResource;
     }
@@ -107,8 +121,15 @@ public class MediaImportManager(List<MediaImportInfo> resources, IRemoteFileMana
             OriginalFileName = resource.PhotoFileName
         };
 
+        resource.Status = MediaImportTaskStatus.InProgress;
+        resource.StartedAt = DateTimeOffset.UtcNow;
+        await Context.SaveChangesAsync();
+
         await ProcessPhotoInternal(mediaResource, resource.PhotoFilePath, resource.PhotoFileName);
         await ProcessVideoInternal(mediaResource, resource.VideoFilePath, resource.VideoFileName);
+
+        resource.Status = MediaImportTaskStatus.Completed;
+        resource.CompletedAt = DateTimeOffset.UtcNow;
 
         return mediaResource;
     }
