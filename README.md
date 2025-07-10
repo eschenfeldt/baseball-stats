@@ -1,5 +1,5 @@
 # baseball-stats
-Webapp displaying statistics from baseball games. Live version at [baseball.eschenfeldt.me]
+Webapp displaying statistics from baseball games. Live version at https://baseball.eschenfeldt.me
 
 ### Current build/run process
 
