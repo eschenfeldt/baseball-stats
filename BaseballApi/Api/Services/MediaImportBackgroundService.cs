@@ -16,7 +16,6 @@ public class MediaImportBackgroundService(
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
-        // TODO: consider checking the db for abandoned import tasks on startup
         while (!cancellationToken.IsCancellationRequested)
         {
             try
