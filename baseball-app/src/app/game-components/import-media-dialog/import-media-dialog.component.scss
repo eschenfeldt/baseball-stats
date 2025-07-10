@@ -4,6 +4,8 @@
 
 mat-dialog-content {
     display: flex;
+    justify-content: space-around;
+    gap: 1em;
 
     mat-spinner {
         margin-left: 5em;

@@ -9,6 +9,7 @@ using BaseballApi.Contracts;
 using BaseballApi.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
+using Humanizer;
 
 namespace BaseballApiTests;
 
@@ -36,7 +37,7 @@ public class MediaTests : BaseballTests
 
         // Start up the media import background service
         IServiceCollection services = new ServiceCollection();
-        services.AddSingleton(RemoteFileManager);
+        services.AddSingleton<IRemoteFileManager>(RemoteFileManager);
         services.AddDbContext<BaseballContext>(opt =>
             opt.UseNpgsql(Context.Database.GetConnectionString()));
         var serviceProvider = services.BuildServiceProvider();
@@ -429,7 +430,7 @@ public class MediaTests : BaseballTests
         var photoCount = resourceTypes.Values.Count(r => r == MediaResourceType.Photo);
         var videoCount = resourceTypes.Values.Count(r => r == MediaResourceType.Video);
         var livePhotoCount = resourceTypes.Values.Count(r => r == MediaResourceType.LivePhoto) / 2; // each live photo consists of two files
-        string expectedMessage = $"Importing {photoCount} photos, {videoCount} videos, and {livePhotoCount} live photos";
+        string expectedMessage = $"Importing {Pluralize(photoCount, "photo")}, {Pluralize(videoCount, "video")}, and {Pluralize(livePhotoCount, "live photo")}";
         Assert.Equal(expectedMessage, importTask.Value.Message);
 
         ValidateGameData(gameId, importTask.Value.Id);
@@ -460,7 +461,7 @@ public class MediaTests : BaseballTests
             else if (importTask.Value.Status == MediaImportTaskStatus.Completed)
             {
                 Assert.Equal(MediaImportTaskStatus.Completed, importTask.Value.Status);
-                Assert.Equal($"Imported {photoCount} photos, {videoCount} videos, and {livePhotoCount} live photos", importTask.Value.Message);
+                Assert.Equal($"Imported {Pluralize(photoCount, "photo")}, {Pluralize(videoCount, "video")}, and {Pluralize(livePhotoCount, "live photo")}", importTask.Value.Message);
                 break;
             }
             else
@@ -477,7 +478,7 @@ public class MediaTests : BaseballTests
         } while (i < 100);
 
         Assert.Equal(MediaImportTaskStatus.Completed, importTask.Value.Status);
-        expectedMessage = $"Imported {photoCount} photos, {videoCount} videos, and {livePhotoCount} live photos";
+        expectedMessage = $"Imported {Pluralize(photoCount, "photo")}, {Pluralize(videoCount, "video")}, and {Pluralize(livePhotoCount, "live photo")}";
         Assert.Equal(expectedMessage, importTask.Value.Message);
         Assert.NotNull(importTask.Value.EndTime);
         DateTimeOffset actualEndTime = importTask.Value.EndTime.Value;
@@ -526,6 +527,11 @@ public class MediaTests : BaseballTests
             ".mp4" => "video/mp4",
             _ => throw new NotSupportedException($"Unsupported file type: {extension}")
         };
+    }
+
+    private static string Pluralize(int count, string singular)
+    {
+        return count == 1 ? $"{count} {singular}" : $"{count} {singular.Pluralize()}";
     }
 
     private async Task ValidateLivePhoto(Guid assetIdentifier, string originalFileName, List<RemoteFileDetail> toBeDeleted)

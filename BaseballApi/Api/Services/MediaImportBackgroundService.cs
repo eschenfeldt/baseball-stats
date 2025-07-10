@@ -27,7 +27,7 @@ public class MediaImportBackgroundService(
 
                 // Create a scope to resolve services
                 using var scope = ServiceProvider.CreateScope();
-                var remoteFileManager = scope.ServiceProvider.GetRequiredService<RemoteFileManager>();
+                var remoteFileManager = scope.ServiceProvider.GetRequiredService<IRemoteFileManager>();
                 var context = scope.ServiceProvider.GetRequiredService<BaseballContext>();
 
                 // Process the import task
@@ -45,7 +45,7 @@ public class MediaImportBackgroundService(
         }
     }
 
-    private async Task ProcessImport(Guid importId, RemoteFileManager remoteFileManager, BaseballContext context, CancellationToken cancellationToken)
+    private async Task ProcessImport(Guid importId, IRemoteFileManager remoteFileManager, BaseballContext context, CancellationToken cancellationToken)
     {
         // Retrieve the import task from the database
         var importTask = await context.MediaImportTasks

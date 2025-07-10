@@ -4,6 +4,7 @@ using BaseballApi;
 using Microsoft.AspNetCore.Identity;
 using BaseballApi.Import;
 using BaseballApi.Services;
+using Microsoft.AspNetCore.Http.Features;
 
 var corsLocal = "_corsLocalPolicy";
 
@@ -12,6 +13,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.ConfigureKestrel(options =>
 {
     options.Limits.MaxRequestBodySize = null; // unlimited
+});
+
+builder.Services.Configure<FormOptions>(x =>
+{
+    x.ValueLengthLimit = int.MaxValue;
+    x.MultipartBodyLengthLimit = long.MaxValue;
 });
 
 // Add services to the container.

@@ -398,7 +398,7 @@ namespace BaseballApi.Controllers
             string message;
             if (task.Status == MediaImportTaskStatus.Completed)
             {
-                message = $"Imported {photoCount} photos, {videoCount} videos, and {livePhotoCount} live photos";
+                message = $"Imported {Pluralize(photoCount, "photo")}, {Pluralize(videoCount, "video")}, and {Pluralize(livePhotoCount, "live photo")}";
             }
             else if (task.Status == MediaImportTaskStatus.Failed)
             {
@@ -406,7 +406,7 @@ namespace BaseballApi.Controllers
             }
             else
             {
-                message = $"Importing {photoCount} photos, {videoCount} videos, and {livePhotoCount} live photos";
+                message = $"Importing {Pluralize(photoCount, "photo")}, {Pluralize(videoCount, "video")}, and {Pluralize(livePhotoCount, "live photo")}";
             }
             return new ImportTask
             {
@@ -417,6 +417,11 @@ namespace BaseballApi.Controllers
                 StartTime = task.StartedAt,
                 EndTime = task.CompletedAt
             };
+        }
+
+        private static string Pluralize(int count, string singular)
+        {
+            return count == 1 ? $"{count} {singular}" : $"{count} {singular.Pluralize()}";
         }
     }
 }

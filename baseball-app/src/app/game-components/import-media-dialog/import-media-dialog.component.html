@@ -4,23 +4,36 @@
 <mat-dialog-content>
     <mat-form-field>
         @if (filesUploaded) {
-        <ul>
+        @if (fileNames.length < 9) { <ul>
             @for (fileName of fileNames; track fileName) {
             <li>
                 {{fileName}}
             </li>
             }
-        </ul>
-        }
-        <input type="file" class="file-input" (change)="onFileSelected($event)" #filesUpload multiple>
-        <input matInput>
-        <button mat-button (click)="filesUpload.click()">Upload</button>
+            </ul>
+            } @else {
+            <p>{{fileNames.length}} files selected</p>
+            }
+            }
+            <input type="file" class="file-input" (change)="onFileSelected($event)" #filesUpload multiple>
+            <input matInput>
+            <button mat-button (click)="filesUpload.click()">Upload</button>
     </mat-form-field>
     @if (uploading) {
-    <mat-spinner> </mat-spinner>
+    <div>
+        <p>Uploading {{fileNames.length}} files...</p>
+        <mat-progress-bar mode="determinate" [value]="uploadPercentage"></mat-progress-bar>
+    </div>
+    }
+    @if (activeTask) {
+    <div>
+        <p>{{activeTask.message}}</p>
+        <mat-progress-bar mode="determinate" [value]="processPercentage"></mat-progress-bar>
+        <button mat-button (click)="kickTask()">Kick</button>
+    </div>
     }
 </mat-dialog-content>
 <mat-dialog-actions>
     <button mat-button [disabled]="!filesUploaded" (click)="import()">Import</button>
-    <button mat-button mat-dialog-close>Close</button>
+    <button mat-button [mat-dialog-close]="false">Close</button>
 </mat-dialog-actions>
