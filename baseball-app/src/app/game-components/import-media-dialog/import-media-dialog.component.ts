@@ -79,7 +79,7 @@ export class ImportMediaDialogComponent implements OnInit {
             this.api.makeApiPostWithProgress<ImportTask>('Media/import-media', formData).subscribe(result => {
                 if (result.type === HttpEventType.Response) {
                     if (result.body && !this.activeTask) {
-                        this.processTaskStatus(result.body!);
+                        this.processTaskStatus(result.body);
                     } else {
                         this.getLatestImportTask();
                     }
