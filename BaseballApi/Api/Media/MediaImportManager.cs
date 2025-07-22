@@ -13,7 +13,7 @@ public class MediaImportManager(List<MediaImportInfo> resources, IRemoteFileMana
     private VideoConverter VideoConverter { get; } = new VideoConverter();
     private ImageConverter ImageConverter { get; } = new ImageConverter();
 
-    public async IAsyncEnumerable<MediaResource> GetUploadedResources()
+    public async IAsyncEnumerable<MediaUploadResult> GetUploadedResources()
     {
         foreach (var resource in Resources)
         {
@@ -46,7 +46,7 @@ public class MediaImportManager(List<MediaImportInfo> resources, IRemoteFileMana
         return await Context.MediaResources.AnyAsync(r => r.OriginalFileName == fileName && r.Game != null && r.Game.Id == gameId);
     }
 
-    private async Task<MediaResource> ProcessPhoto(MediaImportInfo resource)
+    private async Task<MediaUploadResult> ProcessPhoto(MediaImportInfo resource)
     {
         if (string.IsNullOrEmpty(resource.PhotoFilePath))
         {
@@ -72,10 +72,14 @@ public class MediaImportManager(List<MediaImportInfo> resources, IRemoteFileMana
         resource.Status = MediaImportTaskStatus.Completed;
         resource.CompletedAt = DateTimeOffset.UtcNow;
 
-        return mediaResource;
+        return new MediaUploadResult
+        {
+            OriginalResource = resource,
+            Resource = mediaResource
+        };
     }
 
-    private async Task<MediaResource> ProcessVideo(MediaImportInfo resource)
+    private async Task<MediaUploadResult> ProcessVideo(MediaImportInfo resource)
     {
         if (string.IsNullOrEmpty(resource.VideoFilePath))
         {
@@ -96,15 +100,32 @@ public class MediaImportManager(List<MediaImportInfo> resources, IRemoteFileMana
         resource.StartedAt = DateTimeOffset.UtcNow;
         await Context.SaveChangesAsync();
 
-        await ProcessVideoInternal(mediaResource, resource.VideoFilePath, resource.VideoFileName);
+        try
+        {
+            await ProcessVideoInternal(mediaResource, resource.VideoFilePath, resource.VideoFileName);
+        }
+        catch (Exception ex)
+        {
+            resource.Status = MediaImportTaskStatus.Failed;
+            await Context.SaveChangesAsync();
+            return new MediaUploadResult
+            {
+                OriginalResource = resource,
+                ErrorMessage = ex.Message
+            };
+        }
 
         resource.Status = MediaImportTaskStatus.Completed;
         resource.CompletedAt = DateTimeOffset.UtcNow;
 
-        return mediaResource;
+        return new MediaUploadResult
+        {
+            OriginalResource = resource,
+            Resource = mediaResource
+        };
     }
 
-    private async Task<MediaResource> ProcessLivePhoto(MediaImportInfo resource)
+    private async Task<MediaUploadResult> ProcessLivePhoto(MediaImportInfo resource)
     {
         if (string.IsNullOrEmpty(resource.PhotoFilePath) || string.IsNullOrEmpty(resource.VideoFilePath))
         {
@@ -131,7 +152,11 @@ public class MediaImportManager(List<MediaImportInfo> resources, IRemoteFileMana
         resource.Status = MediaImportTaskStatus.Completed;
         resource.CompletedAt = DateTimeOffset.UtcNow;
 
-        return mediaResource;
+        return new MediaUploadResult
+        {
+            OriginalResource = resource,
+            Resource = mediaResource
+        };
     }
 
     private async Task ProcessPhotoInternal(MediaResource mediaResource, string photoFilePath, string photoFileName)
