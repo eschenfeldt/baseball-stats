@@ -319,6 +319,160 @@ public class MediaTests : BaseballTests
     }
 
     [Fact]
+    public async Task TestImportMediaWithFailure()
+    {
+        var remoteValidator = new RemoteFileValidator(RemoteFileManager);
+        var gameId = TestGameManager.GetGameId(Context, 6);
+
+        var mediaBefore = await Controller.GetThumbnails(gameId: gameId);
+        Assert.NotNull(mediaBefore);
+        Assert.NotNull(mediaBefore.Value);
+        var countBefore = mediaBefore.Value.TotalCount;
+        Assert.Equal(0, countBefore);
+
+        // now import several different media files to the game
+        // this includes a video, two live photos, and a regular photo
+        var files = new List<IFormFile>();
+        var videoDirectory = Path.Join("data", "media", "video");
+        var photoDirectory = Path.Join("data", "media", "photos");
+        var livePhotoDirectory = Path.Join("data", "media", "live photos");
+        var fakeVideoDirectory = Path.Join("data", "media", "fake video");
+        Dictionary<string, MediaResourceType> resourceTypes = [];
+        foreach (var filePath in EnumerateMediaFiles(fakeVideoDirectory))
+        {
+            files.Add(CreateFormFile(filePath, out string fileName));
+            resourceTypes[fileName] = MediaResourceType.Video;
+        }
+        foreach (var filePath in EnumerateMediaFiles(photoDirectory))
+        {
+            files.Add(CreateFormFile(filePath, out string fileName));
+            resourceTypes[fileName] = MediaResourceType.Photo;
+        }
+        foreach (var filePath in EnumerateMediaFiles(videoDirectory))
+        {
+            files.Add(CreateFormFile(filePath, out string fileName));
+            resourceTypes[fileName] = MediaResourceType.Video;
+        }
+        foreach (var filePath in EnumerateMediaFiles(livePhotoDirectory))
+        {
+            files.Add(CreateFormFile(filePath, out string fileName));
+            resourceTypes[fileName] = MediaResourceType.LivePhoto;
+        }
+
+        // start up the media import background service
+        await MediaImportBackgroundService.StartAsync(CancellationToken.None);
+
+        var startTime = DateTimeOffset.Now;
+        var importTask = await Controller.ImportMedia(files, JsonConvert.SerializeObject(gameId));
+        var initializedTime = DateTimeOffset.Now;
+        var initializationTime = initializedTime - startTime;
+        Assert.InRange(initializationTime.TotalSeconds, 0, 5);
+        Assert.NotNull(importTask);
+        Assert.Equal(MediaImportTaskStatus.Queued, importTask.Value.Status);
+        Assert.Equal(0, importTask.Value.Progress);
+
+        var photoCount = resourceTypes.Values.Count(r => r == MediaResourceType.Photo);
+        var videoCount = resourceTypes.Values.Count(r => r == MediaResourceType.Video);
+        var livePhotoCount = resourceTypes.Values.Count(r => r == MediaResourceType.LivePhoto) / 2; // each live photo consists of two files
+        string expectedMessage = $"Importing {Pluralize(photoCount, "photo")}, {Pluralize(videoCount, "video")}, and {Pluralize(livePhotoCount, "live photo")}";
+        Assert.Equal(expectedMessage, importTask.Value.Message);
+
+        ValidateGameData(gameId, importTask.Value.Id);
+
+        int i = 0;
+        DateTimeOffset lastUpdateTime;
+        do
+        {
+            lastUpdateTime = DateTimeOffset.Now;
+            await Task.Delay(1000);
+            // force a refresh of the status since the background service updates it asynchronously in the db via a different context
+            var importDbEntry = await Context.MediaImportTasks.FirstOrDefaultAsync(x => x.Id == importTask.Value.Id);
+            if (importDbEntry != null)
+            {
+                Context.Entry(importDbEntry).Reload();
+            }
+            importTask = await Controller.GetImportStatus(importTask.Value.Id);
+            Assert.NotNull(importTask);
+            if (importTask.Value.Status == MediaImportTaskStatus.Queued)
+            {
+                Assert.True(i < 10, "Import task is still queued after several checks, which is unexpected.");
+                ValidateGameData(gameId, importTask.Value.Id);
+            }
+            else
+            {
+                Assert.Equal(MediaImportTaskStatus.InProgress, importTask.Value.Status);
+                Assert.InRange(importTask.Value.Progress, 0, 1);
+                ValidateGameData(gameId, importTask.Value.Id);
+                Assert.NotNull(importTask.Value.StartTime);
+                DateTimeOffset actualStartTime = importTask.Value.StartTime.Value;
+                Assert.InRange(actualStartTime, startTime, DateTimeOffset.Now);
+            }
+            Assert.Equal(expectedMessage, importTask.Value.Message);
+            i++;
+        } while (i < 100);
+
+        Assert.Equal(MediaImportTaskStatus.Failed, importTask.Value.Status);
+        expectedMessage = $"Imported {Pluralize(photoCount, "photo")}, {Pluralize(videoCount - 1, "video")}, and {Pluralize(livePhotoCount, "live photo")}. Failed to import 0 photos, 1 video, and 0 live photos.";
+        Assert.Equal(expectedMessage, importTask.Value.Message);
+        Assert.NotNull(importTask.Value.EndTime);
+        DateTimeOffset actualEndTime = importTask.Value.EndTime.Value;
+        Assert.InRange(actualEndTime, lastUpdateTime, DateTimeOffset.Now);
+
+        // stop the service again
+        await MediaImportBackgroundService.StopAsync(CancellationToken.None);
+
+        var mediaAfter = await Controller.GetThumbnails(gameId: gameId);
+        Assert.NotNull(mediaAfter);
+        Assert.NotNull(mediaAfter.Value);
+        var countAfter = mediaAfter.Value.TotalCount;
+        Assert.Equal(4, countAfter);
+
+        List<RemoteFileDetail> toBeDeleted = [];
+        foreach (var file in mediaAfter.Value.Results)
+        {
+            Assert.NotNull(file.Key);
+            if (resourceTypes.TryGetValue(file.OriginalFileName, out MediaResourceType resourceType))
+            {
+                switch (resourceType)
+                {
+                    case MediaResourceType.Photo:
+                        await ValidatePhoto(file.AssetIdentifier, file.OriginalFileName, toBeDeleted);
+                        break;
+                    case MediaResourceType.Video:
+                        await ValidateVideo(file.AssetIdentifier, file.OriginalFileName, toBeDeleted);
+                        break;
+                    case MediaResourceType.LivePhoto:
+                        await ValidateLivePhoto(file.AssetIdentifier, file.OriginalFileName, toBeDeleted);
+                        break;
+                    default:
+                        Assert.Fail($"Unknown resource type {resourceType} for file {file.OriginalFileName}");
+                        break;
+                }
+            }
+            else
+            {
+                Assert.Fail($"No identified resource type for file {file.OriginalFileName}");
+            }
+        }
+
+        foreach (var file in mediaAfter.Value.Results)
+        {
+            // now delete the resources and validate that the files are deleted from the remote
+            var resource = await Context.MediaResources
+                .Include(x => x.Files)
+                .FirstOrDefaultAsync(x => x.AssetIdentifier == file.AssetIdentifier);
+            Assert.NotNull(resource);
+            await RemoteFileManager.DeleteResource(resource);
+        }
+
+        foreach (var file in toBeDeleted)
+        {
+            await remoteValidator.ValidateFileDeleted(file);
+        }
+    }
+
+
+    [Fact]
     public async Task TestReimportMedia()
     {
         var remoteValidator = new RemoteFileValidator(RemoteFileManager);
@@ -478,7 +632,7 @@ public class MediaTests : BaseballTests
         } while (i < 100);
 
         Assert.Equal(MediaImportTaskStatus.Completed, importTask.Value.Status);
-        expectedMessage = $"Imported {Pluralize(photoCount, "photo")}, {Pluralize(videoCount, "video")}, and {Pluralize(livePhotoCount, "live photo")}";
+        expectedMessage = $"Imported {Pluralize(photoCount, "photo")}, {Pluralize(videoCount, "video")}, and {Pluralize(livePhotoCount, "live photo")}.";
         Assert.Equal(expectedMessage, importTask.Value.Message);
         Assert.NotNull(importTask.Value.EndTime);
         DateTimeOffset actualEndTime = importTask.Value.EndTime.Value;

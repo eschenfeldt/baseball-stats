@@ -636,6 +636,31 @@ public class TestGameManager
                     Fielders = []
                 }
             }
+        },
+        {
+            6,
+            new GameInfo
+            {
+                Date = new DateOnly(2025, 5, 30),
+                ParkNumber = 1,
+                Name = "2025 Test Game 2",
+                AwayScore = 1,
+                HomeScore = 0,
+                Away = new BoxScoreInfo
+                {
+                    TeamNumber = 2,
+                    Batters = [],
+                    Pitchers = [],
+                    Fielders = []
+                },
+                Home = new BoxScoreInfo
+                {
+                    TeamNumber = 1,
+                    Batters = [],
+                    Pitchers = [],
+                    Fielders = []
+                }
+            }
         }
     };
 }
