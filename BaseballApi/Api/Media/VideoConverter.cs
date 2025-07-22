@@ -45,7 +45,7 @@ public class VideoConverter
 
         using Process process = new();
         process.StartInfo.FileName = "ffmpeg";
-        process.StartInfo.Arguments = $"-y -i \"{original.FullName}\" -v error -c:v libx264 \"{convertedFileName}\"";
+        process.StartInfo.Arguments = $"-y -i \"{original.FullName}\" -v error -threads 1 -c:v libx264 \"{convertedFileName}\"";
         process.StartInfo.UseShellExecute = false;
         process.StartInfo.RedirectStandardOutput = true;
 
