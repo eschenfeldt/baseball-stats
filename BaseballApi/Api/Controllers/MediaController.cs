@@ -390,7 +390,7 @@ namespace BaseballApi.Controllers
         private static ImportTask ModelToContract(MediaImportTask task)
         {
             int totalFiles = task.MediaToProcess.Count;
-            int processedFiles = task.MediaToProcess.Count(m => m.Status == MediaImportTaskStatus.Completed);
+            int processedFiles = task.MediaToProcess.Count(m => m.Status == MediaImportTaskStatus.Completed || m.Status == MediaImportTaskStatus.Failed);
             decimal progress = totalFiles > 0 ? (decimal)processedFiles / totalFiles : 0;
             int photoCount = task.MediaToProcess.Count(m => m.ResourceType == MediaResourceType.Photo);
             int videoCount = task.MediaToProcess.Count(m => m.ResourceType == MediaResourceType.Video);
@@ -402,7 +402,14 @@ namespace BaseballApi.Controllers
             }
             else if (task.Status == MediaImportTaskStatus.Failed)
             {
-                message = "Import failed";
+                int photoFailureCount = task.MediaToProcess.Count(m => m.Status == MediaImportTaskStatus.Failed && m.ResourceType == MediaResourceType.Photo);
+                int videoFailureCount = task.MediaToProcess.Count(m => m.Status == MediaImportTaskStatus.Failed && m.ResourceType == MediaResourceType.Video);
+                int livePhotoFailureCount = task.MediaToProcess.Count(m => m.Status == MediaImportTaskStatus.Failed && m.ResourceType == MediaResourceType.LivePhoto);
+                int photoSuccessCount = photoCount - photoFailureCount;
+                int videoSuccessCount = videoCount - videoFailureCount;
+                int livePhotoSuccessCount = livePhotoCount - livePhotoFailureCount;
+                message = $"Imported {Pluralize(photoSuccessCount, "photo")}, {Pluralize(videoSuccessCount, "video")}, and {Pluralize(livePhotoSuccessCount, "live photo")}.";
+                message += $" Failed to import {Pluralize(photoFailureCount, "photo")}, {Pluralize(videoFailureCount, "video")}, and {Pluralize(livePhotoFailureCount, "live photo")}.";
             }
             else
             {

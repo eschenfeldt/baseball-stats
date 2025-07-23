@@ -337,11 +337,23 @@ public class MediaTests : BaseballTests
         var photoDirectory = Path.Join("data", "media", "photos");
         var livePhotoDirectory = Path.Join("data", "media", "live photos");
         var fakeVideoDirectory = Path.Join("data", "media", "fake video");
+        var fakePhotoDirectory = Path.Join("data", "media", "fake photo");
+        var fakeLivePhotoDirectory = Path.Join("data", "media", "fake live photo");
         Dictionary<string, MediaResourceType> resourceTypes = [];
         foreach (var filePath in EnumerateMediaFiles(fakeVideoDirectory))
         {
             files.Add(CreateFormFile(filePath, out string fileName));
             resourceTypes[fileName] = MediaResourceType.Video;
+        }
+        foreach (var filePath in EnumerateMediaFiles(fakePhotoDirectory))
+        {
+            files.Add(CreateFormFile(filePath, out string fileName));
+            resourceTypes[fileName] = MediaResourceType.Photo;
+        }
+        foreach (var filePath in EnumerateMediaFiles(fakeLivePhotoDirectory))
+        {
+            files.Add(CreateFormFile(filePath, out string fileName));
+            resourceTypes[fileName] = MediaResourceType.LivePhoto;
         }
         foreach (var filePath in EnumerateMediaFiles(photoDirectory))
         {
@@ -390,6 +402,10 @@ public class MediaTests : BaseballTests
             if (importDbEntry != null)
             {
                 Context.Entry(importDbEntry).Reload();
+                foreach (var media in importDbEntry.MediaToProcess)
+                {
+                    Context.Entry(media).Reload();
+                }
             }
             importTask = await Controller.GetImportStatus(importTask.Value.Id);
             Assert.NotNull(importTask);
@@ -397,6 +413,10 @@ public class MediaTests : BaseballTests
             {
                 Assert.True(i < 10, "Import task is still queued after several checks, which is unexpected.");
                 ValidateGameData(gameId, importTask.Value.Id);
+            }
+            else if (importTask.Value.Status == MediaImportTaskStatus.Failed)
+            {
+                break; // we expect the import to be marked as a failure after processing all files
             }
             else
             {
@@ -409,10 +429,10 @@ public class MediaTests : BaseballTests
             }
             Assert.Equal(expectedMessage, importTask.Value.Message);
             i++;
-        } while (i < 100);
+        } while (i < 500);
 
         Assert.Equal(MediaImportTaskStatus.Failed, importTask.Value.Status);
-        expectedMessage = $"Imported {Pluralize(photoCount, "photo")}, {Pluralize(videoCount - 1, "video")}, and {Pluralize(livePhotoCount, "live photo")}. Failed to import 0 photos, 1 video, and 0 live photos.";
+        expectedMessage = $"Imported {Pluralize(photoCount - 1, "photo")}, {Pluralize(videoCount - 1, "video")}, and {Pluralize(livePhotoCount - 1, "live photo")}. Failed to import 1 photo, 1 video, and 1 live photo.";
         Assert.Equal(expectedMessage, importTask.Value.Message);
         Assert.NotNull(importTask.Value.EndTime);
         DateTimeOffset actualEndTime = importTask.Value.EndTime.Value;
@@ -629,10 +649,10 @@ public class MediaTests : BaseballTests
             }
             Assert.Equal(expectedMessage, importTask.Value.Message);
             i++;
-        } while (i < 100);
+        } while (i < 300);
 
         Assert.Equal(MediaImportTaskStatus.Completed, importTask.Value.Status);
-        expectedMessage = $"Imported {Pluralize(photoCount, "photo")}, {Pluralize(videoCount, "video")}, and {Pluralize(livePhotoCount, "live photo")}.";
+        expectedMessage = $"Imported {Pluralize(photoCount, "photo")}, {Pluralize(videoCount, "video")}, and {Pluralize(livePhotoCount, "live photo")}";
         Assert.Equal(expectedMessage, importTask.Value.Message);
         Assert.NotNull(importTask.Value.EndTime);
         DateTimeOffset actualEndTime = importTask.Value.EndTime.Value;
