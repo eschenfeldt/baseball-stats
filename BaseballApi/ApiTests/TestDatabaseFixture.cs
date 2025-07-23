@@ -46,7 +46,10 @@ public class TestDatabaseFixture
                 Name = "Guinea Pigs",
                 Abbreviation = "STG",
                 AlternateTeamNames = { new AlternateTeamName { FullName = "St. Test Alternates" } }
-            }
+            },
+            // teams with no specific tests, used for media import games
+            new Team { City = "Dummyton", Name = "Dummies", Abbreviation = "DUM" },
+            new Team { City = "Blankville", Name = "Blanks", Abbreviation = "BNK" }
         );
     }
 

@@ -25,8 +25,8 @@ public class TeamTests : BaseballTests
     }
 
     [Theory]
-    [InlineData("Test City", "Testers", 5, 2, 2, "2025-04-30")]
-    [InlineData("New Tester Town", "Tubes", 4, 1, 2, "2025-04-30")]
+    [InlineData("Test City", "Testers", 4, 2, 1, "2024-06-30")]
+    [InlineData("New Tester Town", "Tubes", 3, 0, 2, "2023-06-27")]
     [InlineData("St. Test", "Guinea Pigs", 1, 1, 0, "2024-06-30")]
     public void TestGetTeamSummaries(string city, string name, int games, int wins, int losses, string lastGameDate)
     {
