@@ -23,6 +23,14 @@ services:
       - test
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
+    deploy:
+      resources:
+        limits:
+          cpus: '0.7'
+          memory: 2G
+        reservations:
+          cpus: '0.1'
+          memory: 128M
 
   baseball-api:
     build:
