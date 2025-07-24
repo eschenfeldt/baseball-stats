@@ -13,12 +13,14 @@ public class TempFileCleaner(IServiceProvider serviceProvider, ILogger<MediaImpo
     {
         Logger.LogInformation("Temp file cleaner started.");
         var timer = new Timer(CleanseTempFiles, null, TimeSpan.Zero, TimeSpan.FromHours(12));
-        // Wait for the timer to trigger
+        var abandonedFilesTimer = new Timer(CleanseAbandonedFiles, null, TimeSpan.Zero, TimeSpan.FromHours(24));
+        // Wait for the timers to trigger
         while (!cancellationToken.IsCancellationRequested)
         {
             await Task.Delay(Timeout.Infinite, cancellationToken);
         }
         timer.Dispose();
+        abandonedFilesTimer.Dispose();
         Logger.LogInformation("Temp file cleaner stopped.");
     }
 
@@ -26,7 +28,7 @@ public class TempFileCleaner(IServiceProvider serviceProvider, ILogger<MediaImpo
     {
         try
         {
-            Logger.LogInformation("Identifying temp files to clean up..");
+            Logger.LogInformation("Identifying temp files to clean up...");
             using var scope = ServiceProvider.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<BaseballContext>();
 
@@ -99,6 +101,57 @@ public class TempFileCleaner(IServiceProvider serviceProvider, ILogger<MediaImpo
         catch (Exception ex)
         {
             Logger.LogError(ex, "An error occurred while retriggering imports.");
+        }
+    }
+
+    private async void CleanseAbandonedFiles(object? stateInfo)
+    {
+        try
+        {
+            Logger.LogInformation("Identifying abandoned files to clean up...");
+            var path = Path.GetTempPath();
+            var files = Directory.EnumerateFiles(path, "*", SearchOption.AllDirectories)
+                .Where(f => f.EndsWith(".jpeg") || f.EndsWith(".mp4") || f.EndsWith(".tmp")) // extensions created as alternate formats and thumbnails
+                .Select(f => new FileInfo(f))
+                .Where(f => f.LastWriteTimeUtc < DateTime.UtcNow.AddDays(-1))
+                .ToList();
+            var context = ServiceProvider.GetRequiredService<BaseballContext>();
+
+            Logger.LogInformation("Found {Count} abandoned files for potential clean up.", files.Count);
+            foreach (var file in files)
+            {
+                try
+                {
+                    if (!file.Exists)
+                    {
+                        Logger.LogWarning("Abandoned file does not exist: {FileName}", file.FullName);
+                    }
+                    else
+                    {
+                        var isUsedForImportTask = await context.MediaImportTasks
+                            .AnyAsync(t => t.MediaToProcess.Any(m => m.PhotoFilePath == file.FullName || m.VideoFilePath == file.FullName));
+                        if (isUsedForImportTask)
+                        {
+                            Logger.LogInformation("File {FileName} is still in use by an import task, skipping deletion.", file.FullName);
+                        }
+                        else
+                        {
+                            Logger.LogInformation("Deleting abandoned file: {FileName}", file.FullName);
+                            file.Delete();
+                            Logger.LogInformation("Deleted abandoned file: {FileName}", file.FullName);
+                        }
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError(ex, "Failed to delete abandoned file: {FileName}", file.FullName);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "An error occurred while cleaning up abandoned files.");
         }
     }
 }
