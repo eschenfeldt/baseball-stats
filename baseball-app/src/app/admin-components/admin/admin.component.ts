@@ -46,6 +46,7 @@ export class AdminViewComponent implements OnInit {
         this.api.isLoggedIn.subscribe((result) => {
             this.isLoggedIn = result;
         });
+        this.api.checkLoginStatus();
     }
 
     openImportDialog() {

@@ -79,6 +79,7 @@ export class ScorecardComponent implements OnInit {
                 label: 'Pitchers'
             }
         ]
+        this.api.checkLoginStatus();
     }
 
     openImportDialog() {
