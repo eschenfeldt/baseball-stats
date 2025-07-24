@@ -21,6 +21,7 @@ public class MediaTests : BaseballTests
     TestGameManager TestGameManager { get; }
     MediaImportBackgroundService MediaImportBackgroundService { get; }
     MediaImportTaskRestarter MediaImportTaskRestarter { get; }
+    TempFileCleaner TempFileCleaner { get; }
 
     public MediaTests(TestDatabaseFixture fixture) : base(fixture)
     {
@@ -45,6 +46,7 @@ public class MediaTests : BaseballTests
         var backgroundLogger = loggerFactory.CreateLogger<MediaImportBackgroundService>();
         MediaImportBackgroundService = new MediaImportBackgroundService(mediaImportQueue, serviceProvider, backgroundLogger);
         MediaImportTaskRestarter = new MediaImportTaskRestarter(mediaImportQueue, serviceProvider, backgroundLogger);
+        TempFileCleaner = new TempFileCleaner(serviceProvider, backgroundLogger);
     }
 
     public static TheoryData<int?, int?, int?, List<MockFile>> Thumbnails => new()
@@ -846,6 +848,53 @@ public class MediaTests : BaseballTests
 
         // stop the service again
         await MediaImportBackgroundService.StopAsync(CancellationToken.None);
+
+        await ValidateTempFileCleanup(importTask.Value.Id);
+    }
+
+    private async Task ValidateTempFileCleanup(Guid importTaskId)
+    {
+        var tempFiles = await Context.MediaImportTasks
+            .Where(x => x.Id == importTaskId)
+            .SelectMany(x => x.MediaToProcess)
+            .ToListAsync();
+
+        Assert.NotEmpty(tempFiles);
+        Assert.All(tempFiles, x => Assert.False(x.FilesDeleted));
+
+        // start the cleanup service
+        await TempFileCleaner.StartAsync(CancellationToken.None);
+
+        var i = 0;
+        do
+        {
+            await Task.Delay(100);
+            foreach (var tempFile in tempFiles)
+            {
+                Context.Entry(tempFile).Reload();
+            }
+            i++;
+            if (i > 100) // give up after 10 seconds
+            {
+                Assert.Fail("Temp file cleanup took too long, which is unexpected.");
+            }
+        } while (tempFiles.Any(x => !x.FilesDeleted));
+
+        Assert.All(tempFiles, x =>
+        {
+            Assert.True(x.FilesDeleted, $"Temp file {x.BaseName} was not deleted as expected.");
+            if (!string.IsNullOrEmpty(x.PhotoFilePath))
+            {
+                Assert.False(File.Exists(x.PhotoFilePath), $"Temp photo file {x.PhotoFilePath} still exists.");
+            }
+            if (!string.IsNullOrEmpty(x.VideoFilePath))
+            {
+                Assert.False(File.Exists(x.VideoFilePath), $"Temp video file {x.VideoFilePath} still exists.");
+            }
+        });
+
+        // stop the cleanup service
+        await TempFileCleaner.StopAsync(CancellationToken.None);
     }
 
     private async void ValidateGameData(long gameId, Guid expectedTaskId)
