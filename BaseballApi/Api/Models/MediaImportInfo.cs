@@ -3,6 +3,7 @@ namespace BaseballApi.Models;
 public class MediaImportInfo
 {
     public Guid Id { get; set; }
+    public MediaImportTask? MediaImportTask { get; set; }
     public required string BaseName { get; set; }
     public MediaResourceType ResourceType { get; set; }
     public string? PhotoFilePath { get; set; }
@@ -12,4 +13,5 @@ public class MediaImportInfo
     public MediaImportTaskStatus Status { get; set; } = MediaImportTaskStatus.Queued;
     public DateTimeOffset? StartedAt { get; set; }
     public DateTimeOffset? CompletedAt { get; set; }
+    public bool FilesDeleted { get; set; } = false;
 }

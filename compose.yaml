@@ -23,6 +23,10 @@ services:
       - test
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
+    cpus: '0.7'
+    mem_limit: 2G
+    mem_reservation: 128M
+    memswap_limit: 12G
 
   baseball-api:
     build:
@@ -33,6 +37,10 @@ services:
       - prod
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    cpus: '0.7'
+    mem_limit: 2G
+    mem_reservation: 128M
+    memswap_limit: 12G
 
   app:
     build:

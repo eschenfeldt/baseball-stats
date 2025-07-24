@@ -74,21 +74,37 @@ public class MediaImportBackgroundService(
 
         // Process the media files
         var importManager = new MediaImportManager([.. importTask.MediaToProcess], remoteFileManager, context, importTask.Game);
-        await foreach (var resource in importManager.GetUploadedResources())
+        Logger.LogInformation("Starting import for {Count} media resources for import task with ID {ImportId}.", importTask.MediaToProcess.Count, importId);
+        int errorCount = 0;
+        await foreach (var result in importManager.GetUploadedResources())
         {
-            resource.Game = game;
-            game?.Media.Add(resource);
-            context.MediaResources.Add(resource);
+            if (result.Resource != null)
+            {
+                result.Resource.Game = game;
+                game?.Media.Add(result.Resource);
+                context.MediaResources.Add(result.Resource);
+            }
+            else
+            {
+                Logger.LogWarning("Failed to process {resource} for import task: {message}.", result.OriginalResource, result.ErrorMessage);
+                errorCount++;
+            }
             // Save incrementally so status updates with each resource processed
             await context.SaveChangesAsync(cancellationToken);
         }
 
-        // Update the status to Completed
+        if (errorCount == 0)
+        {
+            importTask.Status = MediaImportTaskStatus.Completed;
+        }
+        else
+        {
+            importTask.Status = MediaImportTaskStatus.Failed;
+        }
         importTask.CompletedAt = DateTimeOffset.UtcNow;
-        importTask.Status = MediaImportTaskStatus.Completed;
         await context.SaveChangesAsync(cancellationToken);
 
-        Logger.LogInformation("Media import task with ID {ImportId} completed successfully.", importId);
+        Logger.LogInformation("Media import task with ID {ImportId} completed.", importId);
     }
 
     public override async Task StopAsync(CancellationToken cancellationToken)

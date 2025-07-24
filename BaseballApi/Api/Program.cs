@@ -41,6 +41,8 @@ builder.Services.AddIdentityApiEndpoints<IdentityUser>()
 builder.Services.AddScoped<IRemoteFileManager, RemoteFileManager>();
 builder.Services.AddSingleton<IMediaImportQueue, MediaImportQueue>();
 builder.Services.AddHostedService<MediaImportBackgroundService>();
+builder.Services.AddHostedService<MediaImportTaskRestarter>();
+builder.Services.AddHostedService<TempFileCleaner>();
 
 builder.Services.AddCors(options =>
 {

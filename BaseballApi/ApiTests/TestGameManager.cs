@@ -11,11 +11,15 @@ public class TestGameManager
     private Dictionary<int, Player> Pitchers { get; } = [];
     private Dictionary<int, Park> Parks { get; } = [];
 
+    public int GameCount => TestGames.Count;
+
     public TestGameManager(BaseballContext context)
     {
         Teams.Add(1, context.Teams.First(t => t.City == "Test City"));
         Teams.Add(2, context.Teams.First(t => t.City == "New Tester Town"));
         Teams.Add(3, context.Teams.First(t => t.City == "St. Test"));
+        Teams.Add(4, context.Teams.First(t => t.City == "Dummyton"));
+        Teams.Add(5, context.Teams.First(t => t.City == "Blankville"));
         Batters.Add(1, context.Players.First(p => p.Name == "Test Batter 1"));
         Batters.Add(2, context.Players.First(p => p.Name == "Test Batter 2"));
         Batters.Add(3, context.Players.First(p => p.Name == "Test Batter 3"));
@@ -623,14 +627,64 @@ public class TestGameManager
                 HomeScore = 0,
                 Away = new BoxScoreInfo
                 {
-                    TeamNumber = 2,
+                    TeamNumber = 5,
                     Batters = [],
                     Pitchers = [],
                     Fielders = []
                 },
                 Home = new BoxScoreInfo
                 {
-                    TeamNumber = 1,
+                    TeamNumber = 4,
+                    Batters = [],
+                    Pitchers = [],
+                    Fielders = []
+                }
+            }
+        },
+        {
+            6,
+            new GameInfo
+            {
+                Date = new DateOnly(2025, 5, 30),
+                ParkNumber = 1,
+                Name = "2025 Test Game 2",
+                AwayScore = 1,
+                HomeScore = 0,
+                Away = new BoxScoreInfo
+                {
+                    TeamNumber = 4,
+                    Batters = [],
+                    Pitchers = [],
+                    Fielders = []
+                },
+                Home = new BoxScoreInfo
+                {
+                    TeamNumber = 5,
+                    Batters = [],
+                    Pitchers = [],
+                    Fielders = []
+                }
+            }
+        },
+        {
+            7,
+            new GameInfo
+            {
+                Date = new DateOnly(2025, 6, 30),
+                ParkNumber = 1,
+                Name = "2025 Test Game 3",
+                AwayScore = 1,
+                HomeScore = 0,
+                Away = new BoxScoreInfo
+                {
+                    TeamNumber = 5,
+                    Batters = [],
+                    Pitchers = [],
+                    Fielders = []
+                },
+                Home = new BoxScoreInfo
+                {
+                    TeamNumber = 4,
                     Batters = [],
                     Pitchers = [],
                     Fielders = []
