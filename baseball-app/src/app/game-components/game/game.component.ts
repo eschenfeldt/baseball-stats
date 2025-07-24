@@ -114,6 +114,7 @@ export class GameComponent implements OnInit {
 
     public ngOnInit(): void {
 
+        this.api.checkLoginStatus();
         this.loadGame();
 
         this.breakpointObserver.observe([
