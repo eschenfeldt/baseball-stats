@@ -13,7 +13,7 @@ public class TempFileCleaner(IServiceProvider serviceProvider, ILogger<MediaImpo
     {
         Logger.LogInformation("Temp file cleaner started.");
         var timer = new Timer(CleanseTempFiles, null, TimeSpan.Zero, TimeSpan.FromHours(12));
-        var abandonedFilesTimer = new Timer(CleanseAbandonedFiles, null, TimeSpan.Zero, TimeSpan.FromHours(24));
+        var abandonedFilesTimer = new Timer(CleanseAbandonedFiles, null, TimeSpan.FromHours(1), TimeSpan.FromHours(24));
         // Wait for the timers to trigger
         while (!cancellationToken.IsCancellationRequested)
         {
@@ -113,7 +113,7 @@ public class TempFileCleaner(IServiceProvider serviceProvider, ILogger<MediaImpo
             var files = Directory.EnumerateFiles(path, "*", SearchOption.AllDirectories)
                 .Where(f => f.EndsWith(".jpeg") || f.EndsWith(".mp4") || f.EndsWith(".tmp")) // extensions created as alternate formats and thumbnails
                 .Select(f => new FileInfo(f))
-                .Where(f => f.LastWriteTimeUtc < DateTime.UtcNow.AddDays(-1))
+                .Where(f => f.LastWriteTimeUtc < DateTime.UtcNow.AddDays(-3))
                 .ToList();
             var context = ServiceProvider.GetRequiredService<BaseballContext>();
 
@@ -132,7 +132,7 @@ public class TempFileCleaner(IServiceProvider serviceProvider, ILogger<MediaImpo
                             .AnyAsync(t => t.MediaToProcess.Any(m => m.PhotoFilePath == file.FullName || m.VideoFilePath == file.FullName));
                         if (isUsedForImportTask)
                         {
-                            Logger.LogInformation("File {FileName} is still in use by an import task, skipping deletion.", file.FullName);
+                            Logger.LogInformation("File {FileName} is registered with an import task, skipping deletion.", file.FullName);
                         }
                         else
                         {
