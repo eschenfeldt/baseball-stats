@@ -445,6 +445,8 @@ public class MediaTests : BaseballTests
         // stop the service again
         await MediaImportBackgroundService.StopAsync(CancellationToken.None);
 
+        await ValidateTempFileCleanup(importTask.Value.Id);
+
         var mediaAfter = await Controller.GetThumbnails(gameId: gameId);
         Assert.NotNull(mediaAfter);
         Assert.NotNull(mediaAfter.Value);
@@ -724,6 +726,8 @@ public class MediaTests : BaseballTests
         // stop the services again
         await MediaImportBackgroundService.StopAsync(CancellationToken.None);
         await MediaImportTaskRestarter.StopAsync(CancellationToken.None);
+        
+        await ValidateTempFileCleanup(importTask.Value.Id);
 
         var mediaAfter = await Controller.GetThumbnails(gameId: gameId);
         Assert.NotNull(mediaAfter);
