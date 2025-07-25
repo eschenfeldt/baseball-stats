@@ -91,4 +91,17 @@ export class Utils {
         const baseColor = team.colorHex ? `#${team.colorHex}` : 'black';
         return `rgb(from #${baseColor} r g b / ${percentage}%)`;
     }
+
+    public static videoTypeFromExtension(extension: string): string {
+        if (!extension) {
+            return 'video/mp4';
+        }
+        switch (extension.toLowerCase()) {
+            case '.mov':
+                return 'video/quicktime';
+            case '.mp4':
+            default:
+                return 'video/mp4';
+        }
+    }
 }

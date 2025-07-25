@@ -64,6 +64,26 @@ export class LivePhotoComponent {
     get videoSrc(): string {
         return Utils.keyToUrl(this.photo.video.key);
     }
+
+    get altVideoSrc(): string | null {
+        if (this.photo.alternateVideo) {
+            return Utils.keyToUrl(this.photo.alternateVideo.key);
+        } else {
+            return null;
+        }
+    }
+
+    get videoType(): string {
+        return Utils.videoTypeFromExtension(this.photo.video.extension);
+    }
+    get altVideoType(): string | null {
+        if (this.photo.alternateVideo) {
+            return Utils.videoTypeFromExtension(this.photo.alternateVideo.extension);
+        } else {
+            return null;
+        }
+    }
+
     get videoState(): string {
         return this.showImage ? 'hidden' : 'visible';
     }
