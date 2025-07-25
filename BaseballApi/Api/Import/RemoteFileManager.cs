@@ -75,4 +75,19 @@ public class RemoteFileManager : IRemoteFileManager
         };
         return await this.Client.GetObjectMetadataAsync(request);
     }
+
+    public async Task<CopyObjectResponse> UpdateFileContentType(RemoteFileDetail fileDetail, string contentType)
+    {
+        var key = this.GetKey(fileDetail);
+        var request = new CopyObjectRequest
+        {
+            SourceBucket = this.BucketName,
+            SourceKey = key,
+            DestinationBucket = this.BucketName,
+            DestinationKey = key,
+            ContentType = contentType,
+            MetadataDirective = S3MetadataDirective.REPLACE
+        };
+        return await this.Client.CopyObjectAsync(request);
+    }
 }
