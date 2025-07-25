@@ -726,7 +726,7 @@ public class MediaTests : BaseballTests
         // stop the services again
         await MediaImportBackgroundService.StopAsync(CancellationToken.None);
         await MediaImportTaskRestarter.StopAsync(CancellationToken.None);
-        
+
         await ValidateTempFileCleanup(importTask.Value.Id);
 
         var mediaAfter = await Controller.GetThumbnails(gameId: gameId);
@@ -963,10 +963,10 @@ public class MediaTests : BaseballTests
         var expectedTime = ExpectedResourceTimes[originalFileName];
         Assert.Equal(expectedTime, original.Value.Photo.Value.DateTime);
 
-        await RemoteValidator.ValidateFileExists(original.Value.Photo.Value);
-        await RemoteValidator.ValidateFileExists(original.Value.Video.Value);
-        await RemoteValidator.ValidateFileExists(original.Value.AlternatePhoto.Value);
-        await RemoteValidator.ValidateFileExists(original.Value.AlternateVideo.Value);
+        await RemoteValidator.ValidateFileExists(original.Value.Photo.Value, "image/heic");
+        await RemoteValidator.ValidateFileExists(original.Value.Video.Value, "video/quicktime");
+        await RemoteValidator.ValidateFileExists(original.Value.AlternatePhoto.Value, "image/jpeg");
+        await RemoteValidator.ValidateFileExists(original.Value.AlternateVideo.Value, "video/mp4");
 
         toBeDeleted.Add(original.Value.Photo.Value);
         toBeDeleted.Add(original.Value.Video.Value);
@@ -986,7 +986,7 @@ public class MediaTests : BaseballTests
             var thumbnailDetail = await Controller.GetThumbnail(assetIdentifier, thumbnail.NameModifier);
             Assert.NotNull(thumbnailDetail);
             Assert.NotNull(thumbnailDetail.Value);
-            await RemoteValidator.ValidateFileExists(thumbnailDetail.Value.Value);
+            await RemoteValidator.ValidateFileExists(thumbnailDetail.Value.Value, "image/jpeg");
 
             toBeDeleted.Add(thumbnailDetail.Value.Value);
         }
@@ -1006,8 +1006,8 @@ public class MediaTests : BaseballTests
         var expectedTime = ExpectedResourceTimes[originalFileName];
         Assert.Equal(expectedTime, original.Value.Photo.Value.DateTime);
 
-        await RemoteValidator.ValidateFileExists(original.Value.Photo.Value);
-        await RemoteValidator.ValidateFileExists(original.Value.AlternatePhoto.Value);
+        await RemoteValidator.ValidateFileExists(original.Value.Photo.Value, "image/heic");
+        await RemoteValidator.ValidateFileExists(original.Value.AlternatePhoto.Value, "image/jpeg");
 
         toBeDeleted.Add(original.Value.Photo.Value);
         toBeDeleted.Add(original.Value.AlternatePhoto.Value);
@@ -1025,7 +1025,7 @@ public class MediaTests : BaseballTests
             var thumbnailDetail = await Controller.GetThumbnail(assetIdentifier, thumbnail.NameModifier);
             Assert.NotNull(thumbnailDetail);
             Assert.NotNull(thumbnailDetail.Value);
-            await RemoteValidator.ValidateFileExists(thumbnailDetail.Value.Value);
+            await RemoteValidator.ValidateFileExists(thumbnailDetail.Value.Value, "image/jpeg");
 
             toBeDeleted.Add(thumbnailDetail.Value.Value);
         }
@@ -1045,8 +1045,8 @@ public class MediaTests : BaseballTests
         var expectedTime = ExpectedResourceTimes[originalFileName];
         Assert.Equal(expectedTime, original.Value.Video.Value.DateTime);
 
-        await RemoteValidator.ValidateFileExists(original.Value.Video.Value);
-        await RemoteValidator.ValidateFileExists(original.Value.AlternateVideo.Value);
+        await RemoteValidator.ValidateFileExists(original.Value.Video.Value, "video/quicktime");
+        await RemoteValidator.ValidateFileExists(original.Value.AlternateVideo.Value, "video/mp4");
 
         toBeDeleted.Add(original.Value.Video.Value);
         toBeDeleted.Add(original.Value.AlternateVideo.Value);
@@ -1064,7 +1064,7 @@ public class MediaTests : BaseballTests
             var thumbnailDetail = await Controller.GetThumbnail(assetIdentifier, thumbnail.NameModifier);
             Assert.NotNull(thumbnailDetail);
             Assert.NotNull(thumbnailDetail.Value);
-            await RemoteValidator.ValidateFileExists(thumbnailDetail.Value.Value);
+            await RemoteValidator.ValidateFileExists(thumbnailDetail.Value.Value, "image/jpeg");
 
             toBeDeleted.Add(thumbnailDetail.Value.Value);
         }

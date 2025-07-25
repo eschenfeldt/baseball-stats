@@ -107,7 +107,7 @@ public class ImportTests(TestImportDatabaseFixture fixture) : IClassFixture<Test
             Assert.NotEqual(Guid.Empty, scorecardFile.AssetIdentifier);
             Assert.Equal(".pdf", scorecardFile.Extension);
             Assert.Equal("scorecard.pdf", scorecardFile.OriginalFileName);
-            await remoteValidator.ValidateFileExists(scorecardFile);
+            await remoteValidator.ValidateFileExists(scorecardFile, "application/pdf");
 
             // validate box scores
             Assert.NotNull(game.HomeBoxScore);
