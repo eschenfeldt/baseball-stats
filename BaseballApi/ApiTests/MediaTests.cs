@@ -963,7 +963,7 @@ public class MediaTests : BaseballTests
         var expectedTime = ExpectedResourceTimes[originalFileName];
         Assert.Equal(expectedTime, original.Value.Photo.Value.DateTime);
 
-        await RemoteValidator.ValidateFileExists(original.Value.Photo.Value, "image/heic");
+        await RemoteValidator.ValidateFileExists(original.Value.Photo.Value, "application/octet-stream");
         await RemoteValidator.ValidateFileExists(original.Value.Video.Value, "video/quicktime");
         await RemoteValidator.ValidateFileExists(original.Value.AlternatePhoto.Value, "image/jpeg");
         await RemoteValidator.ValidateFileExists(original.Value.AlternateVideo.Value, "video/mp4");
@@ -1006,8 +1006,12 @@ public class MediaTests : BaseballTests
         var expectedTime = ExpectedResourceTimes[originalFileName];
         Assert.Equal(expectedTime, original.Value.Photo.Value.DateTime);
 
-        await RemoteValidator.ValidateFileExists(original.Value.Photo.Value, "image/heic");
+        await RemoteValidator.ValidateFileExists(original.Value.Photo.Value, "application/octet-stream");
         await RemoteValidator.ValidateFileExists(original.Value.AlternatePhoto.Value, "image/jpeg");
+
+        // test modifying the content type to ensure it works correctly
+        await RemoteFileManager.UpdateFileContentType(original.Value.Photo.Value, "image/jpeg");
+        await RemoteValidator.ValidateFileExists(original.Value.Photo.Value, "image/jpeg");
 
         toBeDeleted.Add(original.Value.Photo.Value);
         toBeDeleted.Add(original.Value.AlternatePhoto.Value);
