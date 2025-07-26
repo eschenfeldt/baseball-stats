@@ -16,6 +16,56 @@ public class TestMediaImporter(BaseballContext context, MediaController controll
     private MediaController Controller { get; } = controller;
     private MediaImportBackgroundService MediaImportBackgroundService { get; } = backgroundService;
 
+    internal static void PrepareFormFiles(string directory, MediaResourceType type, List<IFormFile> files, Dictionary<string, MediaResourceType> resourceTypes)
+    {
+        foreach (var filePath in EnumerateMediaFiles(directory))
+        {
+            files.Add(CreateFormFile(filePath, out string fileName));
+            resourceTypes[fileName] = type;
+        }
+    }
+
+    internal static void PrepareIndividualFormFiles(MediaResourceType type, List<IFormFile> files, Dictionary<string, MediaResourceType> resourceTypes, params string[] filePaths)
+    {
+        foreach (var filePath in filePaths)
+        {
+            files.Add(CreateFormFile(filePath, out string fileName));
+            resourceTypes[fileName] = type;
+        }
+    }
+
+    private static IEnumerable<string> EnumerateMediaFiles(string directoryPath)
+    {
+        return Directory.EnumerateFiles(directoryPath, "*.*", SearchOption.AllDirectories)
+            .Where(file => !Path.GetExtension(file).Equals(".DS_Store", StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static FormFile CreateFormFile(string filePath, out string fileName)
+    {
+        fileName = Path.GetFileName(filePath);
+        using var fileStream = File.OpenRead(filePath);
+        var memoryStream = new MemoryStream();
+        fileStream.CopyTo(memoryStream);
+        var formFile = new FormFile(memoryStream, 0, memoryStream.Length, fileName, fileName)
+        {
+            Headers = new HeaderDictionary(),
+        };
+        formFile.ContentType = GetContentType(fileName);
+        return formFile;
+    }
+
+    private static string GetContentType(string fileName)
+    {
+        var extension = Path.GetExtension(fileName).ToLowerInvariant();
+        return extension switch
+        {
+            ".heic" => "image/heic",
+            ".mov" => "video/quicktime",
+            ".mp4" => "video/mp4",
+            _ => throw new NotSupportedException($"Unsupported file type: {extension}")
+        };
+    }
+
     internal async Task<ImportTask> ImportMedia(List<IFormFile> files, long gameId, Dictionary<string, MediaResourceType> resourceTypes)
     {
         // start up the media import background service

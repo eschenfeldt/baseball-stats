@@ -236,7 +236,7 @@ namespace BaseballApi.Controllers
 
         [HttpPost("import")]
         [Authorize]
-        public async Task<IActionResult> ImportGame([FromForm] List<IFormFile> files, [FromForm] string serializedMetadata)
+        public async Task<ActionResult<GameImportResult>> ImportGame([FromForm] List<IFormFile> files, [FromForm] string serializedMetadata)
         {
             GameMetadata metadata = JsonConvert.DeserializeObject<GameMetadata>(serializedMetadata);
             long size = files.Sum(f => f.Length);

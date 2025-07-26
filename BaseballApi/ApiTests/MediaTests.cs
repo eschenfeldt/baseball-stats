@@ -98,11 +98,7 @@ public class MediaTests : BaseballTests
         var files = new List<IFormFile>();
         var livePhotoDirectory = Path.Join("data", "media", "live photos");
         Dictionary<string, MediaResourceType> resourceTypes = [];
-        foreach (var filePath in EnumerateMediaFiles(livePhotoDirectory))
-        {
-            files.Add(CreateFormFile(filePath, out _));
-            resourceTypes[filePath] = MediaResourceType.LivePhoto;
-        }
+        TestMediaImporter.PrepareFormFiles(livePhotoDirectory, MediaResourceType.LivePhoto, files, resourceTypes);
 
         await ImportMedia(files, gameId, resourceTypes);
 
@@ -155,11 +151,7 @@ public class MediaTests : BaseballTests
         var files = new List<IFormFile>();
         var videoDirectory = Path.Join("data", "media", "video");
         Dictionary<string, MediaResourceType> resourceTypes = [];
-        foreach (var filePath in EnumerateMediaFiles(videoDirectory))
-        {
-            files.Add(CreateFormFile(filePath, out _));
-            resourceTypes[filePath] = MediaResourceType.Video;
-        }
+        TestMediaImporter.PrepareFormFiles(videoDirectory, MediaResourceType.Video, files, resourceTypes);
 
         await ImportMedia(files, gameId, resourceTypes);
 
@@ -203,12 +195,8 @@ public class MediaTests : BaseballTests
         var files = new List<IFormFile>();
         var photoDirectory = Path.Join("data", "media", "photos");
         Dictionary<string, MediaResourceType> resourceTypes = [];
-        foreach (var filePath in EnumerateMediaFiles(photoDirectory))
-        {
-            files.Add(CreateFormFile(filePath, out _));
-            resourceTypes[filePath] = MediaResourceType.Photo;
-        }
-
+        TestMediaImporter.PrepareFormFiles(photoDirectory, MediaResourceType.Photo, files, resourceTypes);
+    
         await ImportMedia(files, gameId, resourceTypes);
 
         var mediaAfter = await Controller.GetThumbnails(gameId: gameId);
@@ -256,21 +244,9 @@ public class MediaTests : BaseballTests
         var photoDirectory = Path.Join("data", "media", "photos");
         var livePhotoDirectory = Path.Join("data", "media", "live photos");
         Dictionary<string, MediaResourceType> resourceTypes = [];
-        foreach (var filePath in EnumerateMediaFiles(photoDirectory))
-        {
-            files.Add(CreateFormFile(filePath, out string fileName));
-            resourceTypes[fileName] = MediaResourceType.Photo;
-        }
-        foreach (var filePath in EnumerateMediaFiles(videoDirectory))
-        {
-            files.Add(CreateFormFile(filePath, out string fileName));
-            resourceTypes[fileName] = MediaResourceType.Video;
-        }
-        foreach (var filePath in EnumerateMediaFiles(livePhotoDirectory))
-        {
-            files.Add(CreateFormFile(filePath, out string fileName));
-            resourceTypes[fileName] = MediaResourceType.LivePhoto;
-        }
+        TestMediaImporter.PrepareFormFiles(photoDirectory, MediaResourceType.Photo, files, resourceTypes);
+        TestMediaImporter.PrepareFormFiles(videoDirectory, MediaResourceType.Video, files, resourceTypes);
+        TestMediaImporter.PrepareFormFiles(livePhotoDirectory, MediaResourceType.LivePhoto, files, resourceTypes);
 
         await ImportMedia(files, gameId, resourceTypes);
 
@@ -346,36 +322,12 @@ public class MediaTests : BaseballTests
         var fakePhotoDirectory = Path.Join("data", "media", "fake photo");
         var fakeLivePhotoDirectory = Path.Join("data", "media", "fake live photo");
         Dictionary<string, MediaResourceType> resourceTypes = [];
-        foreach (var filePath in EnumerateMediaFiles(fakeVideoDirectory))
-        {
-            files.Add(CreateFormFile(filePath, out string fileName));
-            resourceTypes[fileName] = MediaResourceType.Video;
-        }
-        foreach (var filePath in EnumerateMediaFiles(fakePhotoDirectory))
-        {
-            files.Add(CreateFormFile(filePath, out string fileName));
-            resourceTypes[fileName] = MediaResourceType.Photo;
-        }
-        foreach (var filePath in EnumerateMediaFiles(fakeLivePhotoDirectory))
-        {
-            files.Add(CreateFormFile(filePath, out string fileName));
-            resourceTypes[fileName] = MediaResourceType.LivePhoto;
-        }
-        foreach (var filePath in EnumerateMediaFiles(photoDirectory))
-        {
-            files.Add(CreateFormFile(filePath, out string fileName));
-            resourceTypes[fileName] = MediaResourceType.Photo;
-        }
-        foreach (var filePath in EnumerateMediaFiles(videoDirectory))
-        {
-            files.Add(CreateFormFile(filePath, out string fileName));
-            resourceTypes[fileName] = MediaResourceType.Video;
-        }
-        foreach (var filePath in EnumerateMediaFiles(livePhotoDirectory))
-        {
-            files.Add(CreateFormFile(filePath, out string fileName));
-            resourceTypes[fileName] = MediaResourceType.LivePhoto;
-        }
+        TestMediaImporter.PrepareFormFiles(fakeVideoDirectory, MediaResourceType.Video, files, resourceTypes);
+        TestMediaImporter.PrepareFormFiles(fakePhotoDirectory, MediaResourceType.Photo, files, resourceTypes);
+        TestMediaImporter.PrepareFormFiles(fakeLivePhotoDirectory, MediaResourceType.LivePhoto, files, resourceTypes);
+        TestMediaImporter.PrepareFormFiles(photoDirectory, MediaResourceType.Photo, files, resourceTypes);
+        TestMediaImporter.PrepareFormFiles(videoDirectory, MediaResourceType.Video, files, resourceTypes);
+        TestMediaImporter.PrepareFormFiles(livePhotoDirectory, MediaResourceType.LivePhoto, files, resourceTypes);
 
         // start up the media import background service
         await MediaImportBackgroundService.StartAsync(CancellationToken.None);
@@ -517,16 +469,8 @@ public class MediaTests : BaseballTests
         var videoDirectory = Path.Join("data", "media", "video");
         var livePhotoDirectory = Path.Join("data", "media", "live photos");
         Dictionary<string, MediaResourceType> resourceTypes = [];
-        foreach (var filePath in EnumerateMediaFiles(videoDirectory))
-        {
-            files.Add(CreateFormFile(filePath, out string fileName));
-            resourceTypes[fileName] = MediaResourceType.Video;
-        }
-        foreach (var filePath in EnumerateMediaFiles(livePhotoDirectory))
-        {
-            files.Add(CreateFormFile(filePath, out string fileName));
-            resourceTypes[fileName] = MediaResourceType.LivePhoto;
-        }
+        TestMediaImporter.PrepareFormFiles(videoDirectory, MediaResourceType.Video, files, resourceTypes);
+        TestMediaImporter.PrepareFormFiles(livePhotoDirectory, MediaResourceType.LivePhoto, files, resourceTypes);
 
         await ImportMedia(files, gameId, resourceTypes);
 
@@ -537,11 +481,8 @@ public class MediaTests : BaseballTests
         Assert.Equal(countBefore + 3, countAfter);
 
         var photoDirectory = Path.Join("data", "media", "photos");
-        foreach (var filePath in EnumerateMediaFiles(photoDirectory))
-        {
-            files.Add(CreateFormFile(filePath, out string fileName));
-            resourceTypes[fileName] = MediaResourceType.Photo;
-        }
+        TestMediaImporter.PrepareFormFiles(photoDirectory, MediaResourceType.Photo, files, resourceTypes);
+
         await ImportMedia(files, gameId, resourceTypes);
 
         // Make sure we don't duplicate the video or live photos
@@ -611,11 +552,7 @@ public class MediaTests : BaseballTests
         var files = new List<IFormFile>();
         var livePhotoDirectory = Path.Join("data", "media", "live photos");
         Dictionary<string, MediaResourceType> resourceTypes = [];
-        foreach (var filePath in EnumerateMediaFiles(livePhotoDirectory))
-        {
-            files.Add(CreateFormFile(filePath, out string fileName));
-            resourceTypes[fileName] = MediaResourceType.LivePhoto;
-        }
+        TestMediaImporter.PrepareFormFiles(livePhotoDirectory, MediaResourceType.LivePhoto, files, resourceTypes);
 
         // start up the media import background service but cancel it nearly immediately to simulate an abandonment
         var cancellationTokenSource = new CancellationTokenSource();
@@ -840,38 +777,6 @@ public class MediaTests : BaseballTests
         Assert.NotNull(taskFromGame.Value);
         Assert.Single(taskFromGame.Value);
         Assert.Equal(expectedTaskId, taskFromGame.Value[0].Id);
-    }
-
-    private IEnumerable<string> EnumerateMediaFiles(string directoryPath)
-    {
-        return Directory.EnumerateFiles(directoryPath, "*.*", SearchOption.AllDirectories)
-            .Where(file => !Path.GetExtension(file).Equals(".DS_Store", StringComparison.OrdinalIgnoreCase));
-    }
-
-    private FormFile CreateFormFile(string filePath, out string fileName)
-    {
-        fileName = Path.GetFileName(filePath);
-        using var fileStream = File.OpenRead(filePath);
-        var memoryStream = new MemoryStream();
-        fileStream.CopyTo(memoryStream);
-        var formFile = new FormFile(memoryStream, 0, memoryStream.Length, fileName, fileName)
-        {
-            Headers = new HeaderDictionary(),
-        };
-        formFile.ContentType = GetContentType(fileName);
-        return formFile;
-    }
-
-    private string GetContentType(string fileName)
-    {
-        var extension = Path.GetExtension(fileName).ToLowerInvariant();
-        return extension switch
-        {
-            ".heic" => "image/heic",
-            ".mov" => "video/quicktime",
-            ".mp4" => "video/mp4",
-            _ => throw new NotSupportedException($"Unsupported file type: {extension}")
-        };
     }
 
     private static string Pluralize(int count, string singular)
