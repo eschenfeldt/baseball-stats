@@ -41,12 +41,50 @@ public class MediaFormatManagerTests : IClassFixture<TestImportDatabaseFixture>,
         Manager = new(mediaImportQueue, serviceProvider, logger, CancellationToken.None);
     }
 
-    [Fact]
-    public async void TestNoUnsetContentTypes()
+    [Theory]
+    [InlineData("video/hevc.mov")]
+    [InlineData("photos/IMG_4721.HEIC")]
+    [InlineData("other/h264.MOV")] // This is probably going to flag incorrectly; it does work in Firefox as binary/octect-stream with .MOV extension
+    [InlineData("other/IMG_1278.JPG")]
+    public async void TestNoCleanupRequired(string fileToUpload)
     {
-
+        // Upload a file through the regular endpoint and validate that it doesn't require background cleanup
     }
 
+    [Theory]
+    [InlineData("video/hevc.mov")]
+    [InlineData("photos/IMG_4721.HEIC")]
+    [InlineData("other/h264.MOV")] // This is probably going to flag incorrectly; it does work in Firefox as binary/octect-stream with .MOV extension
+    [InlineData("other/IMG_1278.JPG")]
+    public async void TestContentTypeSet(string fileToUpload)
+    {
+        // Upload a file then delete the content type in the db and make sure it gets set again
+    }
+
+
+    [Theory]
+    [InlineData("video/hevc.mov")]
+    [InlineData("other/h264.MOV")] // This is probably going to flag incorrectly; it does work in Firefox as binary/octect-stream with .MOV extension
+    public async void TestContentTypeCorrected(string fileToUpload)
+    {
+        // Upload a file then manipulate the content type in the bucket and make sure it gets corrected
+    }
+
+    [Theory]
+    [InlineData("video/hevc.mov")]
+    [InlineData("photos/IMG_4721.HEIC")]
+    [InlineData("other/h264.MOV")] // This is probably going to flag incorrectly; it does work in Firefox as binary/octect-stream with .MOV extension
+    [InlineData("other/IMG_1278.JPG")]
+    public async void TestAlternateFormatCreated(string fileToUpload)
+    {
+        // Upload a file then delete the alternate format from the db and bucket, then make sure it gets recreated
+    }
+
+    [Fact]
+    public async void TestAlternateFormatLivePhoto()
+    {
+        // upload a live photo, delete one alternate file, check it recreates, then repeat for the other file and both files at once
+    }
 
     public void Dispose()
     {
