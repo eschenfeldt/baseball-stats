@@ -15,4 +15,5 @@ public class RemoteFile
     public RemoteFilePurpose Purpose { get; set; }
     public string? NameModifier { get; set; }
     public required string Extension { get; set; }
+    public string? ContentType { get; set; }
 }

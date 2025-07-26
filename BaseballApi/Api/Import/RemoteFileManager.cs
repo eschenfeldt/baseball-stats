@@ -66,6 +66,16 @@ public class RemoteFileManager : IRemoteFileManager
         return await this.Client.DeleteObjectsAsync(request);
     }
 
+    public async Task<GetObjectResponse> GetFile(RemoteFileDetail fileDetail)
+    {
+        var request = new GetObjectRequest
+        {
+            BucketName = this.BucketName,
+            Key = this.GetKey(fileDetail)
+        };
+        return await this.Client.GetObjectAsync(request);
+    }
+
     public async Task<GetObjectMetadataResponse> GetFileMetadata(RemoteFileDetail fileDetail)
     {
         var request = new GetObjectMetadataRequest
