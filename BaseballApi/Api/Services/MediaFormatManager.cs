@@ -38,7 +38,7 @@ public class MediaFormatManager(
         {
             Logger.LogInformation("Setting content types for media files...");
             using var scope = ServiceProvider.CreateScope();
-            var context = scope.ServiceProvider.GetRequiredService<BaseballContext>();
+            using var context = scope.ServiceProvider.GetRequiredService<BaseballContext>();
             var remoteFileManager = scope.ServiceProvider.GetRequiredService<IRemoteFileManager>();
 
             // Find all media resources that need content types set
@@ -113,7 +113,7 @@ public class MediaFormatManager(
             Logger.LogInformation("Creating alternate formats for media files...");
             using var scope = ServiceProvider.CreateScope();
             var remoteFileManager = scope.ServiceProvider.GetRequiredService<IRemoteFileManager>();
-            var context = scope.ServiceProvider.GetRequiredService<BaseballContext>();
+            using var context = scope.ServiceProvider.GetRequiredService<BaseballContext>();
 
             // Find one media resource that needs alternate formats created
             var resourcesToProcess = await context.MediaResources
