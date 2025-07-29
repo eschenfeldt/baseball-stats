@@ -29,7 +29,7 @@ public class MediaImportTaskRestarter(IMediaImportQueue mediaImportQueue, IServi
         {
             Logger.LogInformation("Retriggering abandoned media import tasks...");
             using var scope = ServiceProvider.CreateScope();
-            var context = scope.ServiceProvider.GetRequiredService<BaseballContext>();
+            using var context = scope.ServiceProvider.GetRequiredService<BaseballContext>();
 
             // Find all import tasks that are in a non-complete state
             var possiblyAbandonedTasks = await context.MediaImportTasks

@@ -27,7 +27,7 @@ public class MediaImportBackgroundService(
                 // Create a scope to resolve services
                 using var scope = ServiceProvider.CreateScope();
                 var remoteFileManager = scope.ServiceProvider.GetRequiredService<IRemoteFileManager>();
-                var context = scope.ServiceProvider.GetRequiredService<BaseballContext>();
+                using var context = scope.ServiceProvider.GetRequiredService<BaseballContext>();
 
                 // Process the import task
                 await ProcessImport(importId, remoteFileManager, context, cancellationToken);
