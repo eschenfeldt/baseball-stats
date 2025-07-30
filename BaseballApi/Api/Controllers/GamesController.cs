@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Authorization;
 using Newtonsoft.Json;
 using BaseballApi.Contracts;
 using BaseballApi.Import;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace BaseballApi.Controllers
 {
@@ -330,7 +331,14 @@ namespace BaseballApi.Controllers
                 await _context.SaveChangesAsync();
             }
 
-            return Ok(new { id = newGame.Id, count = files.Count, size, metadata, changes });
+            return new GameImportResult
+            {
+                Id = newGame.Id,
+                Count = files.Count,
+                Size = size,
+                Metadata = metadata,
+                Changes = changes
+            };
         }
     }
 }

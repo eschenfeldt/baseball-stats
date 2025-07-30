@@ -1,4 +1,5 @@
 using System;
+using BaseballApi.Contracts;
 using BaseballApi.Controllers;
 using BaseballApi.Import;
 using BaseballApi.Models;
@@ -12,17 +13,19 @@ using Newtonsoft.Json;
 
 namespace BaseballApiTests;
 
-public class MediaFormatManagerTests : BaseImportTests, IAsyncLifetime
+public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixture>
 {
     BaseballContext Context { get; }
+    TestMediaImportDatabaseFixture Fixture { get; }
     RemoteFileManager RemoteFileManager { get; }
     RemoteFileValidator RemoteValidator { get; }
     MediaFormatManager Manager { get; }
     TestMediaImporter Importer { get; }
-    long GameId { get; set; }
+    long GameId { get { return Fixture.GameId; } }
 
-    public MediaFormatManagerTests(TestImportDatabaseFixture fixture) : base(fixture)
+    public MediaFormatManagerTests(TestMediaImportDatabaseFixture fixture)
     {
+        Fixture = fixture;
         Context = Fixture.CreateContext();
 
         var builder = new ConfigurationBuilder()
@@ -48,34 +51,19 @@ public class MediaFormatManagerTests : BaseImportTests, IAsyncLifetime
         Importer = new(Context, controller, backgroundService);
     }
 
-    public async Task InitializeAsync()
-    {
-        // import a game; files will attach to this game and 
-        // it will include a scorecard to be sure that doesn't get flagged by any of these processes
-        var gamesController = new GamesController(Context, RemoteFileManager);
-        var metadata = PrepareGameForImport(out List<IFormFile> files);
-        var result = await gamesController.ImportGame(files, JsonConvert.SerializeObject(metadata));
-        Assert.NotNull(result);
-        GameId = result.Value.Id;
-    }
-
-
     [Theory]
-    [InlineData("video/hevc.mov")]
-    [InlineData("photos/IMG_4721.HEIC")]
-    [InlineData("other/h264.MOV")] // This is probably going to flag incorrectly; it does work in Firefox as binary/octect-stream with .MOV extension
-    [InlineData("other/IMG_1278.JPG")]
-    public async void TestNoCleanupRequired(string fileToUpload)
+    [InlineData("video/hevc.mov", true)]
+    [InlineData("photos/IMG_4721.HEIC", true)]
+    [InlineData("other/h264.MOV", false)] // This is probably going to flag incorrectly; it does work in Firefox as binary/octect-stream with .MOV extension
+    [InlineData("other/IMG_1278.JPG", false)]
+    public async void TestNoCleanupRequired(string fileToUpload, bool generatesAltFormat)
     {
         // Upload a file through the regular endpoint and validate that it doesn't require background cleanup
-        List<IFormFile> files = [];
-        Dictionary<string, MediaResourceType> resourceTypes = [];
-        string path = Path.Combine("data", "media", fileToUpload);
-        TestMediaImporter.PrepareIndividualFormFiles(GetSingleFileResourceType(path), files, resourceTypes, path);
-        await Importer.ImportMedia(files, GameId, resourceTypes);
+        await UploadFile(fileToUpload);
 
-        var fileCount = await Context.MediaResources.SelectMany(r => r.Files).CountAsync();
-        Assert.True(fileCount > 1, "Scorecard and file uploaded during this test should be registered in db");
+        var fileName = Path.GetFileName(fileToUpload);
+        var fileCount = await Context.MediaResources.Where(r => r.OriginalFileName == fileName).SelectMany(r => r.Files).CountAsync();
+        Assert.Equal(FileCount(generatesAltFormat), fileCount);
 
         var contentTypeResults = await Manager.SetContentTypes();
         Assert.Equal(0, contentTypeResults.SetCount);
@@ -88,13 +76,40 @@ public class MediaFormatManagerTests : BaseImportTests, IAsyncLifetime
     }
 
     [Theory]
-    [InlineData("video/hevc.mov")]
-    [InlineData("photos/IMG_4721.HEIC")]
-    [InlineData("other/h264.MOV")] // This is probably going to flag incorrectly; it does work in Firefox as binary/octect-stream with .MOV extension
-    [InlineData("other/IMG_1278.JPG")]
-    public async void TestContentTypeSet(string fileToUpload)
+    [InlineData("video/hevc.mov", true)]
+    [InlineData("photos/IMG_4721.HEIC", true)]
+    [InlineData("other/h264.MOV", false)] // This is probably going to flag incorrectly; it does work in Firefox as binary/octect-stream with .MOV extension
+    [InlineData("other/IMG_1278.JPG", false)]
+    public async void TestContentTypeSet(string fileToUpload, bool generatesAltFormat)
     {
         // Upload a file then delete the content type in the db and make sure it gets set again
+        await UploadFile(fileToUpload);
+        var fileName = Path.GetFileName(fileToUpload);
+        var resource = await Context.MediaResources.FirstOrDefaultAsync(r => r.OriginalFileName == fileName);
+        Assert.NotNull(resource);
+        Dictionary<long, string> expectedContenTypes = [];
+        foreach (var file in resource.Files)
+        {
+            Assert.NotNull(file.ContentType);
+            expectedContenTypes[file.Id] = file.ContentType;
+            file.ContentType = null;
+        }
+        await Context.SaveChangesAsync();
+        var fileCountWithContentType = await Context.MediaResources.Where(r => r.OriginalFileName == fileName)
+            .SelectMany(r => r.Files)
+            .Where(f => f.ContentType != null)
+            .CountAsync();
+        Assert.Equal(0, fileCountWithContentType);
+        var contentTypeResults = await Manager.SetContentTypes();
+        Assert.Equal(FileCount(generatesAltFormat), contentTypeResults.SetCount);
+        Assert.Equal(0, contentTypeResults.UpdateCount);
+        Assert.Null(contentTypeResults.ErrorMessage);
+
+        foreach (var file in resource.Files)
+        {
+            Assert.NotNull(file.ContentType);
+            Assert.Equal(expectedContenTypes[file.Id], file.ContentType);
+        }
     }
 
 
@@ -107,13 +122,48 @@ public class MediaFormatManagerTests : BaseImportTests, IAsyncLifetime
     }
 
     [Theory]
-    [InlineData("video/hevc.mov")]
-    [InlineData("photos/IMG_4721.HEIC")]
-    [InlineData("other/h264.MOV")] // This is probably going to flag incorrectly; it does work in Firefox as binary/octect-stream with .MOV extension
-    [InlineData("other/IMG_1278.JPG")]
-    public async void TestAlternateFormatCreated(string fileToUpload)
+    [InlineData("video/hevc.mov", true)]
+    [InlineData("photos/IMG_4721.HEIC", true)]
+    [InlineData("other/h264.MOV", false)] // This is probably going to flag incorrectly; it does work in Firefox as binary/octect-stream with .MOV extension
+    [InlineData("other/IMG_1278.JPG", false)]
+    public async void TestAlternateFormatCreated(string fileToUpload, bool generatesAltFormat)
     {
-        // Upload a file then delete the alternate format from the db and bucket, then make sure it gets recreated
+        // Upload a file then delete the alternate formats from the db and bucket, then make sure they get recreated
+        await UploadFile(fileToUpload);
+        var fileName = Path.GetFileName(fileToUpload);
+        var resource = await Context.MediaResources.FirstOrDefaultAsync(r => r.OriginalFileName == fileName);
+        Assert.NotNull(resource);
+        Assert.Equal(FileCount(generatesAltFormat), resource.Files.Count);
+        string? expectedContentType = null;
+        foreach (var file in resource.Files)
+        {
+            if (file.Purpose == RemoteFilePurpose.AlternateFormat)
+            {
+                Assert.NotNull(file.ContentType);
+                expectedContentType = file.ContentType;
+                resource.Files.Remove(file);
+                await RemoteFileManager.DeleteFile(new RemoteFileDetail(file));
+            }
+        }
+        await Context.SaveChangesAsync();
+        var altFormatResults = await Manager.CreateAlternateFormats();
+        Assert.Equal(generatesAltFormat ? 1 : 0, altFormatResults.Count);
+        Assert.Null(altFormatResults.ErrorMessage);
+        if (generatesAltFormat && expectedContentType != null)
+        {
+            var newAltFormat = resource.Files.FirstOrDefault(f => f.Purpose == RemoteFilePurpose.AlternateFormat);
+            Assert.NotNull(newAltFormat);
+            Assert.NotEqual(0, newAltFormat.Id);
+            await RemoteValidator.ValidateFileExists(new RemoteFileDetail(newAltFormat), expectedContentType);
+        }
+        else if (generatesAltFormat)
+        {
+            Assert.Fail("Expected content type not found");
+        }
+        else
+        {
+            Assert.Empty(resource.Files.Where(f => f.Purpose == RemoteFilePurpose.AlternateFormat));
+        }
     }
 
     [Fact]
@@ -122,17 +172,31 @@ public class MediaFormatManagerTests : BaseImportTests, IAsyncLifetime
         // upload a live photo, delete one alternate file, check it recreates, then repeat for the other file and both files at once
     }
 
+    private async Task UploadFile(string fileToUpload)
+    {
+        List<IFormFile> files = [];
+        Dictionary<string, MediaResourceType> resourceTypes = [];
+        string path = Path.Combine("data", "media", fileToUpload);
+        TestMediaImporter.PrepareIndividualFormFiles(GetSingleFileResourceType(path), files, resourceTypes, path);
+        await Importer.ImportMedia(files, GameId, resourceTypes);
+    }
+
+    private static int FileCount(bool generatesAltFormat)
+    {
+        return generatesAltFormat ? 5 : 4;
+    }
+
     private static MediaResourceType GetSingleFileResourceType(string path)
     {
         string extension = new FileInfo(path).Extension.ToLowerInvariant();
         switch (extension)
         {
-            case "jpg":
-            case "jpeg":
-            case "heic":
+            case ".jpg":
+            case ".jpeg":
+            case ".heic":
                 return MediaResourceType.Photo;
-            case "mov":
-            case "mp4":
+            case ".mov":
+            case ".mp4":
                 return MediaResourceType.Video;
             default:
                 throw new ArgumentException($"Unexpected extension {extension}");
@@ -145,10 +209,4 @@ public class MediaFormatManagerTests : BaseImportTests, IAsyncLifetime
         // don't worry about db cleanup, though
         return Task.CompletedTask;
     }
-
-    public void Dispose()
-    {
-        Fixture.Dispose();
-    }
-
 }

@@ -60,6 +60,7 @@ public class TestMediaImporter(BaseballContext context, MediaController controll
         return extension switch
         {
             ".heic" => "image/heic",
+            ".jpg" => "image/jpeg",
             ".mov" => "video/quicktime",
             ".mp4" => "video/mp4",
             _ => throw new NotSupportedException($"Unsupported file type: {extension}")

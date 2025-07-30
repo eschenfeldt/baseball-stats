@@ -10,8 +10,15 @@ using Newtonsoft.Json;
 
 namespace BaseballApiTests;
 
-public class ImportTests(TestImportDatabaseFixture fixture) : BaseImportTests(fixture)
+public class ImportTests(TestImportDatabaseFixture fixture) : IClassFixture<TestImportDatabaseFixture>
 {
+    protected TestImportDatabaseFixture Fixture { get; } = fixture;
+
+    private static GameMetadata PrepareGameForImport(out List<IFormFile> files)
+    {
+        return TestImportDatabaseFixture.PrepareGameForImport(out files);
+    }
+
     [Fact]
     public async void TestImportGameViaController()
     {
