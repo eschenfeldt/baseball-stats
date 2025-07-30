@@ -30,7 +30,7 @@ public class TempFileCleaner(IServiceProvider serviceProvider, ILogger<MediaImpo
         {
             Logger.LogInformation("Identifying temp files to clean up...");
             using var scope = ServiceProvider.CreateScope();
-            var context = scope.ServiceProvider.GetRequiredService<BaseballContext>();
+            using var context = scope.ServiceProvider.GetRequiredService<BaseballContext>();
 
             // Find all resources that are either processed or associated with a completed or failed import task
             var resourcesToCleanUp = await context.MediaImportTasks
@@ -115,7 +115,7 @@ public class TempFileCleaner(IServiceProvider serviceProvider, ILogger<MediaImpo
                 .Select(f => new FileInfo(f))
                 .Where(f => f.LastWriteTimeUtc < DateTime.UtcNow.AddDays(-3))
                 .ToList();
-            var context = ServiceProvider.GetRequiredService<BaseballContext>();
+            using var context = ServiceProvider.GetRequiredService<BaseballContext>();
 
             Logger.LogInformation("Found {Count} abandoned files for potential clean up.", files.Count);
             foreach (var file in files)
