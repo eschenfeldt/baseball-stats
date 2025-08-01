@@ -13,6 +13,13 @@ public class MediaImportManager(List<MediaImportInfo> resources, IRemoteFileMana
     private IRemoteFileManager RemoteFileManager { get; } = remoteFileManager;
     private VideoConverter VideoConverter { get; } = new VideoConverter();
     private ImageConverter ImageConverter { get; } = new ImageConverter();
+    private string DefaultTimeZone
+    {
+        get
+        {
+            return Game?.Location?.TimeZone ?? "Central Standard Time";
+        }
+    }
 
     public async IAsyncEnumerable<MediaUploadResult> GetUploadedResources()
     {
@@ -204,7 +211,7 @@ public class MediaImportManager(List<MediaImportInfo> resources, IRemoteFileMana
             throw new ArgumentException($"Failed to process photo file {photoFileName}");
         }
 
-        var exifInfo = ImageConverter.GetExifInfo(photoFile);
+        var exifInfo = ImageConverter.GetExifInfo(photoFile, DefaultTimeZone);
         if (exifInfo == null)
         {
             throw new ArgumentException($"Failed to read exif data from photo file {photoFileName}");
@@ -212,7 +219,8 @@ public class MediaImportManager(List<MediaImportInfo> resources, IRemoteFileMana
         mediaResource.DateTime = exifInfo.CreationDate.ToUniversalTime(); // Postgres must be UTC
 
         FileInfo? altPhoto = null;
-        if (photoInfo.Extension != ".jpg" && photoInfo.Extension != ".jpeg")
+        string extension = photoFile.Extension.ToLowerInvariant();
+        if (extension != ".jpg" && extension != ".jpeg")
         {
             altPhoto = ImageConverter.CreateJpeg(new FileInfo(photoFilePath), null);
             if (altPhoto == null)
@@ -255,7 +263,7 @@ public class MediaImportManager(List<MediaImportInfo> resources, IRemoteFileMana
         if (mediaResource.DateTime == default)
         {
             // If the date time is not set, this isn't a live photo, so we should set it from the video file
-            var exifInfo = ImageConverter.GetExifInfo(videoFile);
+            var exifInfo = ImageConverter.GetExifInfo(videoFile, DefaultTimeZone);
             if (exifInfo == null)
             {
                 throw new ArgumentException($"Failed to read exif data from video file {videoFileName}");

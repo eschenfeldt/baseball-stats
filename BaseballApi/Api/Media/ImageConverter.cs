@@ -74,7 +74,7 @@ public class ImageConverter
         }
     }
 
-    public ExifInfo GetExifInfo(FileInfo file)
+    public ExifInfo GetExifInfo(FileInfo file, string defaultTImezone = "UTC")
     {
         using Process process = new();
         process.StartInfo.FileName = "exiftool";
@@ -101,6 +101,7 @@ public class ImageConverter
             var result = results[0];
             // CreationDate seems to exist for video and is better when it's there
             string? rawDate = result.CreationDate ?? result.DateTimeOriginal ?? result.CreateDate;
+            string? offset = result.OffsetTimeOriginal ?? result.OffsetTime;
             if (rawDate == null)
             {
                 throw new Exception($"No date found in exiftool output: {output}");
@@ -114,14 +115,22 @@ public class ImageConverter
                     CreationDate = creationDate
                 };
             }
-            else
+            else if (!string.IsNullOrEmpty(offset))
             {
-                var offset = result.OffsetTimeOriginal ?? result.OffsetTime;
                 rawDate += offset;
                 DateTimeOffset creationDate = DateTimeOffset.ParseExact(rawDate, "yyyy:MM:dd HH:mm:sszzz", null);
                 return new ExifInfo
                 {
                     CreationDate = creationDate
+                };
+            }
+            else
+            {
+                // no offset, use provided default timezone
+                DateTime creationDate = DateTime.ParseExact(rawDate, "yyyy:MM:dd HH:mm:ss", null);
+                return new ExifInfo
+                {
+                    CreationDate = new DateTimeOffset(creationDate, TimeZoneInfo.FindSystemTimeZoneById(defaultTImezone).GetUtcOffset(creationDate))
                 };
             }
         }

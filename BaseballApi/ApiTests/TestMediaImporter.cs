@@ -100,6 +100,10 @@ public class TestMediaImporter(BaseballContext context, MediaController controll
             if (importDbEntry != null)
             {
                 Context.Entry(importDbEntry).Reload();
+                foreach (var file in importDbEntry.MediaToProcess)
+                {
+                    Context.Entry(file).Reload();
+                }
             }
             importTask = await Controller.GetImportStatus(importTask.Value.Id);
             Assert.NotNull(importTask);

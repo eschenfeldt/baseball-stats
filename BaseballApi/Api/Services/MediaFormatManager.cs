@@ -32,7 +32,7 @@ public class MediaFormatManager(
     private VideoConverter VideoConverter { get; } = new VideoConverter();
     private CancellationToken CancellationToken { get; } = cancellationToken;
 
-    public async Task<ContentTypeResult> SetContentTypes()
+    public async Task<ContentTypeResult> SetContentTypes(string? fileName = null)
     {
         try
         {
@@ -41,9 +41,15 @@ public class MediaFormatManager(
             using var context = scope.ServiceProvider.GetRequiredService<BaseballContext>();
             var remoteFileManager = scope.ServiceProvider.GetRequiredService<IRemoteFileManager>();
 
-            // Find all media resources that need content types set
-            var filesToSet = context.MediaResources
+            // Find all media resources that need content types set, optionally restricted to a single resource
+            IQueryable<MediaResource> resources = context.MediaResources;
+            if (!string.IsNullOrEmpty(fileName))
+            {
+                resources = resources.Where(m => m.OriginalFileName == fileName);
+            }
+            var filesToSet = resources
                 .SelectMany(m => m.Files)
+                .Include(f => f.Resource)
                 .Where(f => string.IsNullOrEmpty(f.ContentType))
                 .ToList();
 
@@ -60,9 +66,10 @@ public class MediaFormatManager(
             Logger.LogInformation("Content types set for {Count} resources.", filesToSet.Count);
 
             // Now find files that have the wrong content type in the bucket
-            var filesToUpdate = context.MediaResources
+            var filesToUpdate = resources
                 .SelectMany(m => m.Files)
                 .Where(f => f.Extension == ".mov" && f.ContentType == "binary/octet-stream") // Firefox doesn't like this (fake) content type
+                .Include(f => f.Resource)
                 .ToList();
 
             Logger.LogInformation("Found {Count} files with incorrect content type.", filesToUpdate.Count);
@@ -76,8 +83,8 @@ public class MediaFormatManager(
                 var updatedMetadata = await remoteFileManager.GetFileMetadata(fileDetail);
                 file.ContentType = updatedMetadata.Headers.ContentType;
                 Logger.LogInformation("Updated content type for {FileId} to {ContentType}", file.Id, file.ContentType);
+                await context.SaveChangesAsync();
             }
-            await context.SaveChangesAsync();
             Logger.LogInformation("Content types updated for {Count} files with incorrect content type.", filesToUpdate.Count);
             return new ContentTypeResult
             {
@@ -97,7 +104,7 @@ public class MediaFormatManager(
         }
     }
 
-    public async Task<AlternateFormatResult> CreateAlternateFormats()
+    public async Task<AlternateFormatResult> CreateAlternateFormats(string? fileName = null)
     {
         try
         {
@@ -115,8 +122,14 @@ public class MediaFormatManager(
             var remoteFileManager = scope.ServiceProvider.GetRequiredService<IRemoteFileManager>();
             using var context = scope.ServiceProvider.GetRequiredService<BaseballContext>();
 
-            // Find one media resource that needs alternate formats created
-            var resourcesToProcess = await context.MediaResources
+            // Find up to 10 media resource that needs alternate formats created
+            IQueryable<MediaResource> resources = context.MediaResources;
+            if (!string.IsNullOrEmpty(fileName))
+            {
+                resources = resources.Where(m => m.OriginalFileName == fileName);
+            }
+
+            var resourcesToProcess = await resources
                 // Filter for resources that have MOV or HEIC files and need alternate formats
                 .Where(m => m.Files.Count(f => f.ContentType == "video/quicktime" || f.ContentType == "image/heic") > 0 &&
                             m.Files.Count(f => f.Purpose == RemoteFilePurpose.AlternateFormat) < m.Files.Count(f => f.Purpose == RemoteFilePurpose.Original))

@@ -59,20 +59,19 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
     public async void TestNoCleanupRequired(string fileToUpload, bool generatesAltFormat)
     {
         // Upload a file through the regular endpoint and validate that it doesn't require background cleanup
-        await UploadFile(fileToUpload);
+        string fileName = await UploadFile(fileToUpload);
 
-        var fileName = Path.GetFileName(fileToUpload);
         var fileCount = await Context.MediaResources.Where(r => r.OriginalFileName == fileName).SelectMany(r => r.Files).CountAsync();
         Assert.Equal(FileCount(generatesAltFormat), fileCount);
 
-        var contentTypeResults = await Manager.SetContentTypes();
+        var contentTypeResults = await Manager.SetContentTypes(fileName);
+        Assert.Null(contentTypeResults.ErrorMessage);
         Assert.Equal(0, contentTypeResults.SetCount);
         Assert.Equal(0, contentTypeResults.UpdateCount);
-        Assert.Null(contentTypeResults.ErrorMessage);
 
-        var altFormatResults = await Manager.CreateAlternateFormats();
-        Assert.Equal(0, altFormatResults.Count);
+        var altFormatResults = await Manager.CreateAlternateFormats(fileName);
         Assert.Null(contentTypeResults.ErrorMessage);
+        Assert.Equal(0, altFormatResults.Count);
     }
 
     [Theory]
@@ -83,15 +82,16 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
     public async void TestContentTypeSet(string fileToUpload, bool generatesAltFormat)
     {
         // Upload a file then delete the content type in the db and make sure it gets set again
-        await UploadFile(fileToUpload);
-        var fileName = Path.GetFileName(fileToUpload);
-        var resource = await Context.MediaResources.FirstOrDefaultAsync(r => r.OriginalFileName == fileName);
+        string fileName = await UploadFile(fileToUpload);
+        var resource = await Context.MediaResources.Include(r => r.Files)
+            .FirstOrDefaultAsync(r => r.OriginalFileName == fileName);
         Assert.NotNull(resource);
-        Dictionary<long, string> expectedContenTypes = [];
+        Assert.Equal(FileCount(generatesAltFormat), resource.Files.Count);
+        Dictionary<long, string> expectedContentTypes = [];
         foreach (var file in resource.Files)
         {
             Assert.NotNull(file.ContentType);
-            expectedContenTypes[file.Id] = file.ContentType;
+            expectedContentTypes[file.Id] = file.ContentType;
             file.ContentType = null;
         }
         await Context.SaveChangesAsync();
@@ -100,15 +100,16 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
             .Where(f => f.ContentType != null)
             .CountAsync();
         Assert.Equal(0, fileCountWithContentType);
-        var contentTypeResults = await Manager.SetContentTypes();
+        var contentTypeResults = await Manager.SetContentTypes(fileName);
+        Assert.Null(contentTypeResults.ErrorMessage);
         Assert.Equal(FileCount(generatesAltFormat), contentTypeResults.SetCount);
         Assert.Equal(0, contentTypeResults.UpdateCount);
-        Assert.Null(contentTypeResults.ErrorMessage);
 
         foreach (var file in resource.Files)
         {
+            Context.Entry(file).Reload();
             Assert.NotNull(file.ContentType);
-            Assert.Equal(expectedContenTypes[file.Id], file.ContentType);
+            Assert.Equal(expectedContentTypes[file.Id], file.ContentType);
         }
     }
 
@@ -129,13 +130,15 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
     public async void TestAlternateFormatCreated(string fileToUpload, bool generatesAltFormat)
     {
         // Upload a file then delete the alternate formats from the db and bucket, then make sure they get recreated
-        await UploadFile(fileToUpload);
-        var fileName = Path.GetFileName(fileToUpload);
-        var resource = await Context.MediaResources.FirstOrDefaultAsync(r => r.OriginalFileName == fileName);
+        string fileName = await UploadFile(fileToUpload);
+        var resource = await Context.MediaResources
+            .Include(r => r.Files)
+            .FirstOrDefaultAsync(r => r.OriginalFileName == fileName);
         Assert.NotNull(resource);
         Assert.Equal(FileCount(generatesAltFormat), resource.Files.Count);
         string? expectedContentType = null;
-        foreach (var file in resource.Files)
+        var files = resource.Files.ToList();
+        foreach (var file in files)
         {
             if (file.Purpose == RemoteFilePurpose.AlternateFormat)
             {
@@ -146,7 +149,7 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
             }
         }
         await Context.SaveChangesAsync();
-        var altFormatResults = await Manager.CreateAlternateFormats();
+        var altFormatResults = await Manager.CreateAlternateFormats(fileName);
         Assert.Equal(generatesAltFormat ? 1 : 0, altFormatResults.Count);
         Assert.Null(altFormatResults.ErrorMessage);
         if (generatesAltFormat && expectedContentType != null)
@@ -172,13 +175,18 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
         // upload a live photo, delete one alternate file, check it recreates, then repeat for the other file and both files at once
     }
 
-    private async Task UploadFile(string fileToUpload)
+    private async Task<string> UploadFile(string fileToUpload)
     {
         List<IFormFile> files = [];
         Dictionary<string, MediaResourceType> resourceTypes = [];
-        string path = Path.Combine("data", "media", fileToUpload);
+        // rename the file to avoid conflicts between tests
+        string fileName = Path.GetFileNameWithoutExtension(fileToUpload);
+        string newFileName = $"{fileName}{Guid.NewGuid()}{Path.GetExtension(fileToUpload)}";
+        string path = Path.Combine("data", "media", newFileName);
+        File.Copy(Path.Combine("data", "media", fileToUpload), path, true);
         TestMediaImporter.PrepareIndividualFormFiles(GetSingleFileResourceType(path), files, resourceTypes, path);
         await Importer.ImportMedia(files, GameId, resourceTypes);
+        return newFileName;
     }
 
     private static int FileCount(bool generatesAltFormat)

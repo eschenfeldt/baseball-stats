@@ -22,7 +22,7 @@ public class TestMediaImportDatabaseFixture : TestImportDatabaseFixture, IAsyncL
         Assert.NotNull(result);
         Assert.NotEqual(0, result.Value.Id);
         Assert.Equal(files.Count, result.Value.Count);
-        Assert.NotEqual(0, result.Value.Size); ;
+        Assert.NotEqual(0, result.Value.Size);
         GameId = result.Value.Id;
     }
 
