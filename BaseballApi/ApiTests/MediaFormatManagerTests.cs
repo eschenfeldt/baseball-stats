@@ -131,10 +131,17 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
     {
         // Upload a file then delete the alternate formats from the db and bucket, then make sure they get recreated
         string fileName = await UploadFile(fileToUpload);
-        var resource = await Context.MediaResources
-            .Include(r => r.Files)
-            .FirstOrDefaultAsync(r => r.OriginalFileName == fileName);
-        Assert.NotNull(resource);
+
+        async Task<MediaResource> LoadResource()
+        {
+            var resource = await Context.MediaResources
+                .Include(r => r.Files)
+                .FirstOrDefaultAsync(r => r.OriginalFileName == fileName);
+            Assert.NotNull(resource);
+            return resource;
+        }
+
+        var resource = await LoadResource();
         Assert.Equal(FileCount(generatesAltFormat), resource.Files.Count);
         string? expectedContentType = null;
         var files = resource.Files.ToList();
@@ -152,6 +159,7 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
         var altFormatResults = await Manager.CreateAlternateFormats(fileName);
         Assert.Equal(generatesAltFormat ? 1 : 0, altFormatResults.Count);
         Assert.Null(altFormatResults.ErrorMessage);
+        resource = await LoadResource();
         if (generatesAltFormat && expectedContentType != null)
         {
             var newAltFormat = resource.Files.FirstOrDefault(f => f.Purpose == RemoteFilePurpose.AlternateFormat);
@@ -173,6 +181,84 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
     public async void TestAlternateFormatLivePhoto()
     {
         // upload a live photo, delete one alternate file, check it recreates, then repeat for the other file and both files at once
+        List<IFormFile> files = [];
+        Dictionary<string, MediaResourceType> resourceTypes = [];
+        string baseFileName = "IMG_4762";
+        string newBaseFileName = baseFileName + Guid.NewGuid();
+        var fileName = $"{newBaseFileName}.HEIC";
+        var newPhotoPath = Path.Combine(Path.GetTempPath(), fileName);
+        var newVideoPath = Path.Combine(Path.GetTempPath(), $"{newBaseFileName}.mov");
+        File.Copy(Path.Combine("data", "media", "live photos", $"{baseFileName}.HEIC"), newPhotoPath);
+        File.Copy(Path.Combine("data", "media", "live photos", $"{baseFileName}.mov"), newVideoPath);
+        TestMediaImporter.PrepareIndividualFormFiles(MediaResourceType.LivePhoto, files, resourceTypes, newPhotoPath, newVideoPath);
+        await Importer.ImportMedia(files, GameId, resourceTypes);
+        File.Delete(newPhotoPath);
+        File.Delete(newVideoPath);
+
+        async Task<MediaResource> LoadResource()
+        {
+            var resource = await Context.MediaResources
+                .Include(r => r.Files)
+                .FirstOrDefaultAsync(r => r.OriginalFileName == fileName);
+            Assert.NotNull(resource);
+            return resource;
+        }
+
+        // Validate that the live photo was imported correctly
+        var resource = await LoadResource();
+        Assert.Equal(7, resource.Files.Count);
+
+        // First delete the photo alternate format
+        var photoFile = resource.Files.FirstOrDefault(f => f.Purpose == RemoteFilePurpose.AlternateFormat && f.Extension == ".jpeg");
+        Assert.NotNull(photoFile);
+        resource.Files.Remove(photoFile);
+        await RemoteFileManager.DeleteFile(new RemoteFileDetail(photoFile));
+        await Context.SaveChangesAsync();
+
+        var altFormatResults = await Manager.CreateAlternateFormats(fileName);
+        Assert.Null(altFormatResults.ErrorMessage);
+        Assert.Equal(1, altFormatResults.Count);
+        resource = await LoadResource();
+        var newPhotoFile = resource.Files.FirstOrDefault(f => f.Purpose == RemoteFilePurpose.AlternateFormat && f.Extension == ".jpeg");
+        Assert.NotNull(newPhotoFile);
+        Assert.NotEqual(photoFile.Id, newPhotoFile.Id);
+        await RemoteValidator.ValidateFileExists(new RemoteFileDetail(newPhotoFile), "image/jpeg");
+
+        // Now delete the video alternate format
+        var videoFile = resource.Files.FirstOrDefault(f => f.Purpose == RemoteFilePurpose.AlternateFormat && f.Extension == ".mp4");
+        Assert.NotNull(videoFile);
+        resource.Files.Remove(videoFile);
+        await RemoteFileManager.DeleteFile(new RemoteFileDetail(videoFile));
+        await Context.SaveChangesAsync();
+
+        altFormatResults = await Manager.CreateAlternateFormats(fileName);
+        Assert.Null(altFormatResults.ErrorMessage);
+        Assert.Equal(1, altFormatResults.Count);
+        resource = await LoadResource();
+        var newVideoFile = resource.Files.FirstOrDefault(f => f.Purpose == RemoteFilePurpose.AlternateFormat && f.Extension == ".mp4");
+        Assert.NotNull(newVideoFile);
+        Assert.NotEqual(videoFile.Id, newVideoFile.Id);
+        await RemoteValidator.ValidateFileExists(new RemoteFileDetail(newVideoFile), "video/mp4");
+
+        // Finally delete both alternate formats and make sure they get recreated
+        resource.Files.Remove(newPhotoFile);
+        await RemoteFileManager.DeleteFile(new RemoteFileDetail(newPhotoFile));
+        resource.Files.Remove(newVideoFile);
+        await RemoteFileManager.DeleteFile(new RemoteFileDetail(newVideoFile));
+        await Context.SaveChangesAsync();
+
+        altFormatResults = await Manager.CreateAlternateFormats(fileName);
+        Assert.Null(altFormatResults.ErrorMessage);
+        Assert.Equal(1, altFormatResults.Count);
+        resource = await LoadResource();
+        newPhotoFile = resource.Files.FirstOrDefault(f => f.Purpose == RemoteFilePurpose.AlternateFormat && f.Extension == ".jpeg");
+        Assert.NotNull(newPhotoFile);
+        Assert.NotEqual(photoFile.Id, newPhotoFile.Id);
+        await RemoteValidator.ValidateFileExists(new RemoteFileDetail(newPhotoFile), "image/jpeg");
+        newVideoFile = resource.Files.FirstOrDefault(f => f.Purpose == RemoteFilePurpose.AlternateFormat && f.Extension == ".mp4");
+        Assert.NotNull(newVideoFile);
+        Assert.NotEqual(videoFile.Id, newVideoFile.Id);
+        await RemoteValidator.ValidateFileExists(new RemoteFileDetail(newVideoFile), "video/mp4");
     }
 
     private async Task<string> UploadFile(string fileToUpload)
@@ -182,10 +268,11 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
         // rename the file to avoid conflicts between tests
         string fileName = Path.GetFileNameWithoutExtension(fileToUpload);
         string newFileName = $"{fileName}{Guid.NewGuid()}{Path.GetExtension(fileToUpload)}";
-        string path = Path.Combine("data", "media", newFileName);
-        File.Copy(Path.Combine("data", "media", fileToUpload), path, true);
+        string path = Path.Combine(Path.GetTempPath(), newFileName);
+        File.Copy(Path.Combine("data", "media", fileToUpload), path);
         TestMediaImporter.PrepareIndividualFormFiles(GetSingleFileResourceType(path), files, resourceTypes, path);
         await Importer.ImportMedia(files, GameId, resourceTypes);
+        File.Delete(path);
         return newFileName;
     }
 

@@ -130,6 +130,7 @@ public class MediaFormatManager(
             }
 
             var resourcesToProcess = await resources
+                .Include(m => m.Files)
                 // Filter for resources that have MOV or HEIC files and need alternate formats
                 .Where(m => m.Files.Count(f => f.ContentType == "video/quicktime" || f.ContentType == "image/heic") > 0 &&
                             m.Files.Count(f => f.Purpose == RemoteFilePurpose.AlternateFormat) < m.Files.Count(f => f.Purpose == RemoteFilePurpose.Original))
@@ -176,7 +177,8 @@ public class MediaFormatManager(
 
     private async Task CreateAlternatePhoto(MediaResource mediaResource, IRemoteFileManager remoteFileManager)
     {
-        var originalFileModel = mediaResource.Files.FirstOrDefault(f => f.Purpose == RemoteFilePurpose.Original && f.ContentType != null && f.ContentType.StartsWith("image/"));
+        var originalFileModel = mediaResource.Files.FirstOrDefault(f => f.Purpose == RemoteFilePurpose.Original && f.ContentType != null
+            && (f.ContentType.StartsWith("image/") || f.ContentType == "application/octet-stream"));
         if (originalFileModel == null)
         {
             Logger.LogWarning("No original photo file found for resource {ResourceId}", mediaResource.AssetIdentifier);
