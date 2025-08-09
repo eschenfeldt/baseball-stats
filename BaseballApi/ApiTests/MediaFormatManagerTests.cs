@@ -1,4 +1,4 @@
-using System;
+using System.Net;
 using BaseballApi.Contracts;
 using BaseballApi.Controllers;
 using BaseballApi.Import;
@@ -9,7 +9,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 
 namespace BaseballApiTests;
 
@@ -54,7 +53,7 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
     [Theory]
     [InlineData("video/hevc.mov", true)]
     [InlineData("photos/IMG_4721.HEIC", true)]
-    [InlineData("other/h264.MOV", false)] // This is probably going to flag incorrectly; it does work in Firefox as binary/octect-stream with .MOV extension
+    [InlineData("other/h264.MOV", false)]
     [InlineData("other/IMG_1278.JPG", false)]
     public async void TestNoCleanupRequired(string fileToUpload, bool generatesAltFormat)
     {
@@ -77,7 +76,7 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
     [Theory]
     [InlineData("video/hevc.mov", true)]
     [InlineData("photos/IMG_4721.HEIC", true)]
-    [InlineData("other/h264.MOV", false)] // This is probably going to flag incorrectly; it does work in Firefox as binary/octect-stream with .MOV extension
+    [InlineData("other/h264.MOV", false)]
     [InlineData("other/IMG_1278.JPG", false)]
     public async void TestContentTypeSet(string fileToUpload, bool generatesAltFormat)
     {
@@ -115,17 +114,50 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
 
 
     [Theory]
-    [InlineData("video/hevc.mov")]
-    [InlineData("other/h264.MOV")] // This is probably going to flag incorrectly; it does work in Firefox as binary/octect-stream with .MOV extension
-    public async void TestContentTypeCorrected(string fileToUpload)
+    [InlineData("video/hevc.mov", true)]
+    [InlineData("other/h264.MOV", false)] // This is probably going to flag incorrectly; it does work in Firefox as binary/octect-stream with .MOV extension
+    public async void TestContentTypeCorrected(string fileToUpload, bool generatesAltFormat)
     {
         // Upload a file then manipulate the content type in the bucket and make sure it gets corrected
+        string fileName = await UploadFile(fileToUpload);
+        var resource = await Context.MediaResources.Include(r => r.Files)
+            .FirstOrDefaultAsync(r => r.OriginalFileName == fileName);
+        Assert.NotNull(resource);
+        Assert.Equal(FileCount(generatesAltFormat), resource.Files.Count);
+        var incorrectContentType = "binary/octet-stream";
+        var toUpdate = resource.Files.Where(f => f.Purpose == RemoteFilePurpose.Original).ToList();
+        Dictionary<long, string> expectedContentTypes = [];
+        foreach (var file in toUpdate)
+        {
+            Assert.NotNull(file.ContentType);
+            expectedContentTypes[file.Id] = file.ContentType;
+            file.ContentType = incorrectContentType;
+            var result = await RemoteFileManager.UpdateFileContentType(new RemoteFileDetail(file), incorrectContentType);
+            Assert.Equal(HttpStatusCode.OK, result.HttpStatusCode);
+            var metadata = await RemoteFileManager.GetFileMetadata(new RemoteFileDetail(file));
+            Assert.Equal(incorrectContentType, metadata.Headers.ContentType);
+        }
+        await Context.SaveChangesAsync();
+
+        var contentTypeResults = await Manager.SetContentTypes(fileName);
+        Assert.Null(contentTypeResults.ErrorMessage);
+        Assert.Equal(0, contentTypeResults.SetCount);
+        Assert.Equal(toUpdate.Count, contentTypeResults.UpdateCount);
+
+        foreach (var file in toUpdate)
+        {
+            Context.Entry(file).Reload();
+            Assert.NotNull(file.ContentType);
+            Assert.Equal(expectedContentTypes[file.Id], file.ContentType);
+            var metadata = await RemoteFileManager.GetFileMetadata(new RemoteFileDetail(file));
+            Assert.Equal(expectedContentTypes[file.Id], metadata.Headers.ContentType);
+        }
     }
 
     [Theory]
     [InlineData("video/hevc.mov", true)]
     [InlineData("photos/IMG_4721.HEIC", true)]
-    [InlineData("other/h264.MOV", false)] // This is probably going to flag incorrectly; it does work in Firefox as binary/octect-stream with .MOV extension
+    [InlineData("other/h264.MOV", false)]
     [InlineData("other/IMG_1278.JPG", false)]
     public async void TestAlternateFormatCreated(string fileToUpload, bool generatesAltFormat)
     {

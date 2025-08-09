@@ -68,7 +68,8 @@ public class MediaImportManager(List<MediaImportInfo> resources, IRemoteFileMana
         {
             AssetIdentifier = Guid.NewGuid(),
             ResourceType = MediaResourceType.Photo,
-            OriginalFileName = resource.PhotoFileName
+            OriginalFileName = resource.PhotoFileName,
+            AlternateFormatOverride = false
         };
 
         resource.Status = MediaImportTaskStatus.InProgress;
@@ -114,7 +115,8 @@ public class MediaImportManager(List<MediaImportInfo> resources, IRemoteFileMana
         {
             AssetIdentifier = Guid.NewGuid(),
             ResourceType = MediaResourceType.Video,
-            OriginalFileName = resource.VideoFileName
+            OriginalFileName = resource.VideoFileName,
+            AlternateFormatOverride = false
         };
 
         resource.Status = MediaImportTaskStatus.InProgress;
@@ -160,7 +162,8 @@ public class MediaImportManager(List<MediaImportInfo> resources, IRemoteFileMana
         {
             AssetIdentifier = Guid.NewGuid(),
             ResourceType = MediaResourceType.LivePhoto,
-            OriginalFileName = resource.PhotoFileName
+            OriginalFileName = resource.PhotoFileName,
+            AlternateFormatOverride = false
         };
 
         resource.Status = MediaImportTaskStatus.InProgress;
@@ -285,6 +288,10 @@ public class MediaImportManager(List<MediaImportInfo> resources, IRemoteFileMana
             {
                 throw new ArgumentException($"Failed to convert video file {videoFileName} to H264");
             }
+        }
+        else
+        {
+            mediaResource.AlternateFormatOverride = true; // Already in H264 format
         }
 
         var originalVideo = new RemoteFile
