@@ -142,15 +142,21 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
         var contentTypeResults = await Manager.SetContentTypes(fileName);
         Assert.Null(contentTypeResults.ErrorMessage);
         Assert.Equal(0, contentTypeResults.SetCount);
-        Assert.Equal(toUpdate.Count, contentTypeResults.UpdateCount);
+        // h264 video with MOV extension works in Firefox as binary/octet-stream, so it won't be updated
+        Assert.Equal(generatesAltFormat ? 1 : 0, contentTypeResults.UpdateCount);
 
         foreach (var file in toUpdate)
         {
             Context.Entry(file).Reload();
             Assert.NotNull(file.ContentType);
-            Assert.Equal(expectedContentTypes[file.Id], file.ContentType);
             var metadata = await RemoteFileManager.GetFileMetadata(new RemoteFileDetail(file));
-            Assert.Equal(expectedContentTypes[file.Id], metadata.Headers.ContentType);
+            var expectedContentType = expectedContentTypes[file.Id];
+            if (!generatesAltFormat && expectedContentType == "video/quicktime")
+            {
+                expectedContentType = "binary/octet-stream"; // This is the only case where we expect the content type to not be updated
+            }
+            Assert.Equal(expectedContentType, file.ContentType);
+            Assert.Equal(expectedContentType, metadata.Headers.ContentType);
         }
     }
 
