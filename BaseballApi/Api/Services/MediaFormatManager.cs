@@ -286,6 +286,11 @@ public class MediaFormatManager(
                 }
             }
         }
+        else
+        {
+            Logger.LogInformation("Video file {originalFile} is already in H264 format, no conversion needed", originalFile);
+            mediaResource.AlternateFormatOverride = true;
+        }
 
         // Clean up the temporary files
         if (File.Exists(originalFile))

@@ -293,6 +293,38 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
         await RemoteValidator.ValidateFileExists(new RemoteFileDetail(newVideoFile), "video/mp4");
     }
 
+    [Fact]
+    public async void TestAlternateFormatOverrideSet()
+    {
+        // Upload an h264 MOV file, then unset the alternate format override and make sure it gets reset
+        // This is to simulate pre-existing files that don't have the override set
+        string fileName = await UploadFile("other/h264.MOV");
+        async Task<MediaResource> LoadResource()
+        {
+            var resource = await Context.MediaResources
+                .Include(r => r.Files)
+                .FirstOrDefaultAsync(r => r.OriginalFileName == fileName);
+            Assert.NotNull(resource);
+            return resource;
+        }
+
+        var resource = await LoadResource();
+        Assert.Equal(FileCount(false), resource.Files.Count);
+        Assert.True(resource.AlternateFormatOverride);
+
+        resource.AlternateFormatOverride = false;
+        await Context.SaveChangesAsync();
+
+        var altFormatResults = await Manager.CreateAlternateFormats(fileName);
+        Assert.Null(altFormatResults.ErrorMessage);
+        // This will count as processing the file but won't actually create a new file
+        Assert.Equal(1, altFormatResults.Count);
+        resource = await LoadResource();
+        Context.Entry(resource).Reload();
+        Assert.Equal(FileCount(false), resource.Files.Count);
+        Assert.True(resource.AlternateFormatOverride);
+    }
+
     private async Task<string> UploadFile(string fileToUpload)
     {
         List<IFormFile> files = [];
