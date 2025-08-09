@@ -13,7 +13,11 @@
         </picture>
     </div>
     <div class="video" [@fade]="videoState">
-        <video #video src="{{videoSrc}}" muted controls preload="none" [@fade]="videoState" crossorigin="anonymous"
-            (ended)="toggleImage()"></video>
+        <video #video muted controls preload="none" [@fade]="videoState" crossorigin="anonymous"
+            (ended)="toggleImage()">
+            <source src="{{videoSrc}}" type="{{videoType}}">
+            <source src="{{altVideoSrc}}" type="{{altVideoType}}">
+            Your browser does not support the video tag.
+        </video>
     </div>
 </div>

@@ -66,6 +66,26 @@ public class RemoteFileManager : IRemoteFileManager
         return await this.Client.DeleteObjectsAsync(request);
     }
 
+    public async Task<DeleteObjectResponse> DeleteFile(RemoteFileDetail fileDetail)
+    {
+        var request = new DeleteObjectRequest
+        {
+            BucketName = this.BucketName,
+            Key = this.GetKey(fileDetail)
+        };
+        return await this.Client.DeleteObjectAsync(request);
+    }
+
+    public async Task<GetObjectResponse> GetFile(RemoteFileDetail fileDetail)
+    {
+        var request = new GetObjectRequest
+        {
+            BucketName = this.BucketName,
+            Key = this.GetKey(fileDetail)
+        };
+        return await this.Client.GetObjectAsync(request);
+    }
+
     public async Task<GetObjectMetadataResponse> GetFileMetadata(RemoteFileDetail fileDetail)
     {
         var request = new GetObjectMetadataRequest
@@ -74,5 +94,20 @@ public class RemoteFileManager : IRemoteFileManager
             Key = this.GetKey(fileDetail)
         };
         return await this.Client.GetObjectMetadataAsync(request);
+    }
+
+    public async Task<CopyObjectResponse> UpdateFileContentType(RemoteFileDetail fileDetail, string contentType)
+    {
+        var key = this.GetKey(fileDetail);
+        var request = new CopyObjectRequest
+        {
+            SourceBucket = this.BucketName,
+            SourceKey = key,
+            DestinationBucket = this.BucketName,
+            DestinationKey = key,
+            ContentType = contentType,
+            MetadataDirective = S3MetadataDirective.REPLACE
+        };
+        return await this.Client.CopyObjectAsync(request);
     }
 }

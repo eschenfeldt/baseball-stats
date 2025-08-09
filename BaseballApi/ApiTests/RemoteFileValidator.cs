@@ -13,11 +13,12 @@ public class RemoteFileValidator
         this.Manager = fileManager;
     }
 
-    public async Task ValidateFileExists(RemoteFileDetail fileDetail)
+    public async Task ValidateFileExists(RemoteFileDetail fileDetail, string expectedContentType)
     {
         var metadata = await Manager.GetFileMetadata(fileDetail);
         Assert.NotNull(metadata);
         Assert.NotEqual(0, metadata.ContentLength);
+        Assert.Equal(expectedContentType, metadata.Headers.ContentType);
     }
 
     public async Task ValidateFileDeleted(RemoteFileDetail fileDetail)
