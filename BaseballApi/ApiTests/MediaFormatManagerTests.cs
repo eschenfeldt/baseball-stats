@@ -55,10 +55,16 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
     [InlineData("photos/IMG_4721.HEIC", true)]
     [InlineData("other/h264.MOV", false)]
     [InlineData("other/IMG_1278.JPG", false)]
-    public async void TestNoCleanupRequired(string fileToUpload, bool generatesAltFormat)
+    [InlineData("video/hevc.mov", true, ".MOV")]
+    [InlineData("photos/IMG_4721.HEIC", true, ".heic")]
+    [InlineData("other/h264.MOV", false, ".mov")]
+    [InlineData("other/IMG_1278.JPG", false, ".jpg")]
+    [InlineData("other/IMG_1278.JPG", false, ".jpeg")]
+    [InlineData("other/IMG_1278.JPG", false, ".JPEG")]
+    public async void TestNoCleanupRequired(string fileToUpload, bool generatesAltFormat, string? swapExtension = null)
     {
         // Upload a file through the regular endpoint and validate that it doesn't require background cleanup
-        string fileName = await UploadFile(fileToUpload);
+        string fileName = await UploadFile(fileToUpload, swapExtension);
 
         var fileCount = await Context.MediaResources.Where(r => r.OriginalFileName == fileName).SelectMany(r => r.Files).CountAsync();
         Assert.Equal(FileCount(generatesAltFormat), fileCount);
@@ -115,11 +121,13 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
 
     [Theory]
     [InlineData("video/hevc.mov", true)]
-    [InlineData("other/h264.MOV", false)] // This is probably going to flag incorrectly; it does work in Firefox as binary/octect-stream with .MOV extension
-    public async void TestContentTypeCorrected(string fileToUpload, bool generatesAltFormat)
+    [InlineData("other/h264.MOV", false)]
+    [InlineData("video/hevc.mov", true, ".MOV")]
+    [InlineData("other/h264.MOV", false, ".mov")]
+    public async void TestContentTypeCorrected(string fileToUpload, bool generatesAltFormat, string? swapExtension = null)
     {
         // Upload a file then manipulate the content type in the bucket and make sure it gets corrected
-        string fileName = await UploadFile(fileToUpload);
+        string fileName = await UploadFile(fileToUpload, swapExtension);
         var resource = await Context.MediaResources.Include(r => r.Files)
             .FirstOrDefaultAsync(r => r.OriginalFileName == fileName);
         Assert.NotNull(resource);
@@ -331,13 +339,14 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
         Assert.True(resource.AlternateFormatOverride);
     }
 
-    private async Task<string> UploadFile(string fileToUpload)
+    private async Task<string> UploadFile(string fileToUpload, string? swapExtension = null)
     {
         List<IFormFile> files = [];
         Dictionary<string, MediaResourceType> resourceTypes = [];
         // rename the file to avoid conflicts between tests
         string fileName = Path.GetFileNameWithoutExtension(fileToUpload);
-        string newFileName = $"{fileName}{Guid.NewGuid()}{Path.GetExtension(fileToUpload)}";
+        string extension = swapExtension ?? Path.GetExtension(fileToUpload);
+        string newFileName = $"{fileName}{Guid.NewGuid()}{extension}";
         string path = Path.Combine(Path.GetTempPath(), newFileName);
         File.Copy(Path.Combine("data", "media", fileToUpload), path);
         TestMediaImporter.PrepareIndividualFormFiles(GetSingleFileResourceType(path), files, resourceTypes, path);
