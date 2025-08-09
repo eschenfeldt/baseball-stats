@@ -17,7 +17,7 @@ public class MediaFormatService(
     {
         Logger.LogInformation("Remote file format manager started.");
         var contentTypesTimer = new Timer(SetContentTypes, null, TimeSpan.Zero, TimeSpan.FromHours(12));
-        var abandonedFilesTimer = new Timer(CreateAlternateFormats, null, TimeSpan.FromMinutes(30), TimeSpan.FromHours(1));
+        var alternateFormatTimer = new Timer(CreateAlternateFormats, null, TimeSpan.FromMinutes(30), TimeSpan.FromHours(1));
         CancellationToken = cancellationToken;
         // Wait for the timers to trigger
         while (!cancellationToken.IsCancellationRequested)
@@ -25,7 +25,7 @@ public class MediaFormatService(
             await Task.Delay(Timeout.Infinite, cancellationToken);
         }
         contentTypesTimer.Dispose();
-        abandonedFilesTimer.Dispose();
+        alternateFormatTimer.Dispose();
         Logger.LogInformation("Remote file format manager stopped.");
     }
 

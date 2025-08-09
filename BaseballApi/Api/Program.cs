@@ -46,6 +46,7 @@ if (!builder.Environment.IsDevelopment())
     // Local dev won't see the prod files but will see the prod import task so don't try to process/clean up
     builder.Services.AddHostedService<MediaImportTaskRestarter>();
     builder.Services.AddHostedService<TempFileCleaner>();
+    builder.Services.AddHostedService<MediaFormatService>();
 }
 
 builder.Services.AddCors(options =>
