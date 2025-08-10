@@ -75,8 +75,6 @@ public class TestMediaImporter(BaseballContext context, MediaController controll
 
         var startTime = DateTimeOffset.Now;
         var importTask = await Controller.ImportMedia(files, JsonConvert.SerializeObject(gameId));
-        var initializedTime = DateTimeOffset.Now;
-        var initializationTime = initializedTime - startTime;
         Assert.NotNull(importTask);
         Assert.Equal(MediaImportTaskStatus.Queued, importTask.Value.Status);
         Assert.Equal(0, importTask.Value.Progress);
