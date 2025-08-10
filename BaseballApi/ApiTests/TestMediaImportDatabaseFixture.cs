@@ -6,8 +6,10 @@ using Newtonsoft.Json;
 
 namespace BaseballApiTests;
 
-public class TestMediaImportDatabaseFixture : TestImportDatabaseFixture, IAsyncLifetime
+public class TestMediaImportDatabaseFixture : BaseTestImportDatabaseFixture, IAsyncLifetime
 {
+    public TestMediaImportDatabaseFixture() : base(nameof(TestMediaImportDatabaseFixture)) { }
+
     public long GameId { get; private set; }
 
     public async Task InitializeAsync()

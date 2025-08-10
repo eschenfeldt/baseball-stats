@@ -29,7 +29,7 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
 
         var builder = new ConfigurationBuilder()
             .AddJsonFile("/run/secrets/app_settings", optional: true)
-            .AddUserSecrets<TestImportDatabaseFixture>();
+            .AddUserSecrets<BaseTestImportDatabaseFixture>();
         IConfiguration configuration = builder.Build();
         RemoteFileManager = new(configuration, nameof(MediaFormatManagerTests));
         RemoteValidator = new(RemoteFileManager);

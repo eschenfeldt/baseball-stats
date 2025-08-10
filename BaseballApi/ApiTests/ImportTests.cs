@@ -16,7 +16,7 @@ public class ImportTests(TestImportDatabaseFixture fixture) : IClassFixture<Test
 
     private static GameMetadata PrepareGameForImport(out List<IFormFile> files)
     {
-        return TestImportDatabaseFixture.PrepareGameForImport(out files);
+        return BaseTestImportDatabaseFixture.PrepareGameForImport(out files);
     }
 
     [Fact]
