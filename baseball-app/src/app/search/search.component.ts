@@ -7,7 +7,7 @@ import { MatInputModule } from '@angular/material/input';
 import { Observable } from 'rxjs/internal/Observable';
 import { BaseballApiService } from '../baseball-api.service';
 import { startWith } from 'rxjs/internal/operators/startWith';
-import { switchMap } from 'rxjs';
+import { catchError, switchMap } from 'rxjs';
 import { SearchResult, SearchResultType } from '../contracts/search-result';
 import { Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
@@ -46,20 +46,20 @@ export class SearchComponent {
     }
 
     private search(value: string | SearchResult): Observable<SearchResult[]> {
+        let noResponseHandler = new Observable<SearchResult[]>(observer => {
+            observer.next([]);
+            observer.complete();
+        });
         if (!value) {
-            return new Observable<SearchResult[]>(observer => {
-                observer.next([]);
-                observer.complete();
-            });
+            return noResponseHandler
         } else if (typeof value === 'string') {
-            return this.api.makeApiGet<SearchResult[]>(`search/${value}`);
+            return this.api.makeApiGet<SearchResult[]>(`search/${value}`)
+                // if the search fails, just return no results so we don't cancel the main subscription to search again
+                .pipe(catchError(() => noResponseHandler));
         } else {
             // value is already a SearchResult, which only happens
             // when the user selects an option from the autocomplete
-            return new Observable<SearchResult[]>(observer => {
-                observer.next([]);
-                observer.complete();
-            });
+            return noResponseHandler;
         }
     }
 
