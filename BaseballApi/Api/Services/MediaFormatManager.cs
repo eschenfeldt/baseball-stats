@@ -67,8 +67,12 @@ public class MediaFormatManager(
 
             // Now find files that have the wrong content type in the bucket
             var filesToUpdate = resources
+                // if the resource doesn't need an alternate format, the content type is okay
+                .Where(m => m.AlternateFormatOverride == false
+                            || m.Files.Count(f => f.Purpose == RemoteFilePurpose.AlternateFormat) == m.Files.Count(f => f.Purpose == RemoteFilePurpose.Original))
                 .SelectMany(m => m.Files)
-                .Where(f => f.Extension == ".mov" && f.ContentType == "binary/octet-stream") // Firefox doesn't like this (fake) content type
+                .Where(f => (f.Extension == ".mov" || f.Extension == ".MOV")
+                            && f.ContentType == "binary/octet-stream") // Firefox doesn't like this (fake) content type for hevc MOV files
                 .Include(f => f.Resource)
                 .ToList();
 
@@ -82,8 +86,8 @@ public class MediaFormatManager(
                 var response = await remoteFileManager.UpdateFileContentType(fileDetail, file.ContentType);
                 var updatedMetadata = await remoteFileManager.GetFileMetadata(fileDetail);
                 file.ContentType = updatedMetadata.Headers.ContentType;
-                Logger.LogInformation("Updated content type for {FileId} to {ContentType}", file.Id, file.ContentType);
                 await context.SaveChangesAsync();
+                Logger.LogInformation("Updated content type for {FileId} to {ContentType}", file.Id, file.ContentType);
             }
             Logger.LogInformation("Content types updated for {Count} files with incorrect content type.", filesToUpdate.Count);
             return new ContentTypeResult

@@ -797,7 +797,7 @@ namespace BaseballApi.Migrations
                 {
                     b.HasBaseType("BaseballApi.Models.RemoteResource");
 
-                    b.Property<bool>("AlternateFormatOverride")
+                    b.Property<bool?>("AlternateFormatOverride")
                         .HasColumnType("boolean");
 
                     b.Property<bool>("Favorite")

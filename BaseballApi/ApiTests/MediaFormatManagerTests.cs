@@ -145,6 +145,7 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
             var metadata = await RemoteFileManager.GetFileMetadata(new RemoteFileDetail(file));
             Assert.Equal(incorrectContentType, metadata.Headers.ContentType);
         }
+        resource.AlternateFormatOverride = null; // simulate a legacy file
         await Context.SaveChangesAsync();
 
         var contentTypeResults = await Manager.SetContentTypes(fileName);

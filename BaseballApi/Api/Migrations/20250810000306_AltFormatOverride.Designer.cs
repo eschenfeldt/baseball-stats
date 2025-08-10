@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BaseballApi.Migrations
 {
     [DbContext(typeof(BaseballContext))]
-    [Migration("20250809142420_AltFormatOverride")]
+    [Migration("20250810000306_AltFormatOverride")]
     partial class AltFormatOverride
     {
         /// <inheritdoc />
@@ -800,7 +800,7 @@ namespace BaseballApi.Migrations
                 {
                     b.HasBaseType("BaseballApi.Models.RemoteResource");
 
-                    b.Property<bool>("AlternateFormatOverride")
+                    b.Property<bool?>("AlternateFormatOverride")
                         .HasColumnType("boolean");
 
                     b.Property<bool>("Favorite")
