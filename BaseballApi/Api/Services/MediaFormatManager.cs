@@ -136,7 +136,7 @@ public class MediaFormatManager(
             var resourcesToProcess = await resources
                 .Include(m => m.Files)
                 // Filter for resources that have MOV or HEIC files and need alternate formats
-                .Where(m => m.AlternateFormatOverride == false &&
+                .Where(m => (m.AlternateFormatOverride == false || m.AlternateFormatOverride == null) &&
                             m.Files.Count(f => f.ContentType == "video/quicktime" || f.Extension == ".HEIC" || f.Extension == ".heic") > 0 &&
                             m.Files.Count(f => f.Purpose == RemoteFilePurpose.AlternateFormat) < m.Files.Count(f => f.Purpose == RemoteFilePurpose.Original))
                 .Take(10)

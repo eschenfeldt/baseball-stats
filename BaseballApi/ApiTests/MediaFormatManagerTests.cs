@@ -192,6 +192,7 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
         Assert.Equal(FileCount(generatesAltFormat), resource.Files.Count);
         string? expectedContentType = null;
         var files = resource.Files.ToList();
+        resource.AlternateFormatOverride = null; // simulate a legacy file
         foreach (var file in files)
         {
             if (file.Purpose == RemoteFilePurpose.AlternateFormat)
@@ -260,6 +261,7 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
         Assert.NotNull(photoFile);
         resource.Files.Remove(photoFile);
         await RemoteFileManager.DeleteFile(new RemoteFileDetail(photoFile));
+        resource.AlternateFormatOverride = null; // simulate a legacy file
         await Context.SaveChangesAsync();
 
         var altFormatResults = await Manager.CreateAlternateFormats(fileName);
@@ -276,6 +278,7 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
         Assert.NotNull(videoFile);
         resource.Files.Remove(videoFile);
         await RemoteFileManager.DeleteFile(new RemoteFileDetail(videoFile));
+        resource.AlternateFormatOverride = null; // simulate a legacy file
         await Context.SaveChangesAsync();
 
         altFormatResults = await Manager.CreateAlternateFormats(fileName);
@@ -292,6 +295,7 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
         await RemoteFileManager.DeleteFile(new RemoteFileDetail(newPhotoFile));
         resource.Files.Remove(newVideoFile);
         await RemoteFileManager.DeleteFile(new RemoteFileDetail(newVideoFile));
+        resource.AlternateFormatOverride = null; // simulate a legacy file
         await Context.SaveChangesAsync();
 
         altFormatResults = await Manager.CreateAlternateFormats(fileName);
