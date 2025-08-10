@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging;
 
 namespace BaseballApiTests;
 
-public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixture>
+public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixture>, IAsyncLifetime
 {
     BaseballContext Context { get; }
     TestMediaImportDatabaseFixture Fixture { get; }
@@ -391,10 +391,15 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
         }
     }
 
-    public Task DisposeAsync()
+    public Task InitializeAsync()
     {
-        // TODO: Go through database and delete every remote resource from the bucket
-        // don't worry about db cleanup, though
+        // No async initialization required in this class; it's all in the fixture
         return Task.CompletedTask;
     }
+
+    public async Task DisposeAsync()
+    {
+        await RemoteFileManager.DeleteFolder();
+    }
+
 }

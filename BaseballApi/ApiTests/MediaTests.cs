@@ -13,7 +13,7 @@ using Humanizer;
 
 namespace BaseballApiTests;
 
-public class MediaTests : BaseballTests
+public class MediaTests : BaseballTests, IAsyncLifetime
 {
     MediaController Controller { get; }
     RemoteFileManager RemoteFileManager { get; }
@@ -196,7 +196,7 @@ public class MediaTests : BaseballTests
         var photoDirectory = Path.Join("data", "media", "photos");
         Dictionary<string, MediaResourceType> resourceTypes = [];
         TestMediaImporter.PrepareFormFiles(photoDirectory, MediaResourceType.Photo, files, resourceTypes);
-    
+
         await ImportMedia(files, gameId, resourceTypes);
 
         var mediaAfter = await Controller.GetThumbnails(gameId: gameId);
@@ -972,6 +972,17 @@ public class MediaTests : BaseballTests
         {"IMG_4771.HEIC", new DateTimeOffset(2024, 9, 28, 14, 47, 12, TimeSpan.FromHours(-5))},
         {"hevc.mov", new DateTimeOffset(2021, 7, 28, 16, 12, 52, TimeSpan.FromHours(-4))}
     };
+
+    public Task InitializeAsync()
+    {
+        // No async initialization required in this class
+        return Task.CompletedTask;
+    }
+
+    public async Task DisposeAsync()
+    {
+        await RemoteFileManager.DeleteFolder();
+    }
 }
 
 public struct MockResource
