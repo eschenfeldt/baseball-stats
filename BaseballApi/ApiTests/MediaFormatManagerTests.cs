@@ -185,6 +185,7 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
                 .Include(r => r.Files)
                 .FirstOrDefaultAsync(r => r.OriginalFileName == fileName);
             Assert.NotNull(resource);
+            Context.Entry(resource).Reload();
             return resource;
         }
 
@@ -205,9 +206,17 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
         }
         await Context.SaveChangesAsync();
         var altFormatResults = await Manager.CreateAlternateFormats(fileName);
-        Assert.Equal(generatesAltFormat ? 1 : 0, altFormatResults.Count);
         Assert.Null(altFormatResults.ErrorMessage);
         resource = await LoadResource();
+        if (resource.AlternateFormatOverride ?? false)
+        {
+            // setting the override for the first time means we'll see an update here, but not a new file
+            Assert.Equal(1, altFormatResults.Count);
+        }
+        else
+        {
+            Assert.Equal(generatesAltFormat ? 1 : 0, altFormatResults.Count);
+        }
         if (generatesAltFormat && expectedContentType != null)
         {
             var newAltFormat = resource.Files.FirstOrDefault(f => f.Purpose == RemoteFilePurpose.AlternateFormat);
