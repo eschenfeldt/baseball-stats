@@ -41,8 +41,13 @@ builder.Services.AddIdentityApiEndpoints<IdentityUser>()
 builder.Services.AddScoped<IRemoteFileManager, RemoteFileManager>();
 builder.Services.AddSingleton<IMediaImportQueue, MediaImportQueue>();
 builder.Services.AddHostedService<MediaImportBackgroundService>();
-builder.Services.AddHostedService<MediaImportTaskRestarter>();
-builder.Services.AddHostedService<TempFileCleaner>();
+if (!builder.Environment.IsDevelopment())
+{
+    // Local dev won't see the prod files but will see the prod import task so don't try to process/clean up
+    builder.Services.AddHostedService<MediaImportTaskRestarter>();
+    builder.Services.AddHostedService<TempFileCleaner>();
+    builder.Services.AddHostedService<MediaFormatService>();
+}
 
 builder.Services.AddCors(options =>
 {

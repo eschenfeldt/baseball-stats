@@ -524,6 +524,9 @@ namespace BaseballApi.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("TimeZone")
+                        .HasColumnType("text");
+
                     b.HasKey("Id");
 
                     b.ToTable("Parks");
@@ -679,6 +682,9 @@ namespace BaseballApi.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
+                    b.Property<string>("ContentType")
+                        .HasColumnType("text");
+
                     b.Property<string>("Extension")
                         .IsRequired()
                         .HasColumnType("text");
@@ -790,6 +796,9 @@ namespace BaseballApi.Migrations
             modelBuilder.Entity("BaseballApi.Models.MediaResource", b =>
                 {
                     b.HasBaseType("BaseballApi.Models.RemoteResource");
+
+                    b.Property<bool?>("AlternateFormatOverride")
+                        .HasColumnType("boolean");
 
                     b.Property<bool>("Favorite")
                         .HasColumnType("boolean");

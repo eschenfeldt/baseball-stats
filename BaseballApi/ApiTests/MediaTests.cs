@@ -13,7 +13,7 @@ using Humanizer;
 
 namespace BaseballApiTests;
 
-public class MediaTests : BaseballTests
+public class MediaTests : BaseballTests, IAsyncLifetime
 {
     MediaController Controller { get; }
     RemoteFileManager RemoteFileManager { get; }
@@ -22,6 +22,7 @@ public class MediaTests : BaseballTests
     MediaImportBackgroundService MediaImportBackgroundService { get; }
     MediaImportTaskRestarter MediaImportTaskRestarter { get; }
     TempFileCleaner TempFileCleaner { get; }
+    TestMediaImporter TestMediaImporter { get; }
 
     public MediaTests(TestDatabaseFixture fixture) : base(fixture)
     {
@@ -47,6 +48,7 @@ public class MediaTests : BaseballTests
         MediaImportBackgroundService = new MediaImportBackgroundService(mediaImportQueue, serviceProvider, backgroundLogger);
         MediaImportTaskRestarter = new MediaImportTaskRestarter(mediaImportQueue, serviceProvider, backgroundLogger);
         TempFileCleaner = new TempFileCleaner(serviceProvider, backgroundLogger);
+        TestMediaImporter = new TestMediaImporter(Context, Controller, MediaImportBackgroundService);
     }
 
     public static TheoryData<int?, int?, int?, List<MockFile>> Thumbnails => new()
@@ -96,11 +98,7 @@ public class MediaTests : BaseballTests
         var files = new List<IFormFile>();
         var livePhotoDirectory = Path.Join("data", "media", "live photos");
         Dictionary<string, MediaResourceType> resourceTypes = [];
-        foreach (var filePath in EnumerateMediaFiles(livePhotoDirectory))
-        {
-            files.Add(CreateFormFile(filePath, out _));
-            resourceTypes[filePath] = MediaResourceType.LivePhoto;
-        }
+        TestMediaImporter.PrepareFormFiles(livePhotoDirectory, MediaResourceType.LivePhoto, files, resourceTypes);
 
         await ImportMedia(files, gameId, resourceTypes);
 
@@ -153,11 +151,7 @@ public class MediaTests : BaseballTests
         var files = new List<IFormFile>();
         var videoDirectory = Path.Join("data", "media", "video");
         Dictionary<string, MediaResourceType> resourceTypes = [];
-        foreach (var filePath in EnumerateMediaFiles(videoDirectory))
-        {
-            files.Add(CreateFormFile(filePath, out _));
-            resourceTypes[filePath] = MediaResourceType.Video;
-        }
+        TestMediaImporter.PrepareFormFiles(videoDirectory, MediaResourceType.Video, files, resourceTypes);
 
         await ImportMedia(files, gameId, resourceTypes);
 
@@ -201,11 +195,7 @@ public class MediaTests : BaseballTests
         var files = new List<IFormFile>();
         var photoDirectory = Path.Join("data", "media", "photos");
         Dictionary<string, MediaResourceType> resourceTypes = [];
-        foreach (var filePath in EnumerateMediaFiles(photoDirectory))
-        {
-            files.Add(CreateFormFile(filePath, out _));
-            resourceTypes[filePath] = MediaResourceType.Photo;
-        }
+        TestMediaImporter.PrepareFormFiles(photoDirectory, MediaResourceType.Photo, files, resourceTypes);
 
         await ImportMedia(files, gameId, resourceTypes);
 
@@ -254,21 +244,9 @@ public class MediaTests : BaseballTests
         var photoDirectory = Path.Join("data", "media", "photos");
         var livePhotoDirectory = Path.Join("data", "media", "live photos");
         Dictionary<string, MediaResourceType> resourceTypes = [];
-        foreach (var filePath in EnumerateMediaFiles(photoDirectory))
-        {
-            files.Add(CreateFormFile(filePath, out string fileName));
-            resourceTypes[fileName] = MediaResourceType.Photo;
-        }
-        foreach (var filePath in EnumerateMediaFiles(videoDirectory))
-        {
-            files.Add(CreateFormFile(filePath, out string fileName));
-            resourceTypes[fileName] = MediaResourceType.Video;
-        }
-        foreach (var filePath in EnumerateMediaFiles(livePhotoDirectory))
-        {
-            files.Add(CreateFormFile(filePath, out string fileName));
-            resourceTypes[fileName] = MediaResourceType.LivePhoto;
-        }
+        TestMediaImporter.PrepareFormFiles(photoDirectory, MediaResourceType.Photo, files, resourceTypes);
+        TestMediaImporter.PrepareFormFiles(videoDirectory, MediaResourceType.Video, files, resourceTypes);
+        TestMediaImporter.PrepareFormFiles(livePhotoDirectory, MediaResourceType.LivePhoto, files, resourceTypes);
 
         await ImportMedia(files, gameId, resourceTypes);
 
@@ -344,36 +322,12 @@ public class MediaTests : BaseballTests
         var fakePhotoDirectory = Path.Join("data", "media", "fake photo");
         var fakeLivePhotoDirectory = Path.Join("data", "media", "fake live photo");
         Dictionary<string, MediaResourceType> resourceTypes = [];
-        foreach (var filePath in EnumerateMediaFiles(fakeVideoDirectory))
-        {
-            files.Add(CreateFormFile(filePath, out string fileName));
-            resourceTypes[fileName] = MediaResourceType.Video;
-        }
-        foreach (var filePath in EnumerateMediaFiles(fakePhotoDirectory))
-        {
-            files.Add(CreateFormFile(filePath, out string fileName));
-            resourceTypes[fileName] = MediaResourceType.Photo;
-        }
-        foreach (var filePath in EnumerateMediaFiles(fakeLivePhotoDirectory))
-        {
-            files.Add(CreateFormFile(filePath, out string fileName));
-            resourceTypes[fileName] = MediaResourceType.LivePhoto;
-        }
-        foreach (var filePath in EnumerateMediaFiles(photoDirectory))
-        {
-            files.Add(CreateFormFile(filePath, out string fileName));
-            resourceTypes[fileName] = MediaResourceType.Photo;
-        }
-        foreach (var filePath in EnumerateMediaFiles(videoDirectory))
-        {
-            files.Add(CreateFormFile(filePath, out string fileName));
-            resourceTypes[fileName] = MediaResourceType.Video;
-        }
-        foreach (var filePath in EnumerateMediaFiles(livePhotoDirectory))
-        {
-            files.Add(CreateFormFile(filePath, out string fileName));
-            resourceTypes[fileName] = MediaResourceType.LivePhoto;
-        }
+        TestMediaImporter.PrepareFormFiles(fakeVideoDirectory, MediaResourceType.Video, files, resourceTypes);
+        TestMediaImporter.PrepareFormFiles(fakePhotoDirectory, MediaResourceType.Photo, files, resourceTypes);
+        TestMediaImporter.PrepareFormFiles(fakeLivePhotoDirectory, MediaResourceType.LivePhoto, files, resourceTypes);
+        TestMediaImporter.PrepareFormFiles(photoDirectory, MediaResourceType.Photo, files, resourceTypes);
+        TestMediaImporter.PrepareFormFiles(videoDirectory, MediaResourceType.Video, files, resourceTypes);
+        TestMediaImporter.PrepareFormFiles(livePhotoDirectory, MediaResourceType.LivePhoto, files, resourceTypes);
 
         // start up the media import background service
         await MediaImportBackgroundService.StartAsync(CancellationToken.None);
@@ -515,16 +469,8 @@ public class MediaTests : BaseballTests
         var videoDirectory = Path.Join("data", "media", "video");
         var livePhotoDirectory = Path.Join("data", "media", "live photos");
         Dictionary<string, MediaResourceType> resourceTypes = [];
-        foreach (var filePath in EnumerateMediaFiles(videoDirectory))
-        {
-            files.Add(CreateFormFile(filePath, out string fileName));
-            resourceTypes[fileName] = MediaResourceType.Video;
-        }
-        foreach (var filePath in EnumerateMediaFiles(livePhotoDirectory))
-        {
-            files.Add(CreateFormFile(filePath, out string fileName));
-            resourceTypes[fileName] = MediaResourceType.LivePhoto;
-        }
+        TestMediaImporter.PrepareFormFiles(videoDirectory, MediaResourceType.Video, files, resourceTypes);
+        TestMediaImporter.PrepareFormFiles(livePhotoDirectory, MediaResourceType.LivePhoto, files, resourceTypes);
 
         await ImportMedia(files, gameId, resourceTypes);
 
@@ -535,11 +481,8 @@ public class MediaTests : BaseballTests
         Assert.Equal(countBefore + 3, countAfter);
 
         var photoDirectory = Path.Join("data", "media", "photos");
-        foreach (var filePath in EnumerateMediaFiles(photoDirectory))
-        {
-            files.Add(CreateFormFile(filePath, out string fileName));
-            resourceTypes[fileName] = MediaResourceType.Photo;
-        }
+        TestMediaImporter.PrepareFormFiles(photoDirectory, MediaResourceType.Photo, files, resourceTypes);
+
         await ImportMedia(files, gameId, resourceTypes);
 
         // Make sure we don't duplicate the video or live photos
@@ -609,11 +552,7 @@ public class MediaTests : BaseballTests
         var files = new List<IFormFile>();
         var livePhotoDirectory = Path.Join("data", "media", "live photos");
         Dictionary<string, MediaResourceType> resourceTypes = [];
-        foreach (var filePath in EnumerateMediaFiles(livePhotoDirectory))
-        {
-            files.Add(CreateFormFile(filePath, out string fileName));
-            resourceTypes[fileName] = MediaResourceType.LivePhoto;
-        }
+        TestMediaImporter.PrepareFormFiles(livePhotoDirectory, MediaResourceType.LivePhoto, files, resourceTypes);
 
         // start up the media import background service but cancel it nearly immediately to simulate an abandonment
         var cancellationTokenSource = new CancellationTokenSource();
@@ -726,7 +665,7 @@ public class MediaTests : BaseballTests
         // stop the services again
         await MediaImportBackgroundService.StopAsync(CancellationToken.None);
         await MediaImportTaskRestarter.StopAsync(CancellationToken.None);
-        
+
         await ValidateTempFileCleanup(importTask.Value.Id);
 
         var mediaAfter = await Controller.GetThumbnails(gameId: gameId);
@@ -781,79 +720,9 @@ public class MediaTests : BaseballTests
 
     private async Task ImportMedia(List<IFormFile> files, long gameId, Dictionary<string, MediaResourceType> resourceTypes)
     {
-        // start up the media import background service
-        await MediaImportBackgroundService.StartAsync(CancellationToken.None);
+        var importTask = await TestMediaImporter.ImportMedia(files, gameId, resourceTypes);
 
-        var startTime = DateTimeOffset.Now;
-        var importTask = await Controller.ImportMedia(files, JsonConvert.SerializeObject(gameId));
-        var initializedTime = DateTimeOffset.Now;
-        var initializationTime = initializedTime - startTime;
-        Assert.InRange(initializationTime.TotalSeconds, 0, 5);
-        Assert.NotNull(importTask);
-        Assert.Equal(MediaImportTaskStatus.Queued, importTask.Value.Status);
-        Assert.Equal(0, importTask.Value.Progress);
-
-        var photoCount = resourceTypes.Values.Count(r => r == MediaResourceType.Photo);
-        var videoCount = resourceTypes.Values.Count(r => r == MediaResourceType.Video);
-        var livePhotoCount = resourceTypes.Values.Count(r => r == MediaResourceType.LivePhoto) / 2; // each live photo consists of two files
-        string expectedMessage = $"Importing {Pluralize(photoCount, "photo")}, {Pluralize(videoCount, "video")}, and {Pluralize(livePhotoCount, "live photo")}";
-        Assert.Equal(expectedMessage, importTask.Value.Message);
-
-        ValidateGameData(gameId, importTask.Value.Id);
-
-        int i = 0;
-        DateTimeOffset lastUpdateTime;
-        do
-        {
-            lastUpdateTime = DateTimeOffset.Now;
-            await Task.Delay(1000);
-            // force a refresh of the status since the background service updates it asynchronously in the db via a different context
-            var importDbEntry = await Context.MediaImportTasks.FirstOrDefaultAsync(x => x.Id == importTask.Value.Id);
-            if (importDbEntry != null)
-            {
-                Context.Entry(importDbEntry).Reload();
-            }
-            importTask = await Controller.GetImportStatus(importTask.Value.Id);
-            Assert.NotNull(importTask);
-            if (importTask.Value.Status == MediaImportTaskStatus.Queued)
-            {
-                Assert.True(i < 10, "Import task is still queued after several checks, which is unexpected.");
-                ValidateGameData(gameId, importTask.Value.Id);
-            }
-            else if (importTask.Value.Status == MediaImportTaskStatus.Failed)
-            {
-                Assert.Fail($"Import task failed with message: {importTask.Value.Message}");
-            }
-            else if (importTask.Value.Status == MediaImportTaskStatus.Completed)
-            {
-                Assert.Equal(MediaImportTaskStatus.Completed, importTask.Value.Status);
-                Assert.Equal($"Imported {Pluralize(photoCount, "photo")}, {Pluralize(videoCount, "video")}, and {Pluralize(livePhotoCount, "live photo")}", importTask.Value.Message);
-                break;
-            }
-            else
-            {
-                Assert.Equal(MediaImportTaskStatus.InProgress, importTask.Value.Status);
-                Assert.InRange(importTask.Value.Progress, 0, 1);
-                ValidateGameData(gameId, importTask.Value.Id);
-                Assert.NotNull(importTask.Value.StartTime);
-                DateTimeOffset actualStartTime = importTask.Value.StartTime.Value;
-                Assert.InRange(actualStartTime, startTime, DateTimeOffset.Now);
-            }
-            Assert.Equal(expectedMessage, importTask.Value.Message);
-            i++;
-        } while (i < 300);
-
-        Assert.Equal(MediaImportTaskStatus.Completed, importTask.Value.Status);
-        expectedMessage = $"Imported {Pluralize(photoCount, "photo")}, {Pluralize(videoCount, "video")}, and {Pluralize(livePhotoCount, "live photo")}";
-        Assert.Equal(expectedMessage, importTask.Value.Message);
-        Assert.NotNull(importTask.Value.EndTime);
-        DateTimeOffset actualEndTime = importTask.Value.EndTime.Value;
-        Assert.InRange(actualEndTime, lastUpdateTime, DateTimeOffset.Now);
-
-        // stop the service again
-        await MediaImportBackgroundService.StopAsync(CancellationToken.None);
-
-        await ValidateTempFileCleanup(importTask.Value.Id);
+        await ValidateTempFileCleanup(importTask.Id);
     }
 
     private async Task ValidateTempFileCleanup(Guid importTaskId)
@@ -880,7 +749,7 @@ public class MediaTests : BaseballTests
             i++;
             if (i > 100) // give up after 10 seconds
             {
-                Assert.Fail("Temp file cleanup took too long, which is unexpected.");
+                Assert.Fail("Temp file cleanup took too long.");
             }
         } while (tempFiles.Any(x => !x.FilesDeleted));
 
@@ -910,38 +779,6 @@ public class MediaTests : BaseballTests
         Assert.Equal(expectedTaskId, taskFromGame.Value[0].Id);
     }
 
-    private IEnumerable<string> EnumerateMediaFiles(string directoryPath)
-    {
-        return Directory.EnumerateFiles(directoryPath, "*.*", SearchOption.AllDirectories)
-            .Where(file => !Path.GetExtension(file).Equals(".DS_Store", StringComparison.OrdinalIgnoreCase));
-    }
-
-    private FormFile CreateFormFile(string filePath, out string fileName)
-    {
-        fileName = Path.GetFileName(filePath);
-        using var fileStream = File.OpenRead(filePath);
-        var memoryStream = new MemoryStream();
-        fileStream.CopyTo(memoryStream);
-        var formFile = new FormFile(memoryStream, 0, memoryStream.Length, fileName, fileName)
-        {
-            Headers = new HeaderDictionary(),
-        };
-        formFile.ContentType = GetContentType(fileName);
-        return formFile;
-    }
-
-    private string GetContentType(string fileName)
-    {
-        var extension = Path.GetExtension(fileName).ToLowerInvariant();
-        return extension switch
-        {
-            ".heic" => "image/heic",
-            ".mov" => "video/quicktime",
-            ".mp4" => "video/mp4",
-            _ => throw new NotSupportedException($"Unsupported file type: {extension}")
-        };
-    }
-
     private static string Pluralize(int count, string singular)
     {
         return count == 1 ? $"{count} {singular}" : $"{count} {singular.Pluralize()}";
@@ -963,10 +800,10 @@ public class MediaTests : BaseballTests
         var expectedTime = ExpectedResourceTimes[originalFileName];
         Assert.Equal(expectedTime, original.Value.Photo.Value.DateTime);
 
-        await RemoteValidator.ValidateFileExists(original.Value.Photo.Value);
-        await RemoteValidator.ValidateFileExists(original.Value.Video.Value);
-        await RemoteValidator.ValidateFileExists(original.Value.AlternatePhoto.Value);
-        await RemoteValidator.ValidateFileExists(original.Value.AlternateVideo.Value);
+        await RemoteValidator.ValidateFileExists(original.Value.Photo.Value, "application/octet-stream");
+        await RemoteValidator.ValidateFileExists(original.Value.Video.Value, "video/quicktime");
+        await RemoteValidator.ValidateFileExists(original.Value.AlternatePhoto.Value, "image/jpeg");
+        await RemoteValidator.ValidateFileExists(original.Value.AlternateVideo.Value, "video/mp4");
 
         toBeDeleted.Add(original.Value.Photo.Value);
         toBeDeleted.Add(original.Value.Video.Value);
@@ -983,10 +820,11 @@ public class MediaTests : BaseballTests
         foreach (var thumbnail in thumbnails)
         {
             Assert.NotNull(thumbnail.NameModifier);
+            Assert.Equal("image/jpeg", thumbnail.ContentType);
             var thumbnailDetail = await Controller.GetThumbnail(assetIdentifier, thumbnail.NameModifier);
             Assert.NotNull(thumbnailDetail);
             Assert.NotNull(thumbnailDetail.Value);
-            await RemoteValidator.ValidateFileExists(thumbnailDetail.Value.Value);
+            await RemoteValidator.ValidateFileExists(thumbnailDetail.Value.Value, "image/jpeg");
 
             toBeDeleted.Add(thumbnailDetail.Value.Value);
         }
@@ -1006,11 +844,36 @@ public class MediaTests : BaseballTests
         var expectedTime = ExpectedResourceTimes[originalFileName];
         Assert.Equal(expectedTime, original.Value.Photo.Value.DateTime);
 
-        await RemoteValidator.ValidateFileExists(original.Value.Photo.Value);
-        await RemoteValidator.ValidateFileExists(original.Value.AlternatePhoto.Value);
+        await RemoteValidator.ValidateFileExists(original.Value.Photo.Value, "application/octet-stream");
+        await RemoteValidator.ValidateFileExists(original.Value.AlternatePhoto.Value, "image/jpeg");
+
+        // test modifying the content type to ensure it works correctly
+        await RemoteFileManager.UpdateFileContentType(original.Value.Photo.Value, "image/jpeg");
+        await RemoteValidator.ValidateFileExists(original.Value.Photo.Value, "image/jpeg");
+
+        // test downloading the original photo from the bucket
+        var downloadedFilePath = await DownloadRemoteFile(original.Value.Photo.Value, RemoteFileManager);
+        Assert.True(File.Exists(downloadedFilePath), $"Downloaded file does not exist: {downloadedFilePath}");
+        var downloadedFile = new FileInfo(downloadedFilePath);
+        Assert.True(downloadedFile.Length > 0, "Downloaded file is empty");
+        File.Delete(downloadedFilePath); // clean up the downloaded file
 
         toBeDeleted.Add(original.Value.Photo.Value);
         toBeDeleted.Add(original.Value.AlternatePhoto.Value);
+
+        var originalModel = await Context.MediaResources
+            .Where(x => x.AssetIdentifier == assetIdentifier)
+            .SelectMany(x => x.Files.Where(x => x.Purpose == RemoteFilePurpose.Original))
+            .FirstOrDefaultAsync();
+        Assert.NotNull(originalModel);
+        Assert.Equal("application/octet-stream", originalModel.ContentType);
+
+        var altModel = await Context.MediaResources
+            .Where(x => x.AssetIdentifier == assetIdentifier)
+            .SelectMany(x => x.Files.Where(x => x.Purpose == RemoteFilePurpose.AlternateFormat))
+            .FirstOrDefaultAsync();
+        Assert.NotNull(altModel);
+        Assert.Equal("image/jpeg", altModel.ContentType);
 
         var thumbnails = await Context.MediaResources
             .Where(x => x.AssetIdentifier == assetIdentifier)
@@ -1022,10 +885,11 @@ public class MediaTests : BaseballTests
         foreach (var thumbnail in thumbnails)
         {
             Assert.NotNull(thumbnail.NameModifier);
+            Assert.Equal("image/jpeg", thumbnail.ContentType);
             var thumbnailDetail = await Controller.GetThumbnail(assetIdentifier, thumbnail.NameModifier);
             Assert.NotNull(thumbnailDetail);
             Assert.NotNull(thumbnailDetail.Value);
-            await RemoteValidator.ValidateFileExists(thumbnailDetail.Value.Value);
+            await RemoteValidator.ValidateFileExists(thumbnailDetail.Value.Value, "image/jpeg");
 
             toBeDeleted.Add(thumbnailDetail.Value.Value);
         }
@@ -1045,11 +909,25 @@ public class MediaTests : BaseballTests
         var expectedTime = ExpectedResourceTimes[originalFileName];
         Assert.Equal(expectedTime, original.Value.Video.Value.DateTime);
 
-        await RemoteValidator.ValidateFileExists(original.Value.Video.Value);
-        await RemoteValidator.ValidateFileExists(original.Value.AlternateVideo.Value);
+        await RemoteValidator.ValidateFileExists(original.Value.Video.Value, "video/quicktime");
+        await RemoteValidator.ValidateFileExists(original.Value.AlternateVideo.Value, "video/mp4");
 
         toBeDeleted.Add(original.Value.Video.Value);
         toBeDeleted.Add(original.Value.AlternateVideo.Value);
+
+        var originalModel = await Context.MediaResources
+            .Where(x => x.AssetIdentifier == assetIdentifier)
+            .SelectMany(x => x.Files.Where(x => x.Purpose == RemoteFilePurpose.Original))
+            .FirstOrDefaultAsync();
+        Assert.NotNull(originalModel);
+        Assert.Equal("video/quicktime", originalModel.ContentType);
+
+        var altModel = await Context.MediaResources
+            .Where(x => x.AssetIdentifier == assetIdentifier)
+            .SelectMany(x => x.Files.Where(x => x.Purpose == RemoteFilePurpose.AlternateFormat))
+            .FirstOrDefaultAsync();
+        Assert.NotNull(altModel);
+        Assert.Equal("video/mp4", altModel.ContentType);
 
         var thumbnails = await Context.MediaResources
             .Where(x => x.AssetIdentifier == assetIdentifier)
@@ -1061,13 +939,30 @@ public class MediaTests : BaseballTests
         foreach (var thumbnail in thumbnails)
         {
             Assert.NotNull(thumbnail.NameModifier);
+            Assert.Equal("image/jpeg", thumbnail.ContentType);
             var thumbnailDetail = await Controller.GetThumbnail(assetIdentifier, thumbnail.NameModifier);
             Assert.NotNull(thumbnailDetail);
             Assert.NotNull(thumbnailDetail.Value);
-            await RemoteValidator.ValidateFileExists(thumbnailDetail.Value.Value);
+            await RemoteValidator.ValidateFileExists(thumbnailDetail.Value.Value, "image/jpeg");
 
             toBeDeleted.Add(thumbnailDetail.Value.Value);
         }
+    }
+
+    private static async Task<string> DownloadRemoteFile(RemoteFileDetail fileDetail, IRemoteFileManager remoteFileManager)
+    {
+        var response = await remoteFileManager.GetFile(fileDetail);
+        if (response == null || response.ResponseStream == null)
+        {
+            throw new InvalidOperationException($"Failed to download file: {fileDetail.Key}");
+        }
+
+        var tempFilePath = Path.Combine(Path.GetTempPath(), fileDetail.Key.Replace("/", "_"));
+        using (var fileStream = new FileStream(tempFilePath, FileMode.Create, FileAccess.Write))
+        {
+            await response.ResponseStream.CopyToAsync(fileStream);
+        }
+        return tempFilePath;
     }
 
     internal static Dictionary<string, DateTimeOffset> ExpectedResourceTimes = new()
@@ -1077,6 +972,17 @@ public class MediaTests : BaseballTests
         {"IMG_4771.HEIC", new DateTimeOffset(2024, 9, 28, 14, 47, 12, TimeSpan.FromHours(-5))},
         {"hevc.mov", new DateTimeOffset(2021, 7, 28, 16, 12, 52, TimeSpan.FromHours(-4))}
     };
+
+    public Task InitializeAsync()
+    {
+        // No async initialization required in this class
+        return Task.CompletedTask;
+    }
+
+    public async Task DisposeAsync()
+    {
+        await RemoteFileManager.DeleteFolder();
+    }
 }
 
 public struct MockResource

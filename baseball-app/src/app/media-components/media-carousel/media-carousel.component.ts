@@ -79,6 +79,18 @@ export class MediaCarouselComponent implements OnInit {
         }
     }
 
+    videoType(focusedItem: RemoteOriginal): string {
+        return Utils.videoTypeFromExtension(focusedItem.video.extension);
+    }
+
+    altVideoType(focusedItem: RemoteOriginal): string | null {
+        if (focusedItem.alternateVideo) {
+            return Utils.videoTypeFromExtension(focusedItem.alternateVideo.extension);
+        } else {
+            return null;
+        }
+    }
+
     altText(focusedItem: RemoteOriginal): string {
         const file = focusedItem.photo || focusedItem.video;
         if (file) {

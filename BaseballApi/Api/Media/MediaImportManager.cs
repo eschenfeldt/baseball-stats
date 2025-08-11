@@ -1,3 +1,4 @@
+using BaseballApi.Contracts;
 using BaseballApi.Import;
 using BaseballApi.Models;
 using Microsoft.EntityFrameworkCore;
@@ -12,6 +13,13 @@ public class MediaImportManager(List<MediaImportInfo> resources, IRemoteFileMana
     private IRemoteFileManager RemoteFileManager { get; } = remoteFileManager;
     private VideoConverter VideoConverter { get; } = new VideoConverter();
     private ImageConverter ImageConverter { get; } = new ImageConverter();
+    private string DefaultTimeZone
+    {
+        get
+        {
+            return Game?.Location?.TimeZone ?? "Central Standard Time";
+        }
+    }
 
     public async IAsyncEnumerable<MediaUploadResult> GetUploadedResources()
     {
@@ -60,7 +68,8 @@ public class MediaImportManager(List<MediaImportInfo> resources, IRemoteFileMana
         {
             AssetIdentifier = Guid.NewGuid(),
             ResourceType = MediaResourceType.Photo,
-            OriginalFileName = resource.PhotoFileName
+            OriginalFileName = resource.PhotoFileName,
+            AlternateFormatOverride = false
         };
 
         resource.Status = MediaImportTaskStatus.InProgress;
@@ -106,7 +115,8 @@ public class MediaImportManager(List<MediaImportInfo> resources, IRemoteFileMana
         {
             AssetIdentifier = Guid.NewGuid(),
             ResourceType = MediaResourceType.Video,
-            OriginalFileName = resource.VideoFileName
+            OriginalFileName = resource.VideoFileName,
+            AlternateFormatOverride = false
         };
 
         resource.Status = MediaImportTaskStatus.InProgress;
@@ -152,7 +162,8 @@ public class MediaImportManager(List<MediaImportInfo> resources, IRemoteFileMana
         {
             AssetIdentifier = Guid.NewGuid(),
             ResourceType = MediaResourceType.LivePhoto,
-            OriginalFileName = resource.PhotoFileName
+            OriginalFileName = resource.PhotoFileName,
+            AlternateFormatOverride = false
         };
 
         resource.Status = MediaImportTaskStatus.InProgress;
@@ -203,7 +214,7 @@ public class MediaImportManager(List<MediaImportInfo> resources, IRemoteFileMana
             throw new ArgumentException($"Failed to process photo file {photoFileName}");
         }
 
-        var exifInfo = ImageConverter.GetExifInfo(photoFile);
+        var exifInfo = ImageConverter.GetExifInfo(photoFile, DefaultTimeZone);
         if (exifInfo == null)
         {
             throw new ArgumentException($"Failed to read exif data from photo file {photoFileName}");
@@ -211,7 +222,8 @@ public class MediaImportManager(List<MediaImportInfo> resources, IRemoteFileMana
         mediaResource.DateTime = exifInfo.CreationDate.ToUniversalTime(); // Postgres must be UTC
 
         FileInfo? altPhoto = null;
-        if (photoInfo.Extension != ".jpg" && photoInfo.Extension != ".jpeg")
+        string extension = photoFile.Extension.ToLowerInvariant();
+        if (extension != ".jpg" && extension != ".jpeg")
         {
             altPhoto = ImageConverter.CreateJpeg(new FileInfo(photoFilePath), null);
             if (altPhoto == null)
@@ -227,6 +239,9 @@ public class MediaImportManager(List<MediaImportInfo> resources, IRemoteFileMana
             Extension = photoFile.Extension
         };
         await RemoteFileManager.UploadFile(originalPhoto, photoFilePath);
+        // Get the content type from the bucket so we have it in the database
+        var metadata = await RemoteFileManager.GetFileMetadata(new RemoteFileDetail(originalPhoto));
+        originalPhoto.ContentType = metadata.Headers.ContentType;
         mediaResource.Files.Add(originalPhoto);
 
         if (altPhoto != null)
@@ -238,6 +253,8 @@ public class MediaImportManager(List<MediaImportInfo> resources, IRemoteFileMana
                 Extension = altPhoto.Extension
             };
             await RemoteFileManager.UploadFile(altPhotoFile, altPhoto.FullName);
+            var altMetadata = await RemoteFileManager.GetFileMetadata(new RemoteFileDetail(altPhotoFile));
+            altPhotoFile.ContentType = altMetadata.Headers.ContentType;
             mediaResource.Files.Add(altPhotoFile);
         }
         await GeneratePhotoThumbnails(mediaResource, altPhoto ?? new FileInfo(photoFilePath));
@@ -249,7 +266,7 @@ public class MediaImportManager(List<MediaImportInfo> resources, IRemoteFileMana
         if (mediaResource.DateTime == default)
         {
             // If the date time is not set, this isn't a live photo, so we should set it from the video file
-            var exifInfo = ImageConverter.GetExifInfo(videoFile);
+            var exifInfo = ImageConverter.GetExifInfo(videoFile, DefaultTimeZone);
             if (exifInfo == null)
             {
                 throw new ArgumentException($"Failed to read exif data from video file {videoFileName}");
@@ -272,6 +289,10 @@ public class MediaImportManager(List<MediaImportInfo> resources, IRemoteFileMana
                 throw new ArgumentException($"Failed to convert video file {videoFileName} to H264");
             }
         }
+        else
+        {
+            mediaResource.AlternateFormatOverride = true; // Already in H264 format
+        }
 
         var originalVideo = new RemoteFile
         {
@@ -280,6 +301,9 @@ public class MediaImportManager(List<MediaImportInfo> resources, IRemoteFileMana
             Extension = Path.GetExtension(videoFileName)
         };
         await RemoteFileManager.UploadFile(originalVideo, videoFilePath);
+        // Get the content type from the bucket so we have it in the database
+        var metadata = await RemoteFileManager.GetFileMetadata(new RemoteFileDetail(originalVideo));
+        originalVideo.ContentType = metadata.Headers.ContentType;
         mediaResource.Files.Add(originalVideo);
 
         if (altVideo != null)
@@ -291,6 +315,8 @@ public class MediaImportManager(List<MediaImportInfo> resources, IRemoteFileMana
                 Extension = Path.GetExtension(altVideo.FullName)
             };
             await RemoteFileManager.UploadFile(altVideoFile, altVideo.FullName);
+            var altMetadata = await RemoteFileManager.GetFileMetadata(new RemoteFileDetail(altVideoFile));
+            altVideoFile.ContentType = altMetadata.Headers.ContentType;
             mediaResource.Files.Add(altVideoFile);
         }
 
@@ -318,6 +344,8 @@ public class MediaImportManager(List<MediaImportInfo> resources, IRemoteFileMana
                     NameModifier = size.Modifier
                 };
                 await RemoteFileManager.UploadFile(thumbnailFile, thumbnail.FullName);
+                var thumbnailMetadata = await RemoteFileManager.GetFileMetadata(new RemoteFileDetail(thumbnailFile));
+                thumbnailFile.ContentType = thumbnailMetadata.Headers.ContentType;
                 mediaResource.Files.Add(thumbnailFile);
             }
         }

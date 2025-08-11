@@ -10,9 +10,14 @@ using Newtonsoft.Json;
 
 namespace BaseballApiTests;
 
-public class ImportTests(TestImportDatabaseFixture fixture) : IClassFixture<TestImportDatabaseFixture>, IDisposable
+public class ImportTests(TestImportDatabaseFixture fixture) : IClassFixture<TestImportDatabaseFixture>
 {
-    private TestImportDatabaseFixture Fixture { get; } = fixture;
+    protected TestImportDatabaseFixture Fixture { get; } = fixture;
+
+    private static GameMetadata PrepareGameForImport(out List<IFormFile> files)
+    {
+        return BaseTestImportDatabaseFixture.PrepareGameForImport(out files);
+    }
 
     [Fact]
     public async void TestImportGameViaController()
@@ -42,37 +47,7 @@ public class ImportTests(TestImportDatabaseFixture fixture) : IClassFixture<Test
         Assert.Single(playersBefore.Value);
 
         // now import the test game
-        var files = new List<IFormFile>();
-        var testGameDir = Path.Join("data", "Game 1");
-        foreach (var filePath in Directory.EnumerateFiles(testGameDir))
-        {
-            var fileName = Path.GetFileName(filePath);
-            using var fileStream = File.OpenRead(filePath);
-            var memoryStream = new MemoryStream();
-            fileStream.CopyTo(memoryStream);
-            var formFile = new FormFile(memoryStream, 0, memoryStream.Length, fileName, fileName);
-            files.Add(formFile);
-        }
-        var scheduled = new DateTimeOffset(2024, 7, 8, 16, 5, 0, TimeSpan.FromHours(-4));
-        var actual = new DateTimeOffset(2024, 7, 8, 16, 6, 0, TimeSpan.FromHours(-4));
-        var end = new DateTimeOffset(2024, 7, 8, 18, 29, 0, TimeSpan.FromHours(-4));
-        var metadata = new GameMetadata
-        {
-            ScheduledStart = scheduled,
-            ActualStart = actual,
-            End = end,
-            Away = new Team
-            {
-                City = "St. Louis",
-                Name = "Cardinals"
-            },
-            Home = new Team
-            {
-                City = "Washington",
-                Name = "Nationals"
-            }
-        };
-
+        var metadata = PrepareGameForImport(out List<IFormFile> files);
         await gamesController.ImportGame(files, JsonConvert.SerializeObject(metadata));
 
         async Task<GameDetail> ValidateGameInDb(DateTimeOffset expectedActualStart)
@@ -85,9 +60,9 @@ public class ImportTests(TestImportDatabaseFixture fixture) : IClassFixture<Test
             Assert.Equal("7/8/24 St. Louis Cardinals at Washington Nationals", gameSummary.Name);
             Assert.Equal("St. Louis Cardinals", gameSummary.AwayTeamName);
             Assert.Equal("Washington Nationals", gameSummary.HomeTeamName);
-            Assert.Equal(scheduled, gameSummary.ScheduledTime);
+            Assert.Equal(metadata.ScheduledStart, gameSummary.ScheduledTime);
             Assert.Equal(expectedActualStart, gameSummary.StartTime);
-            Assert.Equal(end, gameSummary.EndTime);
+            Assert.Equal(metadata.End, gameSummary.EndTime);
             Assert.Equal(6, gameSummary.AwayScore);
             Assert.Equal(0, gameSummary.HomeScore);
 
@@ -97,9 +72,9 @@ public class ImportTests(TestImportDatabaseFixture fixture) : IClassFixture<Test
             Assert.Equal("7/8/24 St. Louis Cardinals at Washington Nationals", game.Name);
             Assert.Equal("St. Louis Cardinals", game.AwayTeamName);
             Assert.Equal("Washington Nationals", game.HomeTeamName);
-            Assert.Equal(scheduled, game.ScheduledTime);
+            Assert.Equal(metadata.ScheduledStart, game.ScheduledTime);
             Assert.Equal(expectedActualStart, game.StartTime);
-            Assert.Equal(end, game.EndTime);
+            Assert.Equal(metadata.End, game.EndTime);
             Assert.Equal(6, game.AwayScore);
             Assert.Equal(0, game.HomeScore);
             Assert.NotNull(game.Scorecard);
@@ -107,7 +82,7 @@ public class ImportTests(TestImportDatabaseFixture fixture) : IClassFixture<Test
             Assert.NotEqual(Guid.Empty, scorecardFile.AssetIdentifier);
             Assert.Equal(".pdf", scorecardFile.Extension);
             Assert.Equal("scorecard.pdf", scorecardFile.OriginalFileName);
-            await remoteValidator.ValidateFileExists(scorecardFile);
+            await remoteValidator.ValidateFileExists(scorecardFile, "application/pdf");
 
             // validate box scores
             Assert.NotNull(game.HomeBoxScore);
@@ -133,7 +108,8 @@ public class ImportTests(TestImportDatabaseFixture fixture) : IClassFixture<Test
             return game;
         }
 
-        var originalGameDetail = await ValidateGameInDb(actual);
+        Assert.NotNull(metadata.ActualStart);
+        var originalGameDetail = await ValidateGameInDb(metadata.ActualStart.Value);
         var originalScorecardFile = originalGameDetail.Scorecard!.Value.File;
 
         async Task ValidatePlayers()
@@ -179,10 +155,5 @@ public class ImportTests(TestImportDatabaseFixture fixture) : IClassFixture<Test
         await remoteFileManager.DeleteResource(scoreCardResource);
 
         await remoteValidator.ValidateFileDeleted(scoreCard.Value.File);
-    }
-
-    public void Dispose()
-    {
-        Fixture.Dispose();
     }
 }
