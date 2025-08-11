@@ -1,4 +1,4 @@
-import { HttpClient, HttpEvent } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpEvent } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { BehaviorSubject, Observable, of } from 'rxjs';
@@ -88,8 +88,12 @@ export class BaseballApiService {
         return req;
     }
 
-    private throwError(message: string): never {
+    private throwError(message: string | HttpErrorResponse): never {
         this.dialog.open(ErrorDialogComponent, { data: message });
-        throw new Error(message);
+        if (message instanceof HttpErrorResponse) {
+            throw message;
+        } else {
+            throw new Error(message);
+        }
     }
 }
