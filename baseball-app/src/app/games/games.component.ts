@@ -58,7 +58,8 @@ export class GamesComponent extends BaseballTableComponent<GamesListParams, Game
         'awayTeam',
         'awayScore',
         'homeTeam',
-        'homeScore'
+        'homeScore',
+        'location',
     ];
     protected override get defaultFilters(): BaseballApiFilter {
         return {};
