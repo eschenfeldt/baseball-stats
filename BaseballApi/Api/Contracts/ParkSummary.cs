@@ -16,10 +16,10 @@ public class ParkSummary
 
 public enum ParkSummaryOrder
 {
+    [ParamValue("games")]
+    Games, // Default
     [ParamValue("park")]
     Park,
-    [ParamValue("games")]
-    Games,
     [ParamValue("teams")]
     Teams,
     [ParamValue("wins")]
