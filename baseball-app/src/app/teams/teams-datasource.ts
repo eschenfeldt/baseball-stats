@@ -8,6 +8,7 @@ export interface TeamSummary {
     games: number;
     wins: number;
     losses: number;
+    parks: number;
 }
 
 interface TeamSummaryParameters extends PagedApiParameters {

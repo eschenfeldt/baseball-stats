@@ -43,7 +43,8 @@ export class TeamsComponent extends BaseballTableComponent<PagedApiParameters, T
         'lastGame',
         'games',
         'wins',
-        'losses'
+        'losses',
+        'parks'
     ]
     protected override defaultFilters?: BaseballApiFilter = {};
 

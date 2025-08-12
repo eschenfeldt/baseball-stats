@@ -9,6 +9,7 @@ public class TeamSummary
     public int Wins { get; set; }
     public int Losses { get; set; }
     public DateOnly? LastGameDate { get; set; }
+    public int Parks { get; set; }
 }
 
 public enum TeamSummaryOrder
@@ -22,5 +23,7 @@ public enum TeamSummaryOrder
     [ParamValue("losses")]
     Losses,
     [ParamValue("lastGame")]
-    LastGame
+    LastGame,
+    [ParamValue("parks")]
+    Parks
 }

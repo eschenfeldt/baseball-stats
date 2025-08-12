@@ -32,4 +32,7 @@ export class SummaryStatsCardComponent {
     hideGames(category: StatCategory): boolean {
         return category !== StatCategory.general;
     }
+    hideNull(category: StatCategory): boolean {
+        return category === StatCategory.general;
+    }
 }

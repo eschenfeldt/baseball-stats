@@ -19,6 +19,7 @@ public class Game
     public DateTimeOffset? StartTime { get; set; }
     public DateTimeOffset? EndTime { get; set; }
     public Park? Location { get; set; }
+    public long? LocationId { get; set; }
     public required ICollection<BoxScore> BoxScores { get; set; }
     public long? HomeBoxScoreId { get; set; }
     [ForeignKey(nameof(HomeBoxScoreId))]

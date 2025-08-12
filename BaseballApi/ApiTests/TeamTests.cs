@@ -1,3 +1,4 @@
+using BaseballApi.Contracts;
 using BaseballApi.Controllers;
 
 namespace BaseballApiTests;
@@ -25,10 +26,10 @@ public class TeamTests : BaseballTests
     }
 
     [Theory]
-    [InlineData("Test City", "Testers", 4, 2, 1, "2024-06-30")]
-    [InlineData("New Tester Town", "Tubes", 3, 0, 2, "2023-06-27")]
-    [InlineData("St. Test", "Guinea Pigs", 1, 1, 0, "2024-06-30")]
-    public void TestGetTeamSummaries(string city, string name, int games, int wins, int losses, string lastGameDate)
+    [InlineData("Test City", "Testers", 4, 2, 1, "2024-06-30", 2)]
+    [InlineData("New Tester Town", "Tubes", 3, 0, 2, "2023-06-27", 2)]
+    [InlineData("St. Test", "Guinea Pigs", 1, 1, 0, "2024-06-30", 1)]
+    public void TestGetTeamSummaries(string city, string name, int games, int wins, int losses, string lastGameDate, int parks)
     {
         var teams = Controller.GetTeamSummaries(0, 10);
         Assert.NotNull(teams.Value);
@@ -37,6 +38,7 @@ public class TeamTests : BaseballTests
         Assert.Equal(wins, team.Wins);
         Assert.Equal(losses, team.Losses);
         Assert.Equal(games, team.Games);
+        Assert.Equal(parks, team.Parks);
         var lastGame = DateOnly.Parse(lastGameDate);
         Assert.Equal(lastGame, team.LastGameDate);
     }
