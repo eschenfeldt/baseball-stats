@@ -6,6 +6,7 @@ import { PagedApiParameters } from '../paged-api-parameters'
 
 export interface GamesListParams extends PagedApiParameters {
     teamId?: number;
+    parkId?: number;
     year?: number;
 }
 

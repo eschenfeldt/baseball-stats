@@ -34,6 +34,7 @@ namespace BaseballApi.Controllers
             int take = 10,
             bool asc = false,
             long? teamId = null,
+            long? parkId = null,
             int? year = null)
         {
             var query = _context.Games
@@ -49,6 +50,10 @@ namespace BaseballApi.Controllers
             if (teamId.HasValue)
             {
                 query = query.Where(g => g.Away.Id == teamId || g.Home.Id == teamId);
+            }
+            if (parkId.HasValue)
+            {
+                query = query.Where(g => g.LocationId == parkId);
             }
             if (year.HasValue)
             {
@@ -155,13 +160,17 @@ namespace BaseballApi.Controllers
         }
 
         [HttpGet("years")]
-        public async Task<ActionResult<List<int>>> GetGameYears(long? teamId = null)
+        public async Task<ActionResult<List<int>>> GetGameYears(long? teamId = null, long? parkId = null)
         {
             IQueryable<Game> query = _context.Games;
 
             if (teamId.HasValue)
             {
                 query = query.Where(g => g.Away.Id == teamId || g.Home.Id == teamId);
+            }
+            if (parkId.HasValue)
+            {
+                query = query.Where(g => g.LocationId == parkId);
             }
             return await query.Select(g => g.Date.Year).Distinct().OrderBy(i => i).ToListAsync();
         }
@@ -232,7 +241,7 @@ namespace BaseballApi.Controllers
                 {
                     Category = StatCategory.General,
                     Definition = Stat.Parks,
-                    Value = parksCount
+                    Value = parkId.HasValue ? null : parksCount // Hide rather than always returning 1
                 },
                 new()
                 {
@@ -251,6 +260,7 @@ namespace BaseballApi.Controllers
             var calculator = new StatCalculator(_context)
             {
                 TeamId = teamId,
+                ParkId = parkId,
                 GroupByPlayer = false
             };
 

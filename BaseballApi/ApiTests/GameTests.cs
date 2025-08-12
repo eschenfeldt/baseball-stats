@@ -51,6 +51,18 @@ public class GameTests : BaseballTests
 
 
     [Theory]
+    [InlineData("Test Park", 1)]
+    [InlineData("Test Stadium", 6)]
+    public async void TestGetGamesByPark(string parkName, int gameCount)
+    {
+        var parkId = Context.Parks.FirstOrDefault(p => p.Name == parkName)?.Id;
+        Assert.NotNull(parkId);
+        var games = await Controller.GetGames(0, 10, parkId: parkId);
+        Assert.NotNull(games.Value);
+        Assert.Equal(gameCount, games.Value.TotalCount);
+    }
+
+    [Theory]
     [InlineData(1, 4, 2, 1, 2)]
     [InlineData(2, 3, 0, 2, 2)]
     // [InlineData(3, 1, 1, 0, 1)] // Team 3 does not have any player data so the endpoint fails
@@ -58,6 +70,7 @@ public class GameTests : BaseballTests
     {
         var teamId = TestGameManager.GetTeamId(testTeamNumber);
         var stats = await Controller.GetSummaryStats(teamId);
+        Assert.NotNull(stats.Value);
 
         void ValidateStat(decimal expected, Stat statDef)
         {
@@ -71,6 +84,21 @@ public class GameTests : BaseballTests
         ValidateStat(parks, Stat.Parks);
         ValidateStat(wins, Stat.Wins);
         ValidateStat(losses, Stat.Losses);
+
+        // Do a minimal check that the batting and pitching stats are filtered down to the team
+        var battingGames = stats.Value.FirstOrDefault(s => s.Category == StatCategory.Batting && s.Definition.Name == Stat.Games.Name);
+        Assert.NotNull(battingGames.Value);
+        var pitchingGames = stats.Value.FirstOrDefault(s => s.Category == StatCategory.Pitching && s.Definition.Name == Stat.Games.Name);
+        Assert.NotNull(pitchingGames.Value);
+        var allGameStats = await Controller.GetSummaryStats();
+        Assert.NotNull(allGameStats.Value);
+        var allBattingGames = allGameStats.Value.FirstOrDefault(s => s.Category == StatCategory.Batting && s.Definition.Name == Stat.Games.Name);
+        Assert.NotNull(allBattingGames.Value);
+        var allPitchingGames = allGameStats.Value.FirstOrDefault(s => s.Category == StatCategory.Pitching && s.Definition.Name == Stat.Games.Name);
+        Assert.NotNull(allPitchingGames.Value);
+        Assert.True(battingGames.Value < allBattingGames.Value);
+        Assert.True(pitchingGames.Value < allPitchingGames.Value);
+        Assert.Equal(battingGames.Value, pitchingGames.Value);
     }
 
     [Theory]
@@ -81,8 +109,9 @@ public class GameTests : BaseballTests
         var parkId = Context.Parks.FirstOrDefault(p => p.Name == parkName)?.Id;
         Assert.NotNull(parkId);
         var stats = await Controller.GetSummaryStats(parkId: parkId);
+        Assert.NotNull(stats.Value);
 
-        void ValidateStat(decimal expected, Stat statDef)
+        void ValidateStat(decimal? expected, Stat statDef)
         {
             Assert.NotNull(stats.Value);
             SummaryStat? stat = stats.Value.FirstOrDefault(s => s.Definition.Name == statDef.Name);
@@ -94,6 +123,23 @@ public class GameTests : BaseballTests
         ValidateStat(teams, Stat.Teams);
         ValidateStat(wins, Stat.Wins);
         ValidateStat(losses, Stat.Losses);
+        ValidateStat(null, Stat.Parks); // Parks is not applicable for park stats
+
+        // Do a minimal check that the batting and pitching stats are filtered down to the park
+        var battingGames = stats.Value.FirstOrDefault(s => s.Category == StatCategory.Batting && s.Definition.Name == Stat.Games.Name);
+        Assert.NotNull(battingGames.Value);
+        var pitchingGames = stats.Value.FirstOrDefault(s => s.Category == StatCategory.Pitching && s.Definition.Name == Stat.Games.Name);
+        Assert.NotNull(pitchingGames.Value);
+
+        var allGameStats = await Controller.GetSummaryStats();
+        Assert.NotNull(allGameStats.Value);
+        var allBattingGames = allGameStats.Value.FirstOrDefault(s => s.Category == StatCategory.Batting && s.Definition.Name == Stat.Games.Name);
+        Assert.NotNull(allBattingGames.Value);
+        var allPitchingGames = allGameStats.Value.FirstOrDefault(s => s.Category == StatCategory.Pitching && s.Definition.Name == Stat.Games.Name);
+        Assert.NotNull(allPitchingGames.Value);
+        Assert.True(battingGames.Value < allBattingGames.Value);
+        Assert.True(pitchingGames.Value < allPitchingGames.Value);
+        Assert.Equal(battingGames.Value, pitchingGames.Value);
     }
 
     [Theory]
@@ -116,6 +162,18 @@ public class GameTests : BaseballTests
     {
         long? teamId = testTeamNumber.HasValue ? TestGameManager.GetTeamId(testTeamNumber.Value) : null;
         var actualYears = await Controller.GetGameYears(teamId);
+        Assert.NotNull(actualYears.Value);
+        Assert.Equal(years, actualYears.Value);
+    }
+
+    [Theory]
+    [InlineData("Test Park", 2023)]
+    [InlineData("Test Stadium", 2022, 2024, 2025)]
+    public async void TestGetAvailableYearsByPark(string parkName, params int[] years)
+    {
+        long? parkId = Context.Parks.FirstOrDefault(p => p.Name == parkName)?.Id;
+        Assert.NotNull(parkId);
+        var actualYears = await Controller.GetGameYears(parkId: parkId);
         Assert.NotNull(actualYears.Value);
         Assert.Equal(years, actualYears.Value);
     }

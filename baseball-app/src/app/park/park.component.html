@@ -1,1 +1,9 @@
-<p>park works!</p>
+@if (park$ | async; as park) {
+@if (summaryStats$ | async; as summaryStats) {
+<app-summary-stats-card [summaryStats]="summaryStats" [title]="cardTitle(park)"
+    class="summary-card"></app-summary-stats-card>
+}
+<app-games [park]="park"></app-games>
+} @else {
+loading...
+}

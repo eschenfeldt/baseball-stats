@@ -1,0 +1,10 @@
+.summary-card {
+    margin: 1em;
+}
+
+:host {
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
