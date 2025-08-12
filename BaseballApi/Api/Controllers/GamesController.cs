@@ -172,11 +172,15 @@ namespace BaseballApi.Controllers
             IQueryable<Game> gamesQuery = _context.Games;
 
             IQueryable<BoxScore?> nullableBoxScoresQuery;
+            int? winCount = null;
+            int? lossCount = null;
             if (teamId.HasValue)
             {
                 nullableBoxScoresQuery = gamesQuery.Where(g => g.Away.Id == teamId).Select(g => g.AwayBoxScore)
                     .Concat(gamesQuery.Where(g => g.Home.Id == teamId).Select(g => g.HomeBoxScore));
                 gamesQuery = gamesQuery.Where(g => g.Away.Id == teamId || g.Home.Id == teamId);
+                winCount = await gamesQuery.CountAsync(g => g.WinningTeam != null && g.WinningTeam.Id == teamId);
+                lossCount = await gamesQuery.CountAsync(g => g.LosingTeam != null && g.LosingTeam.Id == teamId);
             }
             else
             {
@@ -200,6 +204,18 @@ namespace BaseballApi.Controllers
                     Category = StatCategory.General,
                     Definition = Stat.Games,
                     Value = gameCount
+                },
+                new()
+                {
+                    Category = StatCategory.General,
+                    Definition = Stat.Wins,
+                    Value = winCount
+                },
+                new()
+                {
+                    Category = StatCategory.General,
+                    Definition = Stat.Losses,
+                    Value = lossCount
                 },
                 new()
                 {

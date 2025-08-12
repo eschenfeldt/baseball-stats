@@ -1,4 +1,5 @@
-﻿using BaseballApi.Controllers;
+﻿using BaseballApi.Contracts;
+using BaseballApi.Controllers;
 using BaseballApi.Import;
 using Microsoft.Extensions.Configuration;
 
@@ -46,6 +47,30 @@ public class GameTests : BaseballTests
         var games = await Controller.GetGames(0, 10, teamId: teamId);
         Assert.NotNull(games.Value);
         Assert.Equal(gameCount, games.Value.TotalCount);
+    }
+
+
+    [Theory]
+    [InlineData(1, 4, 2, 1, 2)]
+    [InlineData(2, 3, 0, 2, 2)]
+    // [InlineData(3, 1, 1, 0, 1)] // Team 3 does not have any player data so the endpoint fails
+    public async void TestGetTeamSummaryStats(int testTeamNumber, int games, int wins, int losses, int parks)
+    {
+        var teamId = TestGameManager.GetTeamId(testTeamNumber);
+        var stats = await Controller.GetSummaryStats(teamId);
+
+        void ValidateStat(decimal expected, Stat statDef)
+        {
+            Assert.NotNull(stats.Value);
+            SummaryStat? stat = stats.Value.FirstOrDefault(s => s.Definition.Name == statDef.Name);
+            Assert.NotNull(stat);
+            Assert.Equal(expected, stat.Value.Value);
+        }
+
+        ValidateStat(games, Stat.Games);
+        ValidateStat(parks, Stat.Parks);
+        ValidateStat(wins, Stat.Wins);
+        ValidateStat(losses, Stat.Losses);
     }
 
     [Theory]

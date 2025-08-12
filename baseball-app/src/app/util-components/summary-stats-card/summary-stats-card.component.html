@@ -6,6 +6,6 @@
     </mat-expansion-panel-header>
     @for (category of statCategories; track category) {
     <app-summary-stats [summaryStats]="summaryStats" [category]="category" [hideGames]="hideGames(category)"
-        class="nested-in-card dense"></app-summary-stats>
+        [hideNull]="hideNull(category)" class="nested-in-card dense"></app-summary-stats>
     }
 </mat-expansion-panel>

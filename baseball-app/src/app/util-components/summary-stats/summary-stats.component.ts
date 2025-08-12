@@ -26,6 +26,9 @@ export class SummaryStatsComponent {
     @Input()
     hideGames?: boolean
 
+    @Input()
+    hideNull?: boolean
+
     public get categoryLabel(): string {
         switch (this.category) {
             case StatCategory.batting:

@@ -1,6 +1,7 @@
 <h5>{{categoryLabel}}</h5>
 <div class="header-stats">
     @for (stat of stats; track stat.definition.name) {
+    @if (!hideNull || stat.value != null) {
     <mat-card appearance="raised">
         @if (stat.definition.name === 'ThirdInningsPitched') {
         <mat-card-header>
@@ -30,5 +31,6 @@
         </mat-card-content>
         }
     </mat-card>
+    }
     }
 </div>
