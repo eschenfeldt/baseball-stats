@@ -74,6 +74,29 @@ public class GameTests : BaseballTests
     }
 
     [Theory]
+    [InlineData("Test Park", 1, 2, 0, 1)]
+    [InlineData("Test Stadium", 6, 5, 1, 4)]
+    public async void TestGetParkSummaryStats(string parkName, int games, int teams, int wins, int losses)
+    {
+        var parkId = Context.Parks.FirstOrDefault(p => p.Name == parkName)?.Id;
+        Assert.NotNull(parkId);
+        var stats = await Controller.GetSummaryStats(parkId: parkId);
+
+        void ValidateStat(decimal expected, Stat statDef)
+        {
+            Assert.NotNull(stats.Value);
+            SummaryStat? stat = stats.Value.FirstOrDefault(s => s.Definition.Name == statDef.Name);
+            Assert.NotNull(stat);
+            Assert.Equal(expected, stat.Value.Value);
+        }
+
+        ValidateStat(games, Stat.Games);
+        ValidateStat(teams, Stat.Teams);
+        ValidateStat(wins, Stat.Wins);
+        ValidateStat(losses, Stat.Losses);
+    }
+
+    [Theory]
     [InlineData(2022, 2)]
     [InlineData(2023, 1)]
     [InlineData(2024, 1)]

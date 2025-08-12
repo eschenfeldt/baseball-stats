@@ -167,20 +167,31 @@ namespace BaseballApi.Controllers
         }
 
         [HttpGet("summary-stats")]
-        public async Task<ActionResult<List<SummaryStat>>> GetSummaryStats(long? teamId = null)
+        public async Task<ActionResult<List<SummaryStat>>> GetSummaryStats(long? teamId = null, long? parkId = null)
         {
             IQueryable<Game> gamesQuery = _context.Games;
 
             IQueryable<BoxScore?> nullableBoxScoresQuery;
             int? winCount = null;
             int? lossCount = null;
-            if (teamId.HasValue)
+            if (teamId.HasValue && parkId.HasValue)
+            {
+                throw new NotImplementedException("Filtering by both team and park is not implemented yet.");
+            }
+            else if (teamId.HasValue)
             {
                 nullableBoxScoresQuery = gamesQuery.Where(g => g.Away.Id == teamId).Select(g => g.AwayBoxScore)
                     .Concat(gamesQuery.Where(g => g.Home.Id == teamId).Select(g => g.HomeBoxScore));
                 gamesQuery = gamesQuery.Where(g => g.Away.Id == teamId || g.Home.Id == teamId);
                 winCount = await gamesQuery.CountAsync(g => g.WinningTeam != null && g.WinningTeam.Id == teamId);
                 lossCount = await gamesQuery.CountAsync(g => g.LosingTeam != null && g.LosingTeam.Id == teamId);
+            }
+            else if (parkId.HasValue)
+            {
+                gamesQuery = gamesQuery.Where(g => g.LocationId == parkId);
+                nullableBoxScoresQuery = gamesQuery.Select(g => g.HomeBoxScore).Concat(gamesQuery.Select(g => g.AwayBoxScore));
+                winCount = await gamesQuery.CountAsync(g => g.WinningTeam != null && g.WinningTeam == g.Home);
+                lossCount = await gamesQuery.CountAsync(g => g.LosingTeam != null && g.LosingTeam == g.Home);
             }
             else
             {
