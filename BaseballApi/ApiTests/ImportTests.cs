@@ -29,16 +29,23 @@ public class ImportTests(TestImportDatabaseFixture fixture) : IClassFixture<Test
         IConfiguration configuration = builder.Build();
         RemoteFileManager remoteFileManager = new(configuration, nameof(ImportTests));
         var gamesController = new GamesController(context, remoteFileManager);
+        var parkController = new ParkController(context);
         var playerController = new PlayerController(context);
         var teamsController = new TeamsController(context);
 
         var remoteValidator = new RemoteFileValidator(remoteFileManager);
 
         // add one of the teams and players from the test game before importing to be sure the importer doesn't duplicate them
-        context.Teams.Add(new Team { City = "Washington", Name = "Nationals" });
+        var park = new Park { Name = "Nationals Park", TimeZone = "Eastern Standard Time" };
+        context.Parks.Add(park);
+        context.Teams.Add(new Team { City = "Washington", Name = "Nationals", HomePark = park });
         context.Players.Add(new Player { Name = "Willson Contreras" });
         await context.SaveChangesAsync();
+        Assert.NotEqual(0, park.Id);
 
+        var parksBefore = await parkController.GetParks();
+        Assert.NotNull(parksBefore.Value);
+        Assert.Single(parksBefore.Value);
         var teamsBefore = await teamsController.GetTeams();
         Assert.NotNull(teamsBefore.Value);
         Assert.Single(teamsBefore.Value);
@@ -63,6 +70,8 @@ public class ImportTests(TestImportDatabaseFixture fixture) : IClassFixture<Test
             Assert.Equal(metadata.ScheduledStart, gameSummary.ScheduledTime);
             Assert.Equal(expectedActualStart, gameSummary.StartTime);
             Assert.Equal(metadata.End, gameSummary.EndTime);
+            Assert.Equal(park.Name, gameSummary.Location?.Name);
+            Assert.Equal(park.Id, gameSummary.Location?.Id);
             Assert.Equal(6, gameSummary.AwayScore);
             Assert.Equal(0, gameSummary.HomeScore);
 
@@ -75,6 +84,8 @@ public class ImportTests(TestImportDatabaseFixture fixture) : IClassFixture<Test
             Assert.Equal(metadata.ScheduledStart, game.ScheduledTime);
             Assert.Equal(expectedActualStart, game.StartTime);
             Assert.Equal(metadata.End, game.EndTime);
+            Assert.Equal(park.Name, game.Location?.Name);
+            Assert.Equal(park.Id, game.Location?.Id);
             Assert.Equal(6, game.AwayScore);
             Assert.Equal(0, game.HomeScore);
             Assert.NotNull(game.Scorecard);
