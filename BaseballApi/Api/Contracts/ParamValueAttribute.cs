@@ -1,13 +1,10 @@
 ﻿namespace BaseballApi.Contracts;
 
-public class ParamValueAttribute : Attribute
+[AttributeUsage(AttributeTargets.Field)]
+public class ParamValueAttribute(string text) : Attribute
 {
-    private string Text { get; }
+    private string Text { get; } = text;
 
-    public ParamValueAttribute(string text)
-    {
-        this.Text = text;
-    }
     public override string ToString()
     {
         return this.Text;
