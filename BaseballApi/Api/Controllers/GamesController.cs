@@ -297,6 +297,7 @@ namespace BaseballApi.Controllers
             }, _context);
 
             Game newGame = await importManager.GetGame();
+            importManager.AddLocation(newGame);
             BoxScore homeBox = new()
             {
                 Game = newGame,

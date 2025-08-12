@@ -45,6 +45,14 @@ public class GameImportManager
         };
     }
 
+    public void AddLocation(Game game)
+    {
+        if (game.Home != null && game.Home.HomePark != null)
+        {
+            game.Location = game.Home.HomePark;
+        }
+    }
+
     private async Task<Team> GetTeam(string city, string name)
     {
         var altName = $"{city} {name}";
