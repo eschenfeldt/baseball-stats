@@ -316,6 +316,17 @@ namespace BaseballApi.Controllers
             int awayScoreBatters = awayBox.Batters.Select(b => b.Runs).Sum();
             newGame.AwayScore = awayScoreBatters;
 
+            if (newGame.HomeScore > newGame.AwayScore)
+            {
+                newGame.WinningTeam = newGame.Home;
+                newGame.LosingTeam = newGame.Away;
+            }
+            else if (newGame.AwayScore > newGame.HomeScore)
+            {
+                newGame.WinningTeam = newGame.Away;
+                newGame.LosingTeam = newGame.Home;
+            }
+
             bool isNew = false;
 
             // TODO: make this check more robust

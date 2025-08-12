@@ -74,6 +74,10 @@ public class ImportTests(TestImportDatabaseFixture fixture) : IClassFixture<Test
             Assert.Equal(park.Id, gameSummary.Location?.Id);
             Assert.Equal(6, gameSummary.AwayScore);
             Assert.Equal(0, gameSummary.HomeScore);
+            Assert.NotNull(gameSummary.WinningTeam);
+            Assert.Equal("Cardinals", gameSummary.WinningTeam.Name);
+            Assert.NotNull(gameSummary.LosingTeam);
+            Assert.Equal("Nationals", gameSummary.LosingTeam.Name);
 
             var gameTask = await gamesController.GetGame(gameSummary.Id);
             Assert.NotNull(gameTask);
@@ -88,6 +92,10 @@ public class ImportTests(TestImportDatabaseFixture fixture) : IClassFixture<Test
             Assert.Equal(park.Id, game.Location?.Id);
             Assert.Equal(6, game.AwayScore);
             Assert.Equal(0, game.HomeScore);
+            Assert.NotNull(game.WinningTeam);
+            Assert.Equal("Cardinals", game.WinningTeam.Name);
+            Assert.NotNull(game.LosingTeam);
+            Assert.Equal("Nationals", game.LosingTeam.Name);
             Assert.NotNull(game.Scorecard);
             var scorecardFile = game.Scorecard.Value.File;
             Assert.NotEqual(Guid.Empty, scorecardFile.AssetIdentifier);
