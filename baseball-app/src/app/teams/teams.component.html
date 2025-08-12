@@ -36,6 +36,12 @@
             <td mat-cell *matCellDef="let team; table: table">{{team.losses}}</td>
         </ng-container>
 
+        <ng-container matColumnDef="parks">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by number of parks">Parks
+            </th>
+            <td mat-cell *matCellDef="let team; table: table">{{team.parks}}</td>
+        </ng-container>
+
         <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
         <tr mat-row *matRowDef="let row; columns: displayedColumns; table: table"></tr>
     </table>

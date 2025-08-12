@@ -43,7 +43,8 @@ namespace BaseballApi.Controllers
                     Games = games.Count(),
                     Wins = games.Count(g => g.WinningTeam == team),
                     Losses = games.Count(g => g.LosingTeam == team),
-                    LastGame = games.Select(g => g.Date).DefaultIfEmpty().Max()
+                    LastGame = games.Select(g => g.Date).DefaultIfEmpty().Max(),
+                    Parks = games.Select(g => g.LocationId).Distinct()
                 });
             var homeGames = _context.Teams
                 .GroupJoin(_context.Games, t => t.Id, g => g.Home.Id, (team, games) => new
@@ -52,7 +53,8 @@ namespace BaseballApi.Controllers
                     Games = games.Count(),
                     Wins = games.Count(g => g.WinningTeam == team),
                     Losses = games.Count(g => g.LosingTeam == team),
-                    LastGame = games.Select(g => g.Date).DefaultIfEmpty().Max()
+                    LastGame = games.Select(g => g.Date).DefaultIfEmpty().Max(),
+                    Parks = games.Select(g => g.LocationId).Distinct()
                 });
             var awayList = awayGames.ToList();
             var homeList = homeGames.ToList();
@@ -62,7 +64,8 @@ namespace BaseballApi.Controllers
                 Games = ag.Games + hg.Games,
                 Wins = ag.Wins + hg.Wins,
                 Losses = ag.Losses + hg.Losses,
-                LastGameDate = ag.LastGame > hg.LastGame ? ag.LastGame : hg.LastGame
+                LastGameDate = ag.LastGame > hg.LastGame ? ag.LastGame : hg.LastGame,
+                Parks = ag.Parks.Union(hg.Parks).Count(id => id.HasValue)
             }).AsEnumerable();
             var sorted = GetSorted(query, order, asc);
             return new PagedResult<TeamSummary>
@@ -166,6 +169,7 @@ namespace BaseballApi.Controllers
                     TeamSummaryOrder.Wins => query.OrderBy(k => k.Wins),
                     TeamSummaryOrder.Losses => query.OrderBy(k => k.Losses),
                     TeamSummaryOrder.LastGame => query.OrderBy(k => k.LastGameDate),
+                    TeamSummaryOrder.Parks => query.OrderBy(k => k.Parks),
                     _ => query.OrderBy(k => k.Games),
                 };
             }
@@ -178,6 +182,7 @@ namespace BaseballApi.Controllers
                     TeamSummaryOrder.Wins => query.OrderByDescending(k => k.Wins),
                     TeamSummaryOrder.Losses => query.OrderByDescending(k => k.Losses),
                     TeamSummaryOrder.LastGame => query.OrderByDescending(k => k.LastGameDate),
+                    TeamSummaryOrder.Parks => query.OrderByDescending(k => k.Parks),
                     _ => query.OrderByDescending(k => k.Games),
                 };
             }
