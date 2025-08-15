@@ -27,10 +27,12 @@ export class ThumbnailScrollComponent implements OnInit {
 
     gameId?: number;
     playerId?: number;
+    parkId?: number;
     get queryParams(): MediaParams {
         return {
             gameId: this.gameId,
-            playerId: this.playerId
+            playerId: this.playerId,
+            parkId: this.parkId
         }
     }
 
@@ -50,6 +52,7 @@ export class ThumbnailScrollComponent implements OnInit {
         this.route.queryParams.subscribe(params => {
             this.gameId = params['gameId'];
             this.playerId = params['playerId'];
+            this.parkId = params['parkId'];
             this.loadData(true);
         });
     }
@@ -75,6 +78,7 @@ export class ThumbnailScrollComponent implements OnInit {
             size: ThumbnailSize.small,
             gameId: this.gameId,
             playerId: this.playerId,
+            parkId: this.parkId,
             take: this.pageSize
         }
         if (reset) {

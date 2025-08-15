@@ -14,6 +14,7 @@ import { ThumbnailSize } from '../../contracts/thumbnail-size';
 export interface MediaParams extends PagedApiParameters {
     gameId?: number,
     playerId?: number,
+    parkId?: number
 }
 
 export interface ThumbnailParams extends MediaParams {
@@ -39,6 +40,9 @@ export class MediaGalleryComponent implements OnInit, AfterViewInit {
 
     @Input()
     playerId?: number;
+
+    @Input()
+    parkId?: number;
 
     @ViewChild(MatPaginator)
     private paginator!: MatPaginator;
@@ -74,6 +78,7 @@ export class MediaGalleryComponent implements OnInit, AfterViewInit {
         let params: ThumbnailParams = {
             gameId: this.gameId,
             playerId: this.playerId,
+            parkId: this.parkId,
             size: this.thumbnailSize
         };
         if (this.paginator) {
@@ -115,7 +120,8 @@ export class MediaGalleryComponent implements OnInit, AfterViewInit {
     get mediaQueryParams(): MediaParams {
         return {
             gameId: this.gameId,
-            playerId: this.playerId
+            playerId: this.playerId,
+            parkId: this.parkId
         };
     }
 }

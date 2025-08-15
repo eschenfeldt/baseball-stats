@@ -1,23 +1,25 @@
-<mat-expansion-panel (opened)="filterOpenState.set(true)" (closed)="filterOpenState.set(false)">
-    <mat-expansion-panel-header>
-        <mat-panel-title>Filter</mat-panel-title>
-        <mat-panel-description>{{filterSummary}}</mat-panel-description>
-    </mat-expansion-panel-header>
-    @if (yearOptions$ | async; as yearOptions) {
-    <mat-form-field>
-        <mat-label>Year</mat-label>
-        <mat-select [(ngModel)]="selectedYear">
-            <mat-option [value]=""></mat-option>
-            @for (year of yearOptions| sort: null: 'desc'; track year) {
-            <mat-option [value]="year">{{year}}</mat-option>
-            }
-        </mat-select>
-    </mat-form-field>
-    }
-</mat-expansion-panel>
+<div class="scroll-container" id="games-scroll-container">
+    <mat-expansion-panel (opened)="filterOpenState.set(true)" (closed)="filterOpenState.set(false)">
+        <mat-expansion-panel-header>
+            <mat-panel-title>Filter</mat-panel-title>
+            <mat-panel-description>{{filterSummary}}</mat-panel-description>
+        </mat-expansion-panel-header>
+        @if (yearOptions$ | async; as yearOptions) {
+        <mat-form-field>
+            <mat-label>Year</mat-label>
+            <mat-select [(ngModel)]="selectedYear">
+                <mat-option [value]=""></mat-option>
+                @for (year of yearOptions| sort: null: 'desc'; track year) {
+                <mat-option [value]="year">{{year}}</mat-option>
+                }
+            </mat-select>
+        </mat-form-field>
+        }
+    </mat-expansion-panel>
 
-<div class="table-container">
-    <table mat-table [dataSource]="dataSource" #table="matTable" matSort class="mat-elevation-z8">
+    <table mat-table [dataSource]="dataSource" #table="matTable" matSort class="mat-elevation-z8" infiniteScroll
+        [infiniteScrollDistance]="1" [infiniteScrollThrottle]="50" [horizontal]="false" [scrollWindow]="false"
+        [immediateCheck]="false" infiniteScrollContainer="#content-wrapper" [fromRoot]="true" (scrolled)="refresh()">
 
         <!-- Date Column -->
         <ng-container matColumnDef="date">
@@ -40,44 +42,42 @@
 
         <!-- Away Team -->
         <ng-container matColumnDef="awayTeam">
-            <th mat-header-cell *matHeaderCellDef>Away</th>
+            <th mat-header-cell *matHeaderCellDef>
+                <span class="team-score">Away</span>
+            </th>
             <td mat-cell *matCellDef="let game">
-                <a [routerLink]="['/team', game.away.id]">
-                    @if(condenseInformation) {
-                    {{game.away.abbreviation}}
-                    }
-                    @else {
-                    {{game.awayTeamName}}
-                    }
-                </a>
+                <span class="team-score">
+                    <a [routerLink]="['/team', game.away.id]">
+                        @if(condenseInformation) {
+                        {{game.away.abbreviation}}
+                        }
+                        @else {
+                        {{game.awayTeamName}}
+                        }
+                    </a>
+                    <span class="score">{{game.awayScore}}</span>
+                </span>
             </td>
         </ng-container>
 
         <!-- Home Team -->
         <ng-container matColumnDef="homeTeam">
-            <th mat-header-cell *matHeaderCellDef>Home</th>
+            <th mat-header-cell *matHeaderCellDef>
+                <span class="team-score">Home</span>
+            </th>
             <td mat-cell *matCellDef="let game">
-                <a [routerLink]="['/team', game.home.id]">
-                    @if(condenseInformation) {
-                    {{game.home.abbreviation}}
-                    }
-                    @else {
-                    {{game.homeTeamName}}
-                    }
-                </a>
+                <span class="team-score">
+                    <a [routerLink]="['/team', game.home.id]">
+                        @if(condenseInformation) {
+                        {{game.home.abbreviation}}
+                        }
+                        @else {
+                        {{game.homeTeamName}}
+                        }
+                    </a>
+                    <span class="score">{{game.homeScore}}</span>
+                </span>
             </td>
-        </ng-container>
-
-        <!-- Away Score -->
-        <ng-container matColumnDef="awayScore">
-            <th mat-header-cell *matHeaderCellDef></th>
-            <td mat-cell *matCellDef="let game"> {{game.awayScore}} </td>
-        </ng-container>
-
-        <!-- Home Score -->
-        <ng-container matColumnDef="homeScore">
-            <th mat-header-cell *matHeaderCellDef></th>
-            <td mat-cell *matCellDef="let game"> {{game.homeScore}} </td>
         </ng-container>
 
         <!-- Location -->
@@ -96,7 +96,3 @@
         <tr mat-row *matRowDef="let game; columns: displayedColumns; table: table"></tr>
     </table>
 </div>
-
-<mat-paginator #paginator [length]="dataSource.totalCount$ | async" [pageIndex]="0" [pageSize]="defaultPageSize"
-    [showFirstLastButtons]="!condenseInformation" [pageSizeOptions]="[5, 10, 20, 50]" aria-label="Select page">
-</mat-paginator>

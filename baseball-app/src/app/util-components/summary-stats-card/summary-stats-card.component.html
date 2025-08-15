@@ -4,6 +4,9 @@
         <mat-panel-title>{{title}}</mat-panel-title>
         }
     </mat-expansion-panel-header>
+    @if (image && mediaParams) {
+    <app-thumbnail [file]="image" [queryParams]="mediaParams"></app-thumbnail>
+    }
     @for (category of statCategories; track category) {
     <app-summary-stats [summaryStats]="summaryStats" [category]="category" [hideGames]="hideGames(category)"
         [hideNull]="hideNull(category)" class="nested-in-card dense"></app-summary-stats>

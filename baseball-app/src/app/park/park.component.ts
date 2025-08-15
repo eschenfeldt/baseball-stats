@@ -5,11 +5,11 @@ import { BASEBALL_ROUTES } from '../app.routes';
 import { BaseballApiService } from '../baseball-api.service';
 import { StatCategory } from '../contracts/stat-category';
 import { SummaryStat } from '../contracts/summary-stat';
-import { Team } from '../contracts/team';
 import { Park } from '../contracts/park';
 import { AsyncPipe } from '@angular/common';
 import { GamesComponent } from '../games/games.component';
 import { SummaryStatsCardComponent } from '../util-components/summary-stats-card/summary-stats-card.component';
+import { RemoteFileDetail } from '../contracts/remote-file-detail';
 
 @Component({
     selector: 'app-park',
@@ -27,6 +27,7 @@ export class ParkComponent implements OnInit {
     @param<typeof BASEBALL_ROUTES.PARK>("parkId")
     public parkId$!: Observable<number>
     park$?: Observable<Park>
+    image$?: Observable<RemoteFileDetail>;
     summaryStats$?: Observable<SummaryStat[]>
     get generalStatCategory(): StatCategory {
         return StatCategory.general;
@@ -39,6 +40,9 @@ export class ParkComponent implements OnInit {
     ngOnInit(): void {
         this.park$ = this.parkId$.pipe(switchMap(parkId => {
             return this.api.makeApiGet<Park>(`park/${parkId}`, true, false);
+        }));
+        this.image$ = this.parkId$.pipe(switchMap(parkId => {
+            return this.api.makeApiGet<RemoteFileDetail>('media/random', { parkId: parkId });
         }));
         this.summaryStats$ = this.parkId$.pipe(switchMap(parkId => {
             return this.api.makeApiGet<SummaryStat[]>('games/summary-stats', { parkId: parkId });

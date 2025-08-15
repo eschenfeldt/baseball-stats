@@ -18,6 +18,7 @@ export class GamesDataSource extends BaseballDataSource<GamesListParams, GameSum
         defaultFilters?: BaseballApiFilter
     ) {
         super('games', ApiMethod.GET, api, filterService, false, defaultFilters);
+        this.isInfiniteScrollEnabled = true;
     }
 
     protected override getParameters(): GamesListParams {

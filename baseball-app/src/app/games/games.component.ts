@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, Input, OnChanges, OnInit, signal, SimpleChanges, ViewChild } from '@angular/core';
+import { Component, Input, OnChanges, OnInit, signal, SimpleChanges, ViewChild } from '@angular/core';
 import { GamesDataSource, GamesListParams } from './games-datasource';
 import { BaseballApiService } from '../baseball-api.service';
 import { MatTableModule } from '@angular/material/table';
@@ -6,7 +6,6 @@ import { TypeSafeMatCellDef } from '../type-safe-mat-cell-def.directive';
 import { TypeSafeMatRowDef } from '../type-safe-mat-row-def.directive';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { AsyncPipe, CommonModule } from '@angular/common';
-import { BaseballTableComponent } from '../baseball-table-component';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { RouterModule } from '@angular/router';
 import { Team } from '../contracts/team';
@@ -22,6 +21,8 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { GameSummary } from '../contracts/game-summary';
 import { Park } from '../contracts/park';
+import { InfiniteScrollDirective } from 'ngx-infinite-scroll';
+import { BaseballScrollTableComponent } from '../baseball-scroll-table-component';
 
 @Component({
     selector: 'app-games',
@@ -40,12 +41,13 @@ import { Park } from '../contracts/park';
         MatInputModule,
         MatFormFieldModule,
         MatSelectModule,
-        MatExpansionModule
+        MatExpansionModule,
+        InfiniteScrollDirective
     ],
     templateUrl: './games.component.html',
     styleUrl: './games.component.scss'
 })
-export class GamesComponent extends BaseballTableComponent<GamesListParams, GameSummary> implements OnInit, OnChanges {
+export class GamesComponent extends BaseballScrollTableComponent<GamesListParams, GameSummary> implements OnInit, OnChanges {
 
     @Input()
     public team?: Team
@@ -53,16 +55,13 @@ export class GamesComponent extends BaseballTableComponent<GamesListParams, Game
     @Input()
     public park?: Park
 
-    @ViewChild(MatPaginator) paginator!: MatPaginator;
     @ViewChild(MatSort) sort!: MatSort;
 
     dataSource: GamesDataSource;
     private static readonly allDisplayedColumns: string[] = [
         'date',
         'awayTeam',
-        'awayScore',
         'homeTeam',
-        'homeScore',
         'location',
     ];
     displayedColumns = GamesComponent.allDisplayedColumns;

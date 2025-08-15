@@ -1,7 +1,7 @@
 @if (park$ | async; as park) {
 @if (summaryStats$ | async; as summaryStats) {
-<app-summary-stats-card [summaryStats]="summaryStats" [title]="cardTitle(park)"
-    class="summary-card"></app-summary-stats-card>
+<app-summary-stats-card [summaryStats]="summaryStats" [title]="cardTitle(park)" [image]="image$ | async"
+    [mediaParams]="{ parkId: park.id }" class="summary-card"></app-summary-stats-card>
 }
 <app-games [park]="park"></app-games>
 } @else {
