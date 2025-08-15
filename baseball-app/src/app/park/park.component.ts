@@ -10,6 +10,7 @@ import { AsyncPipe } from '@angular/common';
 import { GamesComponent } from '../games/games.component';
 import { SummaryStatsCardComponent } from '../util-components/summary-stats-card/summary-stats-card.component';
 import { RemoteFileDetail } from '../contracts/remote-file-detail';
+import { BreakpointObserver } from '@angular/cdk/layout';
 
 @Component({
     selector: 'app-park',
@@ -32,9 +33,13 @@ export class ParkComponent implements OnInit {
     get generalStatCategory(): StatCategory {
         return StatCategory.general;
     }
+    get thumbnailSize(): string {
+        return this.breakpoints.isMatched('(max-width: 600px)') ? 'medium' : 'large';
+    }
 
     constructor(
-        private api: BaseballApiService
+        private api: BaseballApiService,
+        private breakpoints: BreakpointObserver
     ) { }
 
     ngOnInit(): void {
@@ -42,7 +47,7 @@ export class ParkComponent implements OnInit {
             return this.api.makeApiGet<Park>(`park/${parkId}`, true, false);
         }));
         this.image$ = this.parkId$.pipe(switchMap(parkId => {
-            return this.api.makeApiGet<RemoteFileDetail>('media/random', { parkId: parkId });
+            return this.api.makeApiGet<RemoteFileDetail>('media/random', { parkId: parkId, size: this.thumbnailSize });
         }));
         this.summaryStats$ = this.parkId$.pipe(switchMap(parkId => {
             return this.api.makeApiGet<SummaryStat[]>('games/summary-stats', { parkId: parkId });
