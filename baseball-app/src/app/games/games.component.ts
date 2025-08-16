@@ -22,7 +22,7 @@ import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { GameSummary } from '../contracts/game-summary';
 import { Park } from '../contracts/park';
 import { InfiniteScrollDirective } from 'ngx-infinite-scroll';
-import { BaseballScrollTableComponent } from '../baseball-scroll-table-component';
+import { BaseballTableComponent } from '../baseball-table-component';
 
 @Component({
     selector: 'app-games',
@@ -47,7 +47,7 @@ import { BaseballScrollTableComponent } from '../baseball-scroll-table-component
     templateUrl: './games.component.html',
     styleUrl: './games.component.scss'
 })
-export class GamesComponent extends BaseballScrollTableComponent<GamesListParams, GameSummary> implements OnInit, OnChanges {
+export class GamesComponent extends BaseballTableComponent<GamesListParams, GameSummary> implements OnInit, OnChanges {
 
     @Input()
     public team?: Team
@@ -55,6 +55,7 @@ export class GamesComponent extends BaseballScrollTableComponent<GamesListParams
     @Input()
     public park?: Park
 
+    protected override paginator = null;
     @ViewChild(MatSort) sort!: MatSort;
 
     dataSource: GamesDataSource;
