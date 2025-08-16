@@ -13,6 +13,7 @@ import { RouterModule } from '@angular/router';
 import { BaseballFilterService, BaseballApiFilter } from '../baseball-filter.service';
 import { Team } from '../contracts/team';
 import { Utils } from '../utils';
+import { InfiniteScrollDirective } from 'ngx-infinite-scroll';
 
 @Component({
     selector: 'app-teams',
@@ -25,7 +26,8 @@ import { Utils } from '../utils';
         MatSortModule,
         AsyncPipe,
         CommonModule,
-        RouterModule
+        RouterModule,
+        InfiniteScrollDirective
     ],
     templateUrl: './teams.component.html',
     styleUrl: './teams.component.scss'
