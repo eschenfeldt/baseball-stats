@@ -11,6 +11,7 @@ import { AsyncPipe, CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { TypeSafeMatCellDef } from '../type-safe-mat-cell-def.directive';
 import { TypeSafeMatRowDef } from '../type-safe-mat-row-def.directive';
+import { InfiniteScrollDirective } from 'ngx-infinite-scroll';
 
 @Component({
     selector: 'app-parks',
@@ -23,15 +24,15 @@ import { TypeSafeMatRowDef } from '../type-safe-mat-row-def.directive';
         MatSortModule,
         AsyncPipe,
         CommonModule,
-        RouterModule
+        RouterModule,
+        InfiniteScrollDirective
     ],
     templateUrl: './parks.component.html',
     styleUrl: './parks.component.scss'
 })
 export class ParksComponent extends BaseballTableComponent<ParkSummaryParameters, ParkSummary> {
 
-    @ViewChild(MatPaginator)
-    protected paginator!: MatPaginator
+    protected override paginator = null;
     @ViewChild(MatSort)
     protected sort!: MatSort;
 

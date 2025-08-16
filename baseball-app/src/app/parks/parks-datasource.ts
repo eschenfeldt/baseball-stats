@@ -21,5 +21,5 @@ export class ParksDataSource extends BaseballDataSource<ParkSummaryParameters, P
     protected override getParameters(): ParkSummaryParameters {
         return {}
     }
-
+    protected override isInfiniteScrollEnabled = true;
 }

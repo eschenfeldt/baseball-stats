@@ -31,9 +31,10 @@ export abstract class BaseballTableComponent<ArgType extends PagedApiParameters,
 
     public ngAfterViewInit(): void {
         if (this.dataSource) {
+            this.dataSource.sort = this.sort;
+
             if (this.paginator) {
                 this.dataSource.paginator = this.paginator;
-                this.dataSource.sort = this.sort;
 
                 // register the pagination and sorting changes with the data source
                 this.sort.sortChange.subscribe(() => {

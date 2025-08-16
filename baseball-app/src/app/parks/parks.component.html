@@ -1,5 +1,7 @@
-<div class="table-container">
-    <table mat-table [dataSource]="dataSource" #table="matTable" matSort class="mat-elevation-z8">
+<div class="table-container" id="parks-container">
+    <table mat-table [dataSource]="dataSource" #table="matTable" matSort class="mat-elevation-z8" infiniteScroll
+        [infiniteScrollDistance]="1" [infiniteScrollThrottle]="50" [horizontal]="false" [scrollWindow]="false"
+        [immediateCheck]="true" infiniteScrollContainer="#parks-container" [fromRoot]="true" (scrolled)="refresh()">
 
         <ng-container matColumnDef="park">
             <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by name">
@@ -54,7 +56,3 @@
         <tr mat-row *matRowDef="let row; columns: displayedColumns; table: table"></tr>
     </table>
 </div>
-
-<mat-paginator #paginator [length]="dataSource.totalCount$ | async" [pageIndex]="0" [pageSize]="defaultPageSize"
-    [pageSizeOptions]="[5, 10, 20]" aria-label="Select page">
-</mat-paginator>
