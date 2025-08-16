@@ -39,6 +39,7 @@ CMD ["dotnet", "run", "--no-launch-profile"]
 
 # above dev target can run tests via the following command
 # docker compose --profile test run --remove-orphans --rm baseball-api-dev dotnet test /source
+# add --filter="Category!=Media" to exclude slow media handling tests
 # use `docker compose build baseball-api-dev` to rebuild the test target
 
 # If you need to enable globalization and time zones:

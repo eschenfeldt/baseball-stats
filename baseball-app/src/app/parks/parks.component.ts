@@ -1,22 +1,20 @@
 import { Component, ViewChild } from '@angular/core';
+import { ParksDataSource, ParkSummary, ParkSummaryParameters } from './parks-datasource';
 import { BaseballTableComponent } from '../baseball-table-component';
-import { PagedApiParameters } from '../paged-api-parameters';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
+import { BaseballApiFilter, BaseballFilterService } from '../baseball-filter.service';
 import { ApiMethod, BaseballApiService } from '../baseball-api.service';
-import { TeamsDataSource, TeamSummary } from './teams-datasource';
+import { Utils } from '../utils';
 import { MatTableModule } from '@angular/material/table';
-import { TypeSafeMatCellDef } from '../type-safe-mat-cell-def.directive';
-import { TypeSafeMatRowDef } from '../type-safe-mat-row-def.directive';
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { BaseballFilterService, BaseballApiFilter } from '../baseball-filter.service';
-import { Team } from '../contracts/team';
-import { Utils } from '../utils';
+import { TypeSafeMatCellDef } from '../type-safe-mat-cell-def.directive';
+import { TypeSafeMatRowDef } from '../type-safe-mat-row-def.directive';
 import { InfiniteScrollDirective } from 'ngx-infinite-scroll';
 
 @Component({
-    selector: 'app-teams',
+    selector: 'app-parks',
     standalone: true,
     imports: [
         MatTableModule,
@@ -29,38 +27,35 @@ import { InfiniteScrollDirective } from 'ngx-infinite-scroll';
         RouterModule,
         InfiniteScrollDirective
     ],
-    templateUrl: './teams.component.html',
-    styleUrl: './teams.component.scss'
+    templateUrl: './parks.component.html',
+    styleUrl: './parks.component.scss'
 })
-export class TeamsComponent extends BaseballTableComponent<PagedApiParameters, TeamSummary> {
+export class ParksComponent extends BaseballTableComponent<ParkSummaryParameters, ParkSummary> {
 
-    @ViewChild(MatPaginator)
-    protected paginator!: MatPaginator
+    protected override paginator = null;
     @ViewChild(MatSort)
     protected sort!: MatSort;
 
-    dataSource: TeamsDataSource;
+    dataSource: ParksDataSource;
     displayedColumns = [
-        'team',
-        'lastGame',
+        'park',
         'games',
+        'firstGame',
+        'lastGame',
         'wins',
         'losses',
-        'parks'
+        'teams'
     ]
     protected override defaultFilters?: BaseballApiFilter = {};
 
-    backgroundColor(team: Team): string {
-        return Utils.transparentTeamColor(team, 20);
-    }
 
     constructor(
         api: BaseballApiService,
         protected filterService: BaseballFilterService
     ) {
         super();
-        this.dataSource = new TeamsDataSource(
-            'teams/summaries',
+        this.dataSource = new ParksDataSource(
+            'park/summaries',
             ApiMethod.GET,
             api,
             filterService,
@@ -69,7 +64,11 @@ export class TeamsComponent extends BaseballTableComponent<PagedApiParameters, T
         );
     }
 
-    lastGameDate(team: TeamSummary): string {
-        return Utils.formatDate(team.lastGameDate);
+    firstGameDate(park: ParkSummary): string {
+        return Utils.formatDate(park.firstGameDate);
+    }
+
+    lastGameDate(park: ParkSummary): string {
+        return Utils.formatDate(park.lastGameDate);
     }
 }

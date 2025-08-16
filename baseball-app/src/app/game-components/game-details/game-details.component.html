@@ -2,7 +2,11 @@
     @if (game.location != null) {
     <dl>
         <dt>Location</dt>
-        <dd>{{game.location.name}}</dd>
+        <dd>
+            <a [routerLink]="['/park', game.location.id]">
+                {{game.location.name}}
+            </a>
+        </dd>
     </dl>
     <mat-divider></mat-divider>
     }

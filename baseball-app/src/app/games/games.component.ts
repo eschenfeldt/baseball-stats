@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, Input, OnChanges, OnInit, signal, SimpleChanges, ViewChild } from '@angular/core';
+import { Component, Input, OnChanges, OnInit, signal, SimpleChanges, ViewChild } from '@angular/core';
 import { GamesDataSource, GamesListParams } from './games-datasource';
 import { BaseballApiService } from '../baseball-api.service';
 import { MatTableModule } from '@angular/material/table';
@@ -6,7 +6,6 @@ import { TypeSafeMatCellDef } from '../type-safe-mat-cell-def.directive';
 import { TypeSafeMatRowDef } from '../type-safe-mat-row-def.directive';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { AsyncPipe, CommonModule } from '@angular/common';
-import { BaseballTableComponent } from '../baseball-table-component';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { RouterModule } from '@angular/router';
 import { Team } from '../contracts/team';
@@ -21,6 +20,9 @@ import { SortPipe } from '../sort.pipe';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { GameSummary } from '../contracts/game-summary';
+import { Park } from '../contracts/park';
+import { InfiniteScrollDirective } from 'ngx-infinite-scroll';
+import { BaseballTableComponent } from '../baseball-table-component';
 
 @Component({
     selector: 'app-games',
@@ -39,7 +41,8 @@ import { GameSummary } from '../contracts/game-summary';
         MatInputModule,
         MatFormFieldModule,
         MatSelectModule,
-        MatExpansionModule
+        MatExpansionModule,
+        InfiniteScrollDirective
     ],
     templateUrl: './games.component.html',
     styleUrl: './games.component.scss'
@@ -49,17 +52,22 @@ export class GamesComponent extends BaseballTableComponent<GamesListParams, Game
     @Input()
     public team?: Team
 
-    @ViewChild(MatPaginator) paginator!: MatPaginator;
+    @Input()
+    public park?: Park
+
+    protected override paginator = null;
     @ViewChild(MatSort) sort!: MatSort;
 
     dataSource: GamesDataSource;
-    displayedColumns: string[] = [
+    private static readonly allDisplayedColumns: string[] = [
         'date',
         'awayTeam',
         'awayScore',
         'homeTeam',
-        'homeScore'
+        'homeScore',
+        'location',
     ];
+    displayedColumns = GamesComponent.allDisplayedColumns;
     protected override get defaultFilters(): BaseballApiFilter {
         return {};
     }
@@ -96,7 +104,7 @@ export class GamesComponent extends BaseballTableComponent<GamesListParams, Game
 
     public override ngOnInit(): void {
         super.ngOnInit();
-        this.yearOptions$ = this.api.makeApiGet<number[]>('games/years', { teamId: this.team?.id });
+        this.yearOptions$ = this.api.makeApiGet<number[]>('games/years', { teamId: this.team?.id, parkId: this.park?.id });
     }
 
     ngOnChanges(_changes: SimpleChanges): void {
@@ -104,6 +112,13 @@ export class GamesComponent extends BaseballTableComponent<GamesListParams, Game
             this.filterService.setFilterValue<GamesListParams>(this.uniqueIdentifier, 'teamId', this.team.id);
         } else {
             this.filterService.unsetFilterValue<GamesListParams>(this.uniqueIdentifier, 'teamId');
+        }
+        if (this.park) {
+            this.filterService.setFilterValue<GamesListParams>(this.uniqueIdentifier, 'parkId', this.park.id);
+            this.displayedColumns = GamesComponent.allDisplayedColumns.filter(col => col !== 'location');
+        } else {
+            this.filterService.unsetFilterValue<GamesListParams>(this.uniqueIdentifier, 'parkId');
+            this.displayedColumns = GamesComponent.allDisplayedColumns;
         }
     }
 

@@ -5,6 +5,7 @@ namespace BaseballApiTests;
 public class ImageTests
 {
     [Theory]
+    [Trait(TestCategory.Category, TestCategory.Media)]
     [InlineData("live photos", "IMG_4762.HEIC", "small")]
     [InlineData("live photos", "IMG_4762.HEIC", "medium")]
     [InlineData("live photos", "IMG_4762.HEIC", "large")]
@@ -49,6 +50,7 @@ public class ImageTests
     }
 
     [Theory]
+    [Trait(TestCategory.Category, TestCategory.Media)]
     [InlineData("live photos", "IMG_4762.HEIC")]
     [InlineData("live photos", "IMG_4771.HEIC")]
     public void TestImageConversion(string folderName, string fileName)
@@ -75,6 +77,7 @@ public class ImageTests
     }
 
     [Theory]
+    [Trait(TestCategory.Category, TestCategory.Media)]
     [InlineData("live photos", "IMG_4762.HEIC")]
     [InlineData("live photos", "IMG_4771.HEIC")]
     [InlineData("photos", "IMG_4721.HEIC")]

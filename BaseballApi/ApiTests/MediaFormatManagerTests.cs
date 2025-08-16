@@ -51,6 +51,7 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
     }
 
     [Theory]
+    [Trait(TestCategory.Category, TestCategory.Media)]
     [InlineData("video/hevc.mov", true)]
     [InlineData("photos/IMG_4721.HEIC", true)]
     [InlineData("other/h264.MOV", false)]
@@ -80,6 +81,7 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
     }
 
     [Theory]
+    [Trait(TestCategory.Category, TestCategory.Media)]
     [InlineData("video/hevc.mov", true)]
     [InlineData("photos/IMG_4721.HEIC", true)]
     [InlineData("other/h264.MOV", false)]
@@ -120,6 +122,7 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
 
 
     [Theory]
+    [Trait(TestCategory.Category, TestCategory.Media)]
     [InlineData("video/hevc.mov", true)]
     [InlineData("other/h264.MOV", false)]
     [InlineData("video/hevc.mov", true, ".MOV")]
@@ -170,6 +173,7 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
     }
 
     [Theory]
+    [Trait(TestCategory.Category, TestCategory.Media)]
     [InlineData("video/hevc.mov", true)]
     [InlineData("photos/IMG_4721.HEIC", true)]
     [InlineData("other/h264.MOV", false)]
@@ -235,6 +239,7 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
     }
 
     [Fact]
+    [Trait(TestCategory.Category, TestCategory.Media)]
     public async void TestAlternateFormatLivePhoto()
     {
         // upload a live photo, delete one alternate file, check it recreates, then repeat for the other file and both files at once
@@ -322,6 +327,7 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
     }
 
     [Fact]
+    [Trait(TestCategory.Category, TestCategory.Media)]
     public async void TestAlternateFormatOverrideSet()
     {
         // Upload an h264 MOV file, then unset the alternate format override and make sure it gets reset

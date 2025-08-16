@@ -14,6 +14,7 @@ export abstract class BaseballDataSource<ArgType extends PagedApiParameters, Ret
 
     public static readonly defaultPageSize = 20;
 
+    protected isInfiniteScrollEnabled: boolean = false;
     protected updateOnFilterChanges: boolean = true;
     protected postProcess(data: PagedResult<ReturnType>): void {
         // optional post-processing when data is loaded
@@ -31,7 +32,8 @@ export abstract class BaseballDataSource<ArgType extends PagedApiParameters, Ret
     public totalCount$ = this.totalCountSubject.asObservable();
     public activeSort$ = this.activeSortSubject.asObservable();
 
-    data: ReturnType[] | undefined;
+    /** Used only for infinite scroll*/
+    public startIndex: number = 0;
     public paginator: MatPaginator | undefined;
     public sort: MatSort | undefined;
 
@@ -74,7 +76,9 @@ export abstract class BaseballDataSource<ArgType extends PagedApiParameters, Ret
     }
 
     public loadData(): void {
-        if (this.executingQuery) {
+        if (this.executingQuery && !this.executingQuery.closed && this.isInfiniteScrollEnabled) {
+            return; // already loading data for infinite scroll
+        } else if (this.executingQuery) {
             this.executingQuery.unsubscribe();
         }
 
@@ -82,6 +86,10 @@ export abstract class BaseballDataSource<ArgType extends PagedApiParameters, Ret
         this.setPaging(body);
         this.setSort(body);
         this.setFiltersFromFilterService(body);
+
+        if (body.skip && body.skip > this.totalCountSubject.getValue()) {
+            return; // skip if the requested page is beyond the total count
+        }
         let queryBase;
         if (this.method == ApiMethod.GET) {
             queryBase = this.api.makeApiGet<PagedResult<ReturnType>>(this.endpoint, body);
@@ -89,7 +97,14 @@ export abstract class BaseballDataSource<ArgType extends PagedApiParameters, Ret
             queryBase = this.api.makeApiPost<PagedResult<ReturnType>>(this.endpoint, body);
         }
         this.executingQuery = queryBase.subscribe(result => {
-            this.dataSubject.next(result.results);
+            let resultArray: ReturnType[];
+            if (this.isInfiniteScrollEnabled && body.skip && body.skip > 0) {
+                // append to existing data for infinite scroll unless it's the first page
+                resultArray = this.dataSubject.getValue().concat(result.results);
+            } else {
+                resultArray = result.results;
+            }
+            this.dataSubject.next(resultArray);
             this.totalCountSubject.next(result.totalCount);
             const leaderboard = result as Leaderboard<ReturnType>;
             if (leaderboard) {
@@ -105,6 +120,10 @@ export abstract class BaseballDataSource<ArgType extends PagedApiParameters, Ret
         if (this.paginator) {
             body.skip = this.paginator.pageIndex * this.paginator.pageSize;
             body.take = this.paginator.pageSize;
+        } else if (this.isInfiniteScrollEnabled) {
+            body.skip = this.startIndex;
+            body.take = BaseballDataSource.defaultPageSize;
+            this.startIndex += BaseballDataSource.defaultPageSize;
         } else {
             body.skip = 0;
             body.take = BaseballDataSource.defaultPageSize;
@@ -124,6 +143,17 @@ export abstract class BaseballDataSource<ArgType extends PagedApiParameters, Ret
 
     private subscribeToFilterChanges(): void {
         this.filterChangesSubscription = this.filterService.filtersChanged$(this.uniqueIdentifier)
-            .subscribe(() => this.loadData());
+            .subscribe(() => {
+                if (!(this.executingQuery && !this.executingQuery.closed)) {
+                    // reset to the first page when filters change
+                    if (this.paginator) {
+                        this.paginator.pageIndex = 0;
+                    }
+                    if (this.isInfiniteScrollEnabled) {
+                        this.startIndex = 0;
+                    }
+                }
+                this.loadData()
+            });
     }
 }

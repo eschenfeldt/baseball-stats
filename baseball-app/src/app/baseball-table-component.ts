@@ -9,7 +9,7 @@ import { BaseballApiFilter } from "./baseball-filter.service";
 @Component({ template: '' })
 export abstract class BaseballTableComponent<ArgType extends PagedApiParameters, ReturnType> implements OnInit, AfterViewInit {
 
-    protected abstract paginator: MatPaginator;
+    protected abstract paginator: MatPaginator | null;
     protected abstract sort: MatSort;
     protected abstract dataSource?: BaseballDataSource<ArgType, ReturnType>;
 
@@ -31,14 +31,29 @@ export abstract class BaseballTableComponent<ArgType extends PagedApiParameters,
 
     public ngAfterViewInit(): void {
         if (this.dataSource) {
-            this.dataSource.paginator = this.paginator;
             this.dataSource.sort = this.sort;
 
-            // register the pagination and sorting changes with the data source
-            this.sort.sortChange.subscribe(() => this.paginator.pageIndex = 0);
-            merge(this.paginator.page, this.sort.sortChange)
-                .pipe(tap(() => this.refresh()))
-                .subscribe();
+            if (this.paginator) {
+                this.dataSource.paginator = this.paginator;
+
+                // register the pagination and sorting changes with the data source
+                this.sort.sortChange.subscribe(() => {
+                    if (this.paginator) {
+                        this.paginator.pageIndex = 0
+                    }
+                });
+                merge(this.paginator.page, this.sort.sortChange)
+                    .pipe(tap(() => this.refresh()))
+                    .subscribe();
+            } else {
+                // infinite scroll case
+                this.sort.sortChange.subscribe(() => {
+                    if (this.dataSource) {
+                        this.dataSource.startIndex = 0; // reset start index on sort change
+                        this.dataSource.loadData();
+                    }
+                });
+            }
         }
     }
 

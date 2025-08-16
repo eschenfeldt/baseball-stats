@@ -20,5 +20,5 @@ export class TeamsDataSource extends BaseballDataSource<TeamSummaryParameters, T
     protected override getParameters(): TeamSummaryParameters {
         return {}
     }
-
+    protected override isInfiniteScrollEnabled = true;
 }

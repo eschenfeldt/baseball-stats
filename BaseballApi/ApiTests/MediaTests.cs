@@ -84,6 +84,7 @@ public class MediaTests : BaseballTests, IAsyncLifetime
     }
 
     [Fact]
+    [Trait(TestCategory.Category, TestCategory.Media)]
     public async Task TestImportLivePhotos()
     {
         var remoteValidator = new RemoteFileValidator(RemoteFileManager);
@@ -137,6 +138,7 @@ public class MediaTests : BaseballTests, IAsyncLifetime
     }
 
     [Fact]
+    [Trait(TestCategory.Category, TestCategory.Media)]
     public async Task TestImportVideo()
     {
         var remoteValidator = new RemoteFileValidator(RemoteFileManager);
@@ -182,6 +184,7 @@ public class MediaTests : BaseballTests, IAsyncLifetime
     }
 
     [Fact]
+    [Trait(TestCategory.Category, TestCategory.Media)]
     public async Task TestImportPhoto()
     {
         var remoteValidator = new RemoteFileValidator(RemoteFileManager);
@@ -226,6 +229,7 @@ public class MediaTests : BaseballTests, IAsyncLifetime
     }
 
     [Fact]
+    [Trait(TestCategory.Category, TestCategory.Media)]
     public async Task TestImportMedia()
     {
         var remoteValidator = new RemoteFileValidator(RemoteFileManager);
@@ -301,6 +305,7 @@ public class MediaTests : BaseballTests, IAsyncLifetime
     }
 
     [Fact]
+    [Trait(TestCategory.Category, TestCategory.Media)]
     public async Task TestImportMediaWithFailure()
     {
         var remoteValidator = new RemoteFileValidator(RemoteFileManager);
@@ -453,6 +458,7 @@ public class MediaTests : BaseballTests, IAsyncLifetime
 
 
     [Fact]
+    [Trait(TestCategory.Category, TestCategory.Media)]
     public async Task TestReimportMedia()
     {
         var remoteValidator = new RemoteFileValidator(RemoteFileManager);
@@ -538,6 +544,7 @@ public class MediaTests : BaseballTests, IAsyncLifetime
 
 
     [Fact]
+    [Trait(TestCategory.Category, TestCategory.Media)]
     public async Task TestImportLivePhotoWithAbandonment()
     {
         var remoteValidator = new RemoteFileValidator(RemoteFileManager);

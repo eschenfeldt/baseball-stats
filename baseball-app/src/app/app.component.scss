@@ -41,6 +41,7 @@ mat-toolbar {
 .content-wrapper {
     flex: auto;
     min-height: 0;
+    overflow: auto;
 }
 
 .home-icon {

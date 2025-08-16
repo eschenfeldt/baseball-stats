@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BaseballApi;
 using BaseballApi.Models;
+using BaseballApi.Contracts;
 
 namespace BaseballApi.Controllers
 {
@@ -42,67 +43,70 @@ namespace BaseballApi.Controllers
             return park;
         }
 
-        // PUT: api/Park/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutPark(long id, Park park)
+        [HttpGet("summaries")]
+        public async Task<ActionResult<PagedResult<ParkSummary>>> GetParkSummaries(int skip, int take, string? sort = null, bool asc = false, long? teamId = null)
         {
-            if (id != park.Id)
+            ParkSummaryOrder order = sort.ToEnumOrDefault<ParkSummaryOrder, ParamValueAttribute>();
+
+            IQueryable<Game> games = _context.Games;
+            if (teamId.HasValue)
             {
-                return BadRequest();
+                games = games.Where(g => g.Away.Id == teamId || g.Home.Id == teamId);
             }
 
-            _context.Entry(park).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ParkExists(id))
+            IQueryable<ParkSummary> parks = _context.Parks
+                .GroupJoin(games, p => p.Id, g => g.LocationId, (park, games) => new ParkSummary
                 {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+                    Park = park,
+                    Games = games.Count(),
+                    Teams = games.Select(g => g.Away.Id).Union(games.Select(g => g.Home.Id)).Distinct().Count(),
+                    Wins = games.Count(g => g.WinningTeam != null && g.WinningTeam == g.Home),
+                    Losses = games.Count(g => g.LosingTeam != null && g.LosingTeam == g.Home),
+                    FirstGameDate = games.Select(g => g.Date).DefaultIfEmpty().Min(),
+                    LastGameDate = games.Select(g => g.Date).DefaultIfEmpty().Max()
+                });
 
-            return NoContent();
-        }
-
-        // POST: api/Park
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<Park>> PostPark(Park park)
-        {
-            _context.Parks.Add(park);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetPark", new { id = park.Id }, park);
-        }
-
-        // DELETE: api/Park/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeletePark(long id)
-        {
-            var park = await _context.Parks.FindAsync(id);
-            if (park == null)
+            var sorted = GetSorted(parks, order, asc);
+            return new PagedResult<ParkSummary>
             {
-                return NotFound();
-            }
-
-            _context.Parks.Remove(park);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+                TotalCount = parks.Count(),
+                Results = await sorted
+                    .Skip(skip)
+                    .Take(take)
+                    .ToListAsync()
+            };
         }
 
-        private bool ParkExists(long id)
+        private static IOrderedQueryable<ParkSummary> GetSorted(IQueryable<ParkSummary> query, ParkSummaryOrder order, bool asc)
         {
-            return _context.Parks.Any(e => e.Id == id);
+            if (asc)
+            {
+                return order switch
+                {
+                    ParkSummaryOrder.Teams => query.OrderBy(k => k.Teams),
+                    ParkSummaryOrder.Games => query.OrderBy(k => k.Games),
+                    ParkSummaryOrder.Wins => query.OrderBy(k => k.Wins),
+                    ParkSummaryOrder.Losses => query.OrderBy(k => k.Losses),
+                    ParkSummaryOrder.FirstGame => query.OrderBy(k => k.FirstGameDate),
+                    ParkSummaryOrder.LastGame => query.OrderBy(k => k.LastGameDate),
+                    ParkSummaryOrder.Park => query.OrderBy(k => k.Park.Name),
+                    _ => query.OrderBy(k => k.Games),
+                };
+            }
+            else
+            {
+                return order switch
+                {
+                    ParkSummaryOrder.Teams => query.OrderByDescending(k => k.Teams),
+                    ParkSummaryOrder.Games => query.OrderByDescending(k => k.Games),
+                    ParkSummaryOrder.Wins => query.OrderByDescending(k => k.Wins),
+                    ParkSummaryOrder.Losses => query.OrderByDescending(k => k.Losses),
+                    ParkSummaryOrder.FirstGame => query.OrderByDescending(k => k.FirstGameDate),
+                    ParkSummaryOrder.LastGame => query.OrderByDescending(k => k.LastGameDate),
+                    ParkSummaryOrder.Park => query.OrderByDescending(k => k.Park.Name),
+                    _ => query.OrderByDescending(k => k.Games),
+                };
+            }
         }
     }
 }

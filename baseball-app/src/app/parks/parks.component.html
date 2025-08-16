@@ -1,0 +1,59 @@
+<div class="table-container" id="parks-container">
+    <table mat-table [dataSource]="dataSource" #table="matTable" matSort class="mat-elevation-z8" infiniteScroll
+        [infiniteScrollDistance]="1" [infiniteScrollThrottle]="50" [horizontal]="false" [scrollWindow]="false"
+        [immediateCheck]="true" infiniteScrollContainer="#parks-container" [fromRoot]="true" (scrolled)="refresh()">
+
+        <ng-container matColumnDef="park">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by name">
+                Park
+            </th>
+            <td mat-cell *matCellDef="let park; table: table">
+                <a [routerLink]="['/park', park.park.id]" routerLinkActive="router-link-active">
+                    {{park.park.name}}
+                    <!-- Add something for alternate names here -->
+                </a>
+            </td>
+        </ng-container>
+
+        <ng-container matColumnDef="firstGame">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by date of first game">
+                First Game
+            </th>
+            <td mat-cell *matCellDef="let park; table: table">{{firstGameDate(park)}}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="lastGame">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by date of last game">
+                Last Game
+            </th>
+            <td mat-cell *matCellDef="let park; table: table">{{lastGameDate(park)}}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="games">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by games played">G</th>
+            <td mat-cell *matCellDef="let park; table: table">{{park.games}}</td>
+        </ng-container>
+
+
+        <ng-container matColumnDef="wins">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by home team wins">W</th>
+            <td mat-cell *matCellDef="let park; table: table">{{park.wins}}</td>
+        </ng-container>
+
+
+        <ng-container matColumnDef="losses">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by home team losses">L
+            </th>
+            <td mat-cell *matCellDef="let park; table: table">{{park.losses}}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="teams">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by number of teams">Teams
+            </th>
+            <td mat-cell *matCellDef="let park; table: table">{{park.teams}}</td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns; table: table"></tr>
+    </table>
+</div>

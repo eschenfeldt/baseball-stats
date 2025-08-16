@@ -34,6 +34,7 @@ namespace BaseballApi.Controllers
             int take = 10,
             bool asc = false,
             long? teamId = null,
+            long? parkId = null,
             int? year = null)
         {
             var query = _context.Games
@@ -49,6 +50,10 @@ namespace BaseballApi.Controllers
             if (teamId.HasValue)
             {
                 query = query.Where(g => g.Away.Id == teamId || g.Home.Id == teamId);
+            }
+            if (parkId.HasValue)
+            {
+                query = query.Where(g => g.LocationId == parkId);
             }
             if (year.HasValue)
             {
@@ -155,7 +160,7 @@ namespace BaseballApi.Controllers
         }
 
         [HttpGet("years")]
-        public async Task<ActionResult<List<int>>> GetGameYears(long? teamId = null)
+        public async Task<ActionResult<List<int>>> GetGameYears(long? teamId = null, long? parkId = null)
         {
             IQueryable<Game> query = _context.Games;
 
@@ -163,24 +168,39 @@ namespace BaseballApi.Controllers
             {
                 query = query.Where(g => g.Away.Id == teamId || g.Home.Id == teamId);
             }
+            if (parkId.HasValue)
+            {
+                query = query.Where(g => g.LocationId == parkId);
+            }
             return await query.Select(g => g.Date.Year).Distinct().OrderBy(i => i).ToListAsync();
         }
 
         [HttpGet("summary-stats")]
-        public async Task<ActionResult<List<SummaryStat>>> GetSummaryStats(long? teamId = null)
+        public async Task<ActionResult<List<SummaryStat>>> GetSummaryStats(long? teamId = null, long? parkId = null)
         {
             IQueryable<Game> gamesQuery = _context.Games;
 
             IQueryable<BoxScore?> nullableBoxScoresQuery;
             int? winCount = null;
             int? lossCount = null;
-            if (teamId.HasValue)
+            if (teamId.HasValue && parkId.HasValue)
+            {
+                throw new NotImplementedException("Filtering by both team and park is not implemented yet.");
+            }
+            else if (teamId.HasValue)
             {
                 nullableBoxScoresQuery = gamesQuery.Where(g => g.Away.Id == teamId).Select(g => g.AwayBoxScore)
                     .Concat(gamesQuery.Where(g => g.Home.Id == teamId).Select(g => g.HomeBoxScore));
                 gamesQuery = gamesQuery.Where(g => g.Away.Id == teamId || g.Home.Id == teamId);
                 winCount = await gamesQuery.CountAsync(g => g.WinningTeam != null && g.WinningTeam.Id == teamId);
                 lossCount = await gamesQuery.CountAsync(g => g.LosingTeam != null && g.LosingTeam.Id == teamId);
+            }
+            else if (parkId.HasValue)
+            {
+                gamesQuery = gamesQuery.Where(g => g.LocationId == parkId);
+                nullableBoxScoresQuery = gamesQuery.Select(g => g.HomeBoxScore).Concat(gamesQuery.Select(g => g.AwayBoxScore));
+                winCount = await gamesQuery.CountAsync(g => g.WinningTeam != null && g.WinningTeam == g.Home);
+                lossCount = await gamesQuery.CountAsync(g => g.LosingTeam != null && g.LosingTeam == g.Home);
             }
             else
             {
@@ -221,7 +241,7 @@ namespace BaseballApi.Controllers
                 {
                     Category = StatCategory.General,
                     Definition = Stat.Parks,
-                    Value = parksCount
+                    Value = parkId.HasValue ? null : parksCount // Hide rather than always returning 1
                 },
                 new()
                 {
@@ -240,6 +260,7 @@ namespace BaseballApi.Controllers
             var calculator = new StatCalculator(_context)
             {
                 TeamId = teamId,
+                ParkId = parkId,
                 GroupByPlayer = false
             };
 
@@ -276,6 +297,7 @@ namespace BaseballApi.Controllers
             }, _context);
 
             Game newGame = await importManager.GetGame();
+            importManager.AddLocation(newGame);
             BoxScore homeBox = new()
             {
                 Game = newGame,
@@ -293,6 +315,17 @@ namespace BaseballApi.Controllers
             importManager.PopulateBoxScore(awayBox, home: false);
             int awayScoreBatters = awayBox.Batters.Select(b => b.Runs).Sum();
             newGame.AwayScore = awayScoreBatters;
+
+            if (newGame.HomeScore > newGame.AwayScore)
+            {
+                newGame.WinningTeam = newGame.Home;
+                newGame.LosingTeam = newGame.Away;
+            }
+            else if (newGame.AwayScore > newGame.HomeScore)
+            {
+                newGame.WinningTeam = newGame.Away;
+                newGame.LosingTeam = newGame.Home;
+            }
 
             bool isNew = false;
 

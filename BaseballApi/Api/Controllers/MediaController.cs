@@ -90,7 +90,8 @@ namespace BaseballApi.Controllers
             bool asc = true,
             string size = "small",
             long? gameId = null,
-            long? playerId = null
+            long? playerId = null,
+            long? parkId = null
         )
         {
             IQueryable<MediaResource> query = _context.MediaResources;
@@ -102,6 +103,10 @@ namespace BaseballApi.Controllers
             if (playerId.HasValue)
             {
                 query = query.Where(r => r.Players.Any(p => p.Id == playerId));
+            }
+            if (parkId.HasValue)
+            {
+                query = query.Where(r => r.Game != null && r.Game.LocationId == parkId);
             }
 
             IOrderedQueryable<MediaResource> sortedResources;
@@ -160,7 +165,8 @@ namespace BaseballApi.Controllers
         public async Task<ActionResult<RemoteFileDetail?>> GetRandomThumbnail(
             string size = "medium",
             long? gameId = null,
-            long? playerId = null
+            long? playerId = null,
+            long? parkId = null
         )
         {
             IQueryable<MediaResource> query = _context.MediaResources;
@@ -172,6 +178,10 @@ namespace BaseballApi.Controllers
             if (playerId.HasValue)
             {
                 query = query.Where(r => r.Players.Any(p => p.Id == playerId));
+            }
+            if (parkId.HasValue)
+            {
+                query = query = query.Where(r => r.Game != null && r.Game.LocationId == parkId);
             }
 
             var allResults = query.OrderBy(r => Guid.NewGuid())

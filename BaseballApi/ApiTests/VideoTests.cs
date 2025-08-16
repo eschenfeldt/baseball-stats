@@ -5,6 +5,7 @@ namespace BaseballApiTests;
 public class VideoTests
 {
     [Theory]
+    [Trait(TestCategory.Category, TestCategory.Media)]
     [InlineData("hevc.mov", "hevc")]
     public void TestConversion(string fileName, string expectedOriginalCodecName)
     {
@@ -30,6 +31,7 @@ public class VideoTests
     }
 
     [Theory]
+    [Trait(TestCategory.Category, TestCategory.Media)]
     [InlineData("video", "hevc.mov", "small")]
     [InlineData("video", "hevc.mov", "medium")]
     [InlineData("video", "hevc.mov", "large")]
