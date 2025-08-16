@@ -24,21 +24,32 @@
 
 $table-margin: 15pt;
 
-mat-expansion-panel {
-    margin: $table-margin;
-}
-
-table {
-    margin: 0em;
-}
-
-
 .table-container {
     width: calc(100% - 2 * $table-margin);
     overflow: auto;
 
     margin-left: $table-margin;
     margin-right: $table-margin;
+}
+
+@media (max-width: 599px) and (orientation: portrait) {
+    $table-margin: 0pt;
+
+    .table-container {
+        width: calc(100% - 2 * $table-margin);
+        overflow: auto;
+
+        margin-left: $table-margin;
+        margin-right: $table-margin;
+    }
+}
+
+mat-expansion-panel {
+    margin: $table-margin;
+}
+
+table {
+    margin: 0em;
 }
 
 @media (prefers-color-scheme: dark) {
