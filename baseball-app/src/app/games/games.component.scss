@@ -15,18 +15,11 @@
     font-weight: lighter;
 }
 
-.team-score {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-around;
-    // TODO: space-around here makes scores not line up, probably go back to this being its own column
-}
-
 .score {
     font-weight: bold;
     text-align: center;
-    padding-left: 0.5em;
+    padding: 0.5em 0 0 0;
+    min-width: 0;
 }
 
 $table-margin: 15pt;

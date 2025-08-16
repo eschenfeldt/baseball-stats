@@ -61,7 +61,9 @@ export class GamesComponent extends BaseballScrollTableComponent<GamesListParams
     private static readonly allDisplayedColumns: string[] = [
         'date',
         'awayTeam',
+        'awayScore',
         'homeTeam',
+        'homeScore',
         'location',
     ];
     displayedColumns = GamesComponent.allDisplayedColumns;

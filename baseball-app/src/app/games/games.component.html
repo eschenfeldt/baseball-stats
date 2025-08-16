@@ -42,42 +42,44 @@
 
         <!-- Away Team -->
         <ng-container matColumnDef="awayTeam">
-            <th mat-header-cell *matHeaderCellDef>
-                <span class="team-score">Away</span>
-            </th>
+            <th mat-header-cell *matHeaderCellDef>Away</th>
             <td mat-cell *matCellDef="let game">
-                <span class="team-score">
-                    <a [routerLink]="['/team', game.away.id]">
-                        @if(condenseInformation) {
-                        {{game.away.abbreviation}}
-                        }
-                        @else {
-                        {{game.awayTeamName}}
-                        }
-                    </a>
-                    <span class="score">{{game.awayScore}}</span>
-                </span>
+                <a [routerLink]="['/team', game.away.id]">
+                    @if(condenseInformation) {
+                    {{game.away.abbreviation}}
+                    }
+                    @else {
+                    {{game.awayTeamName}}
+                    }
+                </a>
             </td>
         </ng-container>
 
         <!-- Home Team -->
         <ng-container matColumnDef="homeTeam">
-            <th mat-header-cell *matHeaderCellDef>
-                <span class="team-score">Home</span>
-            </th>
+            <th mat-header-cell *matHeaderCellDef>Home</th>
             <td mat-cell *matCellDef="let game">
-                <span class="team-score">
-                    <a [routerLink]="['/team', game.home.id]">
-                        @if(condenseInformation) {
-                        {{game.home.abbreviation}}
-                        }
-                        @else {
-                        {{game.homeTeamName}}
-                        }
-                    </a>
-                    <span class="score">{{game.homeScore}}</span>
-                </span>
+                <a [routerLink]="['/team', game.home.id]">
+                    @if(condenseInformation) {
+                    {{game.home.abbreviation}}
+                    }
+                    @else {
+                    {{game.homeTeamName}}
+                    }
+                </a>
             </td>
+        </ng-container>
+
+        <!-- Away Score -->
+        <ng-container matColumnDef="awayScore">
+            <th mat-header-cell *matHeaderCellDef class="score"></th>
+            <td mat-cell *matCellDef="let game" class="score"> {{game.awayScore}} </td>
+        </ng-container>
+
+        <!-- Home Score -->
+        <ng-container matColumnDef="homeScore">
+            <th mat-header-cell *matHeaderCellDef class="score"></th>
+            <td mat-cell *matCellDef="let game" class="score"> {{game.homeScore}} </td>
         </ng-container>
 
         <!-- Location -->
