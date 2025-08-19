@@ -4,10 +4,10 @@ import { BaseballApiService } from '../baseball-api.service';
 import { MatTableModule } from '@angular/material/table';
 import { TypeSafeMatCellDef } from '../type-safe-mat-cell-def.directive';
 import { TypeSafeMatRowDef } from '../type-safe-mat-row-def.directive';
-import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { MatPaginatorModule } from '@angular/material/paginator';
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { MatSort, MatSortModule } from '@angular/material/sort';
-import { RouterModule } from '@angular/router';
+import { ActivatedRoute, RouterModule } from '@angular/router';
 import { Team } from '../contracts/team';
 import { BaseballApiFilter, BaseballFilterService } from '../baseball-filter.service';
 import { Observable } from 'rxjs';
@@ -23,6 +23,7 @@ import { GameSummary } from '../contracts/game-summary';
 import { Park } from '../contracts/park';
 import { InfiniteScrollDirective } from 'ngx-infinite-scroll';
 import { BaseballTableComponent } from '../baseball-table-component';
+import { mergeMap, mergeWith } from 'rxjs/operators';
 
 @Component({
     selector: 'app-games',
@@ -75,6 +76,7 @@ export class GamesComponent extends BaseballTableComponent<GamesListParams, Game
     public condenseInformation: boolean = false;
 
     public yearOptions$?: Observable<number[]>;
+    public teamOptions$?: Observable<Team[]>;
 
     public get selectedYear(): number | undefined {
         return this.filterService.getFilterValue<GamesListParams>(this.uniqueIdentifier, 'year');
@@ -83,10 +85,18 @@ export class GamesComponent extends BaseballTableComponent<GamesListParams, Game
         this.filterService.setFilterValue<GamesListParams>(this.uniqueIdentifier, 'year', value);
     }
 
+    public get selectedTeamId(): number | undefined {
+        return this.filterService.getFilterValue<GamesListParams>(this.uniqueIdentifier, 'teamId')
+    }
+    public set selectedTeamId(value: number) {
+        this.filterService.setFilterValue<GamesListParams>(this.uniqueIdentifier, 'teamId', value)
+    }
+
     constructor(
         private api: BaseballApiService,
         private filterService: BaseballFilterService,
-        private breakpointObserver: BreakpointObserver
+        private breakpointObserver: BreakpointObserver,
+        private route: ActivatedRoute
     ) {
         super();
         this.dataSource = new GamesDataSource(api, filterService);
@@ -104,7 +114,18 @@ export class GamesComponent extends BaseballTableComponent<GamesListParams, Game
 
     public override ngOnInit(): void {
         super.ngOnInit();
-        this.yearOptions$ = this.api.makeApiGet<number[]>('games/years', { teamId: this.team?.id, parkId: this.park?.id });
+
+        const updateTriggers$ = this.route.params.pipe(mergeWith(this.filterService.filtersChanged$(this.uniqueIdentifier)));
+        this.yearOptions$ = updateTriggers$.pipe(mergeMap(() => {
+            const yearParams: GamesListParams = { teamId: this.team?.id, parkId: this.park?.id }
+            this.filterService.updateParamsFromFilters(this.uniqueIdentifier, yearParams)
+            return this.api.makeApiGet<number[]>('games/years', yearParams);
+        }))
+        this.teamOptions$ = updateTriggers$.pipe(mergeMap(() => {
+            const teamParams: GamesListParams = { parkId: this.park?.id };
+            this.filterService.updateParamsFromFilters(this.uniqueIdentifier, teamParams)
+            return this.api.makeApiGet<Team[]>('teams', teamParams);
+        }))
     }
 
     ngOnChanges(_changes: SimpleChanges): void {

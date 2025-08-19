@@ -14,6 +14,16 @@
         </mat-select>
     </mat-form-field>
     }
+    @if (teamOptions$ | async; as teamOptions) {
+    <mat-form-field>
+        <mat-label>Team</mat-label>
+        <mat-select [(ngModel)]="selectedTeamId">
+            @for (team of teamOptions; track team.id) {
+            <mat-option [value]="team.id">{{team.city}} {{team.name}}</mat-option>
+            }
+        </mat-select>
+    </mat-form-field>
+    }
 </mat-expansion-panel>
 <div class="table-container">
 
