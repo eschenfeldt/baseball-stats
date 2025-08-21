@@ -1,14 +1,13 @@
 import { Component, ViewChild } from '@angular/core';
 import { ParksDataSource, ParkSummary, ParkSummaryParameters } from './parks-datasource';
 import { BaseballTableComponent } from '../baseball-table-component';
-import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { BaseballApiFilter, BaseballFilterService } from '../baseball-filter.service';
 import { ApiMethod, BaseballApiService } from '../baseball-api.service';
 import { Utils } from '../utils';
 import { MatTableModule } from '@angular/material/table';
 import { AsyncPipe, CommonModule } from '@angular/common';
-import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { RouterModule } from '@angular/router';
 import { TypeSafeMatCellDef } from '../type-safe-mat-cell-def.directive';
 import { TypeSafeMatRowDef } from '../type-safe-mat-row-def.directive';
 import { InfiniteScrollDirective } from 'ngx-infinite-scroll';
@@ -21,7 +20,6 @@ import { FilterOption, ListFiltersComponent } from '../util-components/list-filt
         MatTableModule,
         TypeSafeMatCellDef,
         TypeSafeMatRowDef,
-        MatPaginatorModule,
         MatSortModule,
         AsyncPipe,
         CommonModule,
@@ -53,9 +51,7 @@ export class ParksComponent extends BaseballTableComponent<ParkSummaryParameters
 
     constructor(
         api: BaseballApiService,
-        protected filterService: BaseballFilterService,
-        private router: Router,
-        private route: ActivatedRoute
+        protected filterService: BaseballFilterService
     ) {
         super();
         this.dataSource = new ParksDataSource(

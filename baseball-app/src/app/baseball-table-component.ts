@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, Inject, OnInit, Output, ViewChild } from "@angular/core";
+import { AfterViewInit, Component, OnInit } from "@angular/core";
 import { BaseballDataSource } from "./baseball-data-source";
 import { PagedApiParameters } from "./paged-api-parameters";
 import { MatPaginator } from "@angular/material/paginator";
@@ -15,6 +15,8 @@ export abstract class BaseballTableComponent<ArgType extends PagedApiParameters,
 
     protected abstract readonly defaultFilters?: BaseballApiFilter
 
+    protected loadBeforeParamResolution: boolean = false;
+
     defaultPageSize = BaseballDataSource.defaultPageSize;
 
     protected get uniqueIdentifier(): string {
@@ -26,7 +28,9 @@ export abstract class BaseballTableComponent<ArgType extends PagedApiParameters,
     }
 
     public ngOnInit(): void {
-        this.refresh();
+        if (this.loadBeforeParamResolution) {
+            this.refresh();
+        }
     }
 
     public ngAfterViewInit(): void {

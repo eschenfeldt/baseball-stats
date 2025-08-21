@@ -38,6 +38,7 @@ export abstract class BaseballDataSource<ArgType extends PagedApiParameters, Ret
     public sort: MatSort | undefined;
 
     private executingQuery?: Subscription;
+    private executingQueryBody?: ArgType;
     private filterChangesSubscription?: Subscription;
 
     public constructor(
@@ -75,17 +76,25 @@ export abstract class BaseballDataSource<ArgType extends PagedApiParameters, Ret
         }
     }
 
+    private correctInfiniteScrollDataLoading(newBody: ArgType): boolean {
+        return this.isInfiniteScrollEnabled
+            && this.executingQuery != null
+            && !this.executingQuery.closed
+            && this.executingQueryBody === newBody;
+    }
+
     public loadData(): void {
-        if (this.executingQuery && !this.executingQuery.closed && this.isInfiniteScrollEnabled) {
-            return; // already loading data for infinite scroll
-        } else if (this.executingQuery) {
-            this.executingQuery.unsubscribe();
-        }
 
         let body = this.getParameters();
         this.setPaging(body);
         this.setSort(body);
         this.setFiltersFromFilterService(body);
+
+        if (this.correctInfiniteScrollDataLoading(body)) {
+            return
+        } else if (this.executingQuery) {
+            this.executingQuery.unsubscribe();
+        }
 
         if (body.skip && body.skip > this.totalCountSubject.getValue()) {
             return; // skip if the requested page is beyond the total count
@@ -96,6 +105,7 @@ export abstract class BaseballDataSource<ArgType extends PagedApiParameters, Ret
         } else {
             queryBase = this.api.makeApiPost<PagedResult<ReturnType>>(this.endpoint, body);
         }
+        this.executingQueryBody = body;
         this.executingQuery = queryBase.subscribe(result => {
             let resultArray: ReturnType[];
             if (this.isInfiniteScrollEnabled && body.skip && body.skip > 0) {
@@ -111,6 +121,7 @@ export abstract class BaseballDataSource<ArgType extends PagedApiParameters, Ret
                 this.statsSubject.next(leaderboard.stats);
             }
             this.postProcess(result);
+            this.executingQueryBody = undefined
         });
     }
 
@@ -144,14 +155,11 @@ export abstract class BaseballDataSource<ArgType extends PagedApiParameters, Ret
     private subscribeToFilterChanges(): void {
         this.filterChangesSubscription = this.filterService.filtersChanged$(this.uniqueIdentifier)
             .subscribe(() => {
-                if (!(this.executingQuery && !this.executingQuery.closed)) {
-                    // reset to the first page when filters change
-                    if (this.paginator) {
-                        this.paginator.pageIndex = 0;
-                    }
-                    if (this.isInfiniteScrollEnabled) {
-                        this.startIndex = 0;
-                    }
+                if (this.paginator) {
+                    this.paginator.pageIndex = 0;
+                }
+                if (this.isInfiniteScrollEnabled) {
+                    this.startIndex = 0;
                 }
                 this.loadData()
             });

@@ -52,7 +52,12 @@
         <ng-container matColumnDef="teams">
             <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by number of teams">Teams
             </th>
-            <td mat-cell *matCellDef="let park; table: table">{{park.teams}}</td>
+            <td mat-cell *matCellDef="let park; table: table">
+                <a [routerLink]="['/teams']" [queryParams]="{parkId: park.park.id, teamId: undefined}"
+                    queryParamsHandling="merge">
+                    {{park.teams}}
+                </a>
+            </td>
         </ng-container>
 
         <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
