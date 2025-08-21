@@ -24,7 +24,7 @@ namespace BaseballApi.Controllers
 
         // GET: api/Park
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Park>>> GetParks(long? teamId = null, int? year = null)
+        public async Task<ActionResult<IEnumerable<Park>>> GetParks(long? teamId = null, int? year = null, long? playerId = null)
         {
             IQueryable<Game> games = _context.Games;
             if (teamId.HasValue)
@@ -35,12 +35,16 @@ namespace BaseballApi.Controllers
             {
                 games = games.Where(g => g.Date.Year == year);
             }
+            if (playerId.HasValue)
+            {
+                games = PlayerController.ConstructPlayerGamesQuery(playerId.Value, games);
+            }
 
             return await _context.Parks
-                .Join(games, p => p.Id, g => g.LocationId, (park, games) => park)
-                .Distinct()
-                .OrderBy(p => p.Name)
-                .ToListAsync();
+                    .Join(games, p => p.Id, g => g.LocationId, (park, games) => park)
+                    .Distinct()
+                    .OrderBy(p => p.Name)
+                    .ToListAsync();
         }
 
         // GET: api/Park/5

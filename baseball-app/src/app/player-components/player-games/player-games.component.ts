@@ -22,6 +22,7 @@ import { StatPipe } from '../../stat.pipe';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { SortPipe } from '../../sort.pipe';
+import { ListFiltersComponent } from '../../util-components/list-filters/list-filters.component';
 
 enum ColumnGroup {
     general = 'general',
@@ -50,7 +51,8 @@ enum ColumnGroup {
         CommonModule,
         RouterModule,
         StatPipe,
-        SortPipe
+        SortPipe,
+        ListFiltersComponent
     ],
     templateUrl: './player-games.component.html',
     styleUrl: './player-games.component.scss'

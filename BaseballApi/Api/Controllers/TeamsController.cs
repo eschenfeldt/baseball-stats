@@ -27,7 +27,7 @@ namespace BaseballApi.Controllers
 
         // GET: api/Teams
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Team>>> GetTeams(long? parkId = null, int? year = null)
+        public async Task<ActionResult<IEnumerable<Team>>> GetTeams(long? parkId = null, int? year = null, long? playerId = null)
         {
             IQueryable<Game> games = _context.Games;
             if (parkId.HasValue)
@@ -37,6 +37,10 @@ namespace BaseballApi.Controllers
             if (year.HasValue)
             {
                 games = games.Where(g => g.Date.Year == year);
+            }
+            if (playerId.HasValue)
+            {
+                games = PlayerController.ConstructPlayerGamesQuery(playerId.Value, games);
             }
 
             var awayTeams = _context.Teams.Join(games, t => t.Id, g => g.Away.Id, (team, games) => team);

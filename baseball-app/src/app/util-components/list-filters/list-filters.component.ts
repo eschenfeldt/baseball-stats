@@ -18,6 +18,7 @@ interface ListFilterParams extends PagedApiParameters {
     teamId?: number;
     parkId?: number;
     year?: number;
+    playerId?: number;
     playerSearch?: string;
 }
 
@@ -53,6 +54,9 @@ export class ListFiltersComponent implements OnInit {
 
     @Input()
     public park?: Park | FilterOption
+
+    @Input()
+    public playerId?: number
 
     @Input()
     public includePlayerSearch: boolean = false
@@ -150,19 +154,19 @@ export class ListFiltersComponent implements OnInit {
         this.yearOptions$ = updateTriggers$.pipe(mergeMap(() => {
             const teamId = this.team === FilterOption.hide ? undefined : this.team?.id;
             const parkId = this.park === FilterOption.hide ? undefined : this.park?.id;
-            const yearParams: ListFilterParams = { teamId: teamId, parkId: parkId }
+            const yearParams: ListFilterParams = { teamId: teamId, parkId: parkId, playerId: this.playerId }
             this.filterService.updateParamsFromFilters(this.uniqueIdentifier, yearParams)
             return this.api.makeApiGet<number[]>('games/years', yearParams)
         }))
         this.teamOptions$ = updateTriggers$.pipe(mergeMap(() => {
             const parkId = this.park === FilterOption.hide ? undefined : this.park?.id;
-            const teamParams: ListFilterParams = { parkId: parkId }
+            const teamParams: ListFilterParams = { parkId: parkId, playerId: this.playerId }
             this.filterService.updateParamsFromFilters(this.uniqueIdentifier, teamParams)
             return this.api.makeApiGet<Team[]>('teams', teamParams)
         }))
         this.parkOptions$ = updateTriggers$.pipe(mergeMap(() => {
             const teamId = this.team === FilterOption.hide ? undefined : this.team?.id;
-            const parkParams: ListFilterParams = { teamId: teamId }
+            const parkParams: ListFilterParams = { teamId: teamId, playerId: this.playerId }
             this.filterService.updateParamsFromFilters(this.uniqueIdentifier, parkParams)
             return this.api.makeApiGet<Park[]>('park', parkParams)
         }))

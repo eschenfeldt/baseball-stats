@@ -184,7 +184,12 @@ namespace BaseballApi.Controllers
 
         private IQueryable<Game> GetPlayerGamesQuery(long playerId)
         {
-            return _context.Games
+            return ConstructPlayerGamesQuery(playerId, _context.Games);
+        }
+
+        public static IQueryable<Game> ConstructPlayerGamesQuery(long playerId, IQueryable<Game> baseGames)
+        {
+            return baseGames
                 .Where(g => g.AwayBoxScore != null && (
                     g.AwayBoxScore.Batters.Any(b => b.PlayerId == playerId)
                     || g.AwayBoxScore.Pitchers.Any(p => p.PlayerId == playerId)

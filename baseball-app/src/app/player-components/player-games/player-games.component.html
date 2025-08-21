@@ -1,20 +1,4 @@
-<mat-expansion-panel (opened)="filterOpenState.set(true)" (closed)="filterOpenState.set(false)">
-    <mat-expansion-panel-header>
-        <mat-panel-title>Filter</mat-panel-title>
-        <mat-panel-description>{{filterSummary}}</mat-panel-description>
-    </mat-expansion-panel-header>
-    @if (yearOptions$ | async; as yearOptions) {
-    <mat-form-field>
-        <mat-label>Year</mat-label>
-        <mat-select [(ngModel)]="selectedYear">
-            <mat-option [value]=""></mat-option>
-            @for (year of yearOptions| sort: null: 'desc'; track year) {
-            <mat-option [value]="year">{{year}}</mat-option>
-            }
-        </mat-select>
-    </mat-form-field>
-    }
-</mat-expansion-panel>
+<app-list-filters [uniqueIdentifier]="uniqueIdentifier" [playerId]="playerId"></app-list-filters>
 
 <div class="table-container">
     <table mat-table [dataSource]="dataSource" #table="matTable" matSort class="mat-elevation-z8">
