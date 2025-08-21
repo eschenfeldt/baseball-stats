@@ -10,6 +10,7 @@ using BaseballApi.Models;
 using BaseballApi.Contracts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore.Internal;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace BaseballApi.Controllers
 {
@@ -26,9 +27,21 @@ namespace BaseballApi.Controllers
 
         // GET: api/Teams
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Team>>> GetTeams()
+        public async Task<ActionResult<IEnumerable<Team>>> GetTeams(long? parkId = null, int? year = null)
         {
-            return await _context.Teams.ToListAsync();
+            IQueryable<Game> games = _context.Games;
+            if (parkId.HasValue)
+            {
+                games = games.Where(g => g.LocationId == parkId);
+            }
+            if (year.HasValue)
+            {
+                games = games.Where(g => g.Date.Year == year);
+            }
+
+            var awayTeams = _context.Teams.Join(games, t => t.Id, g => g.Away.Id, (team, games) => team);
+            var homeTeams = _context.Teams.Join(games, t => t.Id, g => g.Home.Id, (team, games) => team);
+            return await awayTeams.Union(homeTeams).OrderBy(t => t.City).ThenBy(t => t.Name).ToListAsync();
         }
 
         [HttpGet("summaries")]

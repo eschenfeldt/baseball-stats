@@ -14,15 +14,31 @@
         </mat-select>
     </mat-form-field>
     }
+    @if (team == null) {
     @if (teamOptions$ | async; as teamOptions) {
     <mat-form-field>
         <mat-label>Team</mat-label>
         <mat-select [(ngModel)]="selectedTeamId">
+            <mat-option [value]=""></mat-option>
             @for (team of teamOptions; track team.id) {
             <mat-option [value]="team.id">{{team.city}} {{team.name}}</mat-option>
             }
         </mat-select>
     </mat-form-field>
+    }
+    }
+    @if (park == null) {
+    @if (parkOptions$ | async; as parkOptions) {
+    <mat-form-field>
+        <mat-label>Park</mat-label>
+        <mat-select [(ngModel)]="selectedParkId">
+            <mat-option [value]=""></mat-option>
+            @for (park of parkOptions; track park.id) {
+            <mat-option [value]="park.id">{{park.name}}</mat-option>
+            }
+        </mat-select>
+    </mat-form-field>
+    }
     }
 </mat-expansion-panel>
 <div class="table-container">

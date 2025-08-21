@@ -24,9 +24,23 @@ namespace BaseballApi.Controllers
 
         // GET: api/Park
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Park>>> GetParks()
+        public async Task<ActionResult<IEnumerable<Park>>> GetParks(long? teamId = null, int? year = null)
         {
-            return await _context.Parks.ToListAsync();
+            IQueryable<Game> games = _context.Games;
+            if (teamId.HasValue)
+            {
+                games = games.Where(g => g.Away.Id == teamId || g.Home.Id == teamId);
+            }
+            if (year.HasValue)
+            {
+                games = games.Where(g => g.Date.Year == year);
+            }
+
+            return await _context.Parks
+                .Join(games, p => p.Id, g => g.LocationId, (park, games) => park)
+                .Distinct()
+                .OrderBy(p => p.Name)
+                .ToListAsync();
         }
 
         // GET: api/Park/5
