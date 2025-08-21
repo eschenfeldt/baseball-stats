@@ -14,6 +14,7 @@ import { BaseballFilterService, BaseballApiFilter } from '../baseball-filter.ser
 import { Team } from '../contracts/team';
 import { Utils } from '../utils';
 import { InfiniteScrollDirective } from 'ngx-infinite-scroll';
+import { FilterOption, ListFiltersComponent } from '../util-components/list-filters/list-filters.component';
 
 @Component({
     selector: 'app-teams',
@@ -27,7 +28,8 @@ import { InfiniteScrollDirective } from 'ngx-infinite-scroll';
         AsyncPipe,
         CommonModule,
         RouterModule,
-        InfiniteScrollDirective
+        InfiniteScrollDirective,
+        ListFiltersComponent
     ],
     templateUrl: './teams.component.html',
     styleUrl: './teams.component.scss'
@@ -49,6 +51,7 @@ export class TeamsComponent extends BaseballTableComponent<PagedApiParameters, T
         'parks'
     ]
     protected override defaultFilters?: BaseballApiFilter = {};
+    readonly hideTeamFilter = FilterOption.hide
 
     backgroundColor(team: Team): string {
         return Utils.transparentTeamColor(team, 20);

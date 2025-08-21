@@ -45,12 +45,22 @@ namespace BaseballApi.Controllers
         }
 
         [HttpGet("summaries")]
-        public ActionResult<PagedResult<TeamSummary>> GetTeamSummaries(int skip, int take, string? sort = null, bool asc = false)
+        public ActionResult<PagedResult<TeamSummary>> GetTeamSummaries(int skip, int take, string? sort = null, bool asc = false, long? parkId = null, int? year = null)
         {
             TeamSummaryOrder order = sort.ToEnumOrDefault<TeamSummaryOrder, ParamValueAttribute>();
 
+            IQueryable<Game> games = _context.Games;
+            if (parkId.HasValue)
+            {
+                games = games.Where(g => g.LocationId == parkId);
+            }
+            if (year.HasValue)
+            {
+                games = games.Where(g => g.Date.Year == year);
+            }
+
             var awayGames = _context.Teams
-                .GroupJoin(_context.Games, t => t.Id, g => g.Away.Id, (team, games) => new
+                .GroupJoin(games, t => t.Id, g => g.Away.Id, (team, games) => new
                 {
                     Team = team,
                     Games = games.Count(),
@@ -60,7 +70,7 @@ namespace BaseballApi.Controllers
                     Parks = games.Select(g => g.LocationId).Distinct()
                 });
             var homeGames = _context.Teams
-                .GroupJoin(_context.Games, t => t.Id, g => g.Home.Id, (team, games) => new
+                .GroupJoin(games, t => t.Id, g => g.Home.Id, (team, games) => new
                 {
                     Team = team,
                     Games = games.Count(),
@@ -79,7 +89,7 @@ namespace BaseballApi.Controllers
                 Losses = ag.Losses + hg.Losses,
                 LastGameDate = ag.LastGame > hg.LastGame ? ag.LastGame : hg.LastGame,
                 Parks = ag.Parks.Union(hg.Parks).Count(id => id.HasValue)
-            }).AsEnumerable();
+            }).Where(t => t.Games > 0).AsEnumerable();
             var sorted = GetSorted(query, order, asc);
             return new PagedResult<TeamSummary>
             {
