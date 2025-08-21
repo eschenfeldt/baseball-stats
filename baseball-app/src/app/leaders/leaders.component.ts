@@ -51,10 +51,6 @@ export class LeadersComponent implements AfterViewInit {
         return this.showTables.some(t => t === Table.pitchers);
     }
 
-    public get search(): string {
-        return this.filterService.getFilterValue<PitcherLeaderboardParams>(LeaderboardPitchersComponent.endpoint, 'playerSearch');
-    }
-
     public condenseInformation: boolean = false;
     public get batterLabel(): string {
         return this.condenseInformation ? "B" : "Batters";
@@ -94,8 +90,8 @@ export class LeadersComponent implements AfterViewInit {
                 this.showTables = [Table.pitchers];
             } else if (counts[0] > 0 && counts[1] === 0) {
                 this.showTables = [Table.batters];
-            } else if (counts.every(c => c === 0) && this.search) {
-                // expand filters to try to identify a search result
+            } else if (counts.every(c => c === 0)) {
+                // expand playing time filters when there are no results
                 this.filterService.setFilterValue<PitcherLeaderboardParams>(LeaderboardPitchersComponent.endpoint, 'minInningsPitched', 0);
                 this.filterService.setFilterValue<BatterLeaderboardParams>(LeaderboardBattersComponent.endpoint, 'minPlateAppearances', 0);
             }
