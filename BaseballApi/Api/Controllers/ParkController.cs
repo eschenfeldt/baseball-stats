@@ -58,7 +58,7 @@ namespace BaseballApi.Controllers
         }
 
         [HttpGet("summaries")]
-        public async Task<ActionResult<PagedResult<ParkSummary>>> GetParkSummaries(int skip, int take, string? sort = null, bool asc = false, long? teamId = null)
+        public async Task<ActionResult<PagedResult<ParkSummary>>> GetParkSummaries(int skip, int take, string? sort = null, bool asc = false, long? teamId = null, int? year = null)
         {
             ParkSummaryOrder order = sort.ToEnumOrDefault<ParkSummaryOrder, ParamValueAttribute>();
 
@@ -66,6 +66,10 @@ namespace BaseballApi.Controllers
             if (teamId.HasValue)
             {
                 games = games.Where(g => g.Away.Id == teamId || g.Home.Id == teamId);
+            }
+            if (year.HasValue)
+            {
+                games = games.Where(g => g.Date.Year == year);
             }
 
             IQueryable<ParkSummary> parks = _context.Parks
@@ -78,7 +82,8 @@ namespace BaseballApi.Controllers
                     Losses = games.Count(g => g.LosingTeam != null && g.LosingTeam == g.Home),
                     FirstGameDate = games.Select(g => g.Date).DefaultIfEmpty().Min(),
                     LastGameDate = games.Select(g => g.Date).DefaultIfEmpty().Max()
-                });
+                })
+                .Where(ps => ps.Games > 0);
 
             var sorted = GetSorted(parks, order, asc);
             return new PagedResult<ParkSummary>

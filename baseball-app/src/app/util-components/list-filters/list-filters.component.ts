@@ -20,6 +20,10 @@ interface ListFilterParams extends PagedApiParameters {
     year?: number;
 }
 
+export enum FilterOption {
+    hide
+}
+
 @Component({
     selector: 'app-list-filters',
     standalone: true,
@@ -41,10 +45,10 @@ export class ListFiltersComponent implements OnInit {
     public uniqueIdentifier!: string
 
     @Input()
-    public team?: Team
+    public team?: Team | FilterOption
 
     @Input()
-    public park?: Park
+    public park?: Park | FilterOption
 
     public yearOptions$?: Observable<number[]>
     public teamOptions$?: Observable<Team[]>
@@ -56,8 +60,9 @@ export class ListFiltersComponent implements OnInit {
     public get selectedYear(): number | undefined {
         return +this.filterService.getFilterValue<ListFilterParams>(this.uniqueIdentifier, 'year');
     }
-    public set selectedYear(value: number) {
+    public set selectedYear(value: number | undefined) {
         this.filterService.setFilterValue<ListFilterParams>(this.uniqueIdentifier, 'year', value);
+        this.router.navigate([], { queryParams: { year: value }, queryParamsHandling: 'merge' })
     }
 
     public get selectedTeamId(): number | undefined {
@@ -109,20 +114,29 @@ export class ListFiltersComponent implements OnInit {
             } else if (this.park == null && params.parkId == null && this.selectedParkId) {
                 this.selectedParkId = undefined
             }
+            if (params.year && +params.year !== this.selectedYear) {
+                this.selectedYear = +params.year
+            } else if (params.year == null && this.selectedYear) {
+                this.selectedYear = undefined
+            }
         })
         const updateTriggers$ = this.filterService.filtersChanged$(this.uniqueIdentifier);
         this.yearOptions$ = updateTriggers$.pipe(mergeMap(() => {
-            const yearParams: ListFilterParams = { teamId: this.team?.id, parkId: this.park?.id }
+            const teamId = this.team === FilterOption.hide ? undefined : this.team?.id;
+            const parkId = this.park === FilterOption.hide ? undefined : this.park?.id;
+            const yearParams: ListFilterParams = { teamId: teamId, parkId: parkId }
             this.filterService.updateParamsFromFilters(this.uniqueIdentifier, yearParams)
             return this.api.makeApiGet<number[]>('games/years', yearParams)
         }))
         this.teamOptions$ = updateTriggers$.pipe(mergeMap(() => {
-            const teamParams: ListFilterParams = { parkId: this.park?.id }
+            const parkId = this.park === FilterOption.hide ? undefined : this.park?.id;
+            const teamParams: ListFilterParams = { parkId: parkId }
             this.filterService.updateParamsFromFilters(this.uniqueIdentifier, teamParams)
             return this.api.makeApiGet<Team[]>('teams', teamParams)
         }))
         this.parkOptions$ = updateTriggers$.pipe(mergeMap(() => {
-            const parkParams: ListFilterParams = { teamId: this.team?.id }
+            const teamId = this.team === FilterOption.hide ? undefined : this.team?.id;
+            const parkParams: ListFilterParams = { teamId: teamId }
             this.filterService.updateParamsFromFilters(this.uniqueIdentifier, parkParams)
             return this.api.makeApiGet<Park[]>('park', parkParams)
         }))

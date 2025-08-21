@@ -1,3 +1,5 @@
+<app-list-filters [uniqueIdentifier]="uniqueIdentifier" [park]="hideParkFilter"></app-list-filters>
+
 <div class="table-container" id="parks-container">
     <table mat-table [dataSource]="dataSource" #table="matTable" matSort class="mat-elevation-z8" infiniteScroll
         [infiniteScrollDistance]="1" [infiniteScrollThrottle]="50" [horizontal]="false" [scrollWindow]="false"
