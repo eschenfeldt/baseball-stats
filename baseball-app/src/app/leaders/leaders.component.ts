@@ -8,13 +8,13 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { BatterLeaderboardParams } from '../leaderboard-batters/leaderboard-batters-datasource';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
-import { Observable, zip } from 'rxjs';
+import { zip } from 'rxjs';
 import { MatSelectModule } from '@angular/material/select';
 import { AsyncPipe } from '@angular/common';
-import { BaseballApiService } from '../baseball-api.service';
 import { SortPipe } from '../sort.pipe';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
+import { ListFiltersComponent } from '../util-components/list-filters/list-filters.component';
 
 @Component({
     selector: 'app-leaders',
@@ -29,12 +29,13 @@ import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
         MatSelectModule,
         MatExpansionModule,
         AsyncPipe,
-        SortPipe
+        SortPipe,
+        ListFiltersComponent
     ],
     templateUrl: './leaders.component.html',
     styleUrl: './leaders.component.scss'
 })
-export class LeadersComponent implements OnInit, AfterViewInit {
+export class LeadersComponent implements AfterViewInit {
 
     @ViewChild(LeaderboardBattersComponent)
     batters!: LeaderboardBattersComponent;
@@ -53,20 +54,6 @@ export class LeadersComponent implements OnInit, AfterViewInit {
     public get search(): string {
         return this.filterService.getFilterValue<PitcherLeaderboardParams>(LeaderboardPitchersComponent.endpoint, 'playerSearch');
     }
-    public set search(val: string) {
-        this.filterService.setFilterValue<PitcherLeaderboardParams>(LeaderboardPitchersComponent.endpoint, 'playerSearch', val);
-        this.filterService.setFilterValue<BatterLeaderboardParams>(LeaderboardBattersComponent.endpoint, 'playerSearch', val);
-    }
-
-    public yearOptions$?: Observable<number[]>;
-
-    public get selectedYear(): number | undefined {
-        return this.filterService.getFilterValue<PitcherLeaderboardParams>(LeaderboardPitchersComponent.endpoint, 'year');
-    }
-    public set selectedYear(value: number) {
-        this.filterService.setFilterValue<PitcherLeaderboardParams>(LeaderboardPitchersComponent.endpoint, 'year', value);
-        this.filterService.setFilterValue<BatterLeaderboardParams>(LeaderboardBattersComponent.endpoint, 'year', value);
-    }
 
     public condenseInformation: boolean = false;
     public get batterLabel(): string {
@@ -76,9 +63,15 @@ export class LeadersComponent implements OnInit, AfterViewInit {
         return this.condenseInformation ? "P" : "Pitchers";
     }
 
+    public get batterIdentifier(): string {
+        return LeaderboardBattersComponent.endpoint;
+    }
+    public get pitcherIdentifier(): string {
+        return LeaderboardPitchersComponent.endpoint;
+    }
+
     public constructor(
         private filterService: BaseballFilterService,
-        private api: BaseballApiService,
         private breakpointObserver: BreakpointObserver
     ) {
         this.breakpointObserver.observe([
@@ -90,10 +83,6 @@ export class LeadersComponent implements OnInit, AfterViewInit {
                 this.condenseInformation = false;
             }
         });
-    }
-
-    public ngOnInit(): void {
-        this.yearOptions$ = this.api.makeApiGet<number[]>('games/years', {});
     }
 
     public ngAfterViewInit(): void {
@@ -111,22 +100,6 @@ export class LeadersComponent implements OnInit, AfterViewInit {
                 this.filterService.setFilterValue<BatterLeaderboardParams>(LeaderboardBattersComponent.endpoint, 'minPlateAppearances', 0);
             }
         });
-    }
-
-    readonly filterOpenState = signal(false);
-
-    public get filterSummary(): string {
-        if (this.filterOpenState()) {
-            return '';
-        } else if (this.search && this.selectedYear) {
-            return `${this.search} ${this.selectedYear}`;
-        } else if (this.search) {
-            return `Search: ${this.search}`;
-        } else if (this.selectedYear) {
-            return `Year: ${this.selectedYear}`;
-        } else {
-            return '';
-        }
     }
 }
 

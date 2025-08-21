@@ -84,7 +84,6 @@ export abstract class BaseballDataSource<ArgType extends PagedApiParameters, Ret
     }
 
     public loadData(): void {
-
         let body = this.getParameters();
         this.setPaging(body);
         this.setSort(body);

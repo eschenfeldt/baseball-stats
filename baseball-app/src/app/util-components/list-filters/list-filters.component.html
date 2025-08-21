@@ -4,7 +4,12 @@
         <mat-panel-description>{{filterSummary}}</mat-panel-description>
     </mat-expansion-panel-header>
     <div class="filters">
-
+        @if (includePlayerSearch) {
+        <mat-form-field>
+            <mat-label>Search</mat-label>
+            <input type="text" matInput placeholder="Player Name" [(ngModel)]="search">
+        </mat-form-field>
+        }
         @if (yearOptions$ | async; as yearOptions) {
         <mat-form-field>
             <mat-label>Year</mat-label>

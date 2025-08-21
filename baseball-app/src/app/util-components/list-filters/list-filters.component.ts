@@ -18,6 +18,7 @@ interface ListFilterParams extends PagedApiParameters {
     teamId?: number;
     parkId?: number;
     year?: number;
+    playerSearch?: string;
 }
 
 export enum FilterOption {
@@ -45,10 +46,16 @@ export class ListFiltersComponent implements OnInit {
     public uniqueIdentifier!: string
 
     @Input()
+    public secondaryUniqueIdentifier?: string
+
+    @Input()
     public team?: Team | FilterOption
 
     @Input()
     public park?: Park | FilterOption
+
+    @Input()
+    public includePlayerSearch: boolean = false
 
     public yearOptions$?: Observable<number[]>
     public teamOptions$?: Observable<Team[]>
@@ -62,6 +69,9 @@ export class ListFiltersComponent implements OnInit {
     }
     public set selectedYear(value: number | undefined) {
         this.filterService.setFilterValue<ListFilterParams>(this.uniqueIdentifier, 'year', value);
+        if (this.secondaryUniqueIdentifier) {
+            this.filterService.setFilterValue<ListFilterParams>(this.secondaryUniqueIdentifier, 'year', value)
+        }
         this.router.navigate([], { queryParams: { year: value }, queryParamsHandling: 'merge' })
     }
 
@@ -70,6 +80,9 @@ export class ListFiltersComponent implements OnInit {
     }
     public set selectedTeamId(value: number | undefined) {
         this.filterService.setFilterValue<ListFilterParams>(this.uniqueIdentifier, 'teamId', value)
+        if (this.secondaryUniqueIdentifier) {
+            this.filterService.setFilterValue<ListFilterParams>(this.secondaryUniqueIdentifier, 'teamId', value)
+        }
         this.router.navigate([], { queryParams: { teamId: value }, queryParamsHandling: 'merge' })
     }
     private get selectedTeam(): Team | undefined {
@@ -85,6 +98,9 @@ export class ListFiltersComponent implements OnInit {
     }
     public set selectedParkId(value: number | undefined) {
         this.filterService.setFilterValue<ListFilterParams>(this.uniqueIdentifier, 'parkId', value)
+        if (this.secondaryUniqueIdentifier) {
+            this.filterService.setFilterValue<ListFilterParams>(this.secondaryUniqueIdentifier, 'parkId', value)
+        }
         this.router.navigate([], { queryParams: { parkId: value }, queryParamsHandling: 'merge' })
     }
     private get selectedPark(): Park | undefined {
@@ -92,6 +108,16 @@ export class ListFiltersComponent implements OnInit {
             return this.parkCache[this.selectedParkId]
         } else {
             return undefined
+        }
+    }
+
+    public get search(): string {
+        return this.filterService.getFilterValue<ListFilterParams>(this.uniqueIdentifier, 'playerSearch');
+    }
+    public set search(val: string) {
+        this.filterService.setFilterValue<ListFilterParams>(this.uniqueIdentifier, 'playerSearch', val);
+        if (this.secondaryUniqueIdentifier) {
+            this.filterService.setFilterValue<ListFilterParams>(this.secondaryUniqueIdentifier, 'playerSearch', val);
         }
     }
 
