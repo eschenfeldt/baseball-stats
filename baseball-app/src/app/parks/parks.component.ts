@@ -8,7 +8,7 @@ import { ApiMethod, BaseballApiService } from '../baseball-api.service';
 import { Utils } from '../utils';
 import { MatTableModule } from '@angular/material/table';
 import { AsyncPipe, CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { TypeSafeMatCellDef } from '../type-safe-mat-cell-def.directive';
 import { TypeSafeMatRowDef } from '../type-safe-mat-row-def.directive';
 import { InfiniteScrollDirective } from 'ngx-infinite-scroll';
@@ -51,7 +51,9 @@ export class ParksComponent extends BaseballTableComponent<ParkSummaryParameters
 
     constructor(
         api: BaseballApiService,
-        protected filterService: BaseballFilterService
+        protected filterService: BaseballFilterService,
+        private router: Router,
+        private route: ActivatedRoute
     ) {
         super();
         this.dataSource = new ParksDataSource(

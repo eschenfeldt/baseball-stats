@@ -1,0 +1,19 @@
+$table-margin: 15pt;
+
+
+mat-expansion-panel {
+    margin: $table-margin;
+
+    .filters {
+        width: 100%;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-content: space-around;
+        gap: 1em;
+
+        mat-form-field {
+            flex-grow: 1;
+        }
+    }
+}
