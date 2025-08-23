@@ -37,7 +37,7 @@ namespace BaseballApi.Controllers
             }
             if (playerId.HasValue)
             {
-                games = PlayerController.ConstructPlayerGamesQuery(playerId.Value, games);
+                games = PlayerController.ConstructPlayerGamesQuery(playerId.Value, games, teamId);
             }
 
             return await _context.Parks

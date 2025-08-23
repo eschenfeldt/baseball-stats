@@ -6,7 +6,7 @@ import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { BaseballApiFilter, BaseballFilterService } from '../../baseball-filter.service';
 import { BaseballApiService } from '../../baseball-api.service';
-import { combineLatest, Observable } from 'rxjs';
+import { combineLatest } from 'rxjs';
 import { MatTableModule } from '@angular/material/table';
 import { TypeSafeMatCellDef } from '../../type-safe-mat-cell-def.directive';
 import { TypeSafeMatRowDef } from '../../type-safe-mat-row-def.directive';
@@ -82,15 +82,6 @@ export class PlayerGamesComponent extends BaseballTableComponent<PlayerGamesPara
     }
     override defaultPageSize: number = 5;
 
-    public yearOptions$?: Observable<number[]>;
-
-    public get selectedYear(): number | undefined {
-        return this.filterService.getFilterValue<PlayerGamesParameters>(this.uniqueIdentifier, 'year');
-    }
-    public set selectedYear(value: number) {
-        this.filterService.setFilterValue<PlayerGamesParameters>(this.uniqueIdentifier, 'year', value);
-    }
-
     battingStats: StatDefCollection = {};
     pitchingStats: StatDefCollection = {};
     get pitchingStatNames(): string[] {
@@ -129,7 +120,6 @@ export class PlayerGamesComponent extends BaseballTableComponent<PlayerGamesPara
 
     private initialize(): void {
         this.filterService.setFilterValue<PlayerGamesParameters>(this.uniqueIdentifier, 'playerId', this.playerId);
-        this.yearOptions$ = this.api.makeApiGet<number[]>('player/years', { playerId: this.playerId }, false, false);
         this.uniqueIdentifierSet.emit(this.uniqueIdentifier);
     }
 
@@ -221,18 +211,6 @@ export class PlayerGamesComponent extends BaseballTableComponent<PlayerGamesPara
     public hideGroup(group: ColumnGroup) {
         this.optionalColumnGroupSelection = this.optionalColumnGroupSelection.filter(g => g !== group);
         this.updateColumns();
-    }
-
-    readonly filterOpenState = signal(false);
-
-    public get filterSummary(): string {
-        if (this.filterOpenState()) {
-            return '';
-        } else if (this.selectedYear) {
-            return `Year: ${this.selectedYear}`;
-        } else {
-            return '';
-        }
     }
 
     public gameDate(game: PlayerGame): string {

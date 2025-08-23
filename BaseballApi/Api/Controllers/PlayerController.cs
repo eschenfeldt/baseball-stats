@@ -128,9 +128,21 @@ namespace BaseballApi.Controllers
             int skip = 0,
             int take = 10,
             bool asc = false,
-            int? year = null)
+            int? year = null,
+            long? teamId = null,
+            long? parkId = null)
         {
-            var query = this.GetPlayerGamesQuery(playerId)
+            IQueryable<Game> games = _context.Games;
+            if (year.HasValue)
+            {
+                games = games.Where(g => g.Date.Year == year);
+            }
+            if (parkId.HasValue)
+            {
+                games = games.Where(g => g.LocationId == parkId);
+            }
+
+            var query = ConstructPlayerGamesQuery(playerId, games, teamId)
                 .Include(g => g.Home)
                 .Include(g => g.Away)
                 .Include(g => g.AwayBoxScore)
@@ -153,11 +165,6 @@ namespace BaseballApi.Controllers
                         .ThenInclude(p => p.Player)
                 .AsSplitQuery();
 
-            if (year.HasValue)
-            {
-                query = query.Where(g => g.Date.Year == year);
-            }
-
             var sorted = asc ? query.OrderBy(g => g.StartTime ?? g.ScheduledTime ?? g.Date.ToDateTime(TimeOnly.MinValue))
                 : query.OrderByDescending(g => g.StartTime ?? g.ScheduledTime ?? g.Date.ToDateTime(TimeOnly.MinValue));
 
@@ -174,31 +181,22 @@ namespace BaseballApi.Controllers
             };
         }
 
-        [HttpGet("years")]
-        public async Task<ActionResult<List<int>>> GetGameYears(long playerId)
-        {
-            IQueryable<Game> query = this.GetPlayerGamesQuery(playerId);
-
-            return await query.Select(g => g.Date.Year).Distinct().OrderBy(i => i).ToListAsync();
-        }
-
-        private IQueryable<Game> GetPlayerGamesQuery(long playerId)
-        {
-            return ConstructPlayerGamesQuery(playerId, _context.Games);
-        }
-
-        public static IQueryable<Game> ConstructPlayerGamesQuery(long playerId, IQueryable<Game> baseGames)
+        public static IQueryable<Game> ConstructPlayerGamesQuery(long playerId, IQueryable<Game> baseGames, long? teamId = null)
         {
             return baseGames
-                .Where(g => g.AwayBoxScore != null && (
+                .Where(g => (
+                    (teamId == null || g.Away.Id == teamId)
+                    && g.AwayBoxScore != null && (
                     g.AwayBoxScore.Batters.Any(b => b.PlayerId == playerId)
                     || g.AwayBoxScore.Pitchers.Any(p => p.PlayerId == playerId)
                     || g.AwayBoxScore.Fielders.Any(f => f.PlayerId == playerId)
-                ) || g.HomeBoxScore != null && (
+                )) || (
+                    (teamId == null || g.Home.Id == teamId)
+                    && g.HomeBoxScore != null && (
                     g.HomeBoxScore.Batters.Any(b => b.PlayerId == playerId)
                     || g.HomeBoxScore.Pitchers.Any(p => p.PlayerId == playerId)
                     || g.HomeBoxScore.Fielders.Any(f => f.PlayerId == playerId)
-                ));
+                )));
         }
     }
 }

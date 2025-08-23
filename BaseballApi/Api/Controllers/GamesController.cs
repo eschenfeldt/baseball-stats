@@ -174,7 +174,7 @@ namespace BaseballApi.Controllers
             }
             if (playerId.HasValue)
             {
-                query = PlayerController.ConstructPlayerGamesQuery(playerId.Value, query);
+                query = PlayerController.ConstructPlayerGamesQuery(playerId.Value, query, teamId);
             }
             return await query.Select(g => g.Date.Year).Distinct().OrderBy(i => i).ToListAsync();
         }

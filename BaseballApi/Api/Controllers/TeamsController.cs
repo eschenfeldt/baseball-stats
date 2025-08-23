@@ -38,13 +38,24 @@ namespace BaseballApi.Controllers
             {
                 games = games.Where(g => g.Date.Year == year);
             }
+            IQueryable<Game> awayGames = games;
+            IQueryable<Game> homeGames = games;
             if (playerId.HasValue)
             {
-                games = PlayerController.ConstructPlayerGamesQuery(playerId.Value, games);
+                // we want to scope to teams the player was actually on so this isn't a straight games filter
+                awayGames = games.Where(g => g.AwayBoxScore != null && (
+                    g.AwayBoxScore.Batters.Any(b => b.PlayerId == playerId)
+                    || g.AwayBoxScore.Pitchers.Any(p => p.PlayerId == playerId)
+                    || g.AwayBoxScore.Fielders.Any(f => f.PlayerId == playerId)));
+                homeGames = games.Where(g => g.HomeBoxScore != null && (
+                    g.HomeBoxScore.Batters.Any(b => b.PlayerId == playerId)
+                    || g.HomeBoxScore.Pitchers.Any(p => p.PlayerId == playerId)
+                    || g.HomeBoxScore.Fielders.Any(f => f.PlayerId == playerId)
+                ));
             }
 
-            var awayTeams = _context.Teams.Join(games, t => t.Id, g => g.Away.Id, (team, games) => team);
-            var homeTeams = _context.Teams.Join(games, t => t.Id, g => g.Home.Id, (team, games) => team);
+            var awayTeams = _context.Teams.Join(awayGames, t => t.Id, g => g.Away.Id, (team, games) => team);
+            var homeTeams = _context.Teams.Join(homeGames, t => t.Id, g => g.Home.Id, (team, games) => team);
             return await awayTeams.Union(homeTeams).OrderBy(t => t.City).ThenBy(t => t.Name).ToListAsync();
         }
 
