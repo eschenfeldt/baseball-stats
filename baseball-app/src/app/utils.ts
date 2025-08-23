@@ -1,9 +1,6 @@
-import { environment } from "../environments/environment";
-import { LeaderboardPlayer } from './contracts/leaderboard-player';
-import { StatDef } from './contracts/stat-def';
-import { StatFormat } from './contracts/stat-format';
+import { environment } from '../environments/environment';
 import { SummaryStat } from './contracts/summary-stat';
-import { Team } from "./contracts/team";
+import { Team } from './contracts/team';
 
 export class Utils {
 

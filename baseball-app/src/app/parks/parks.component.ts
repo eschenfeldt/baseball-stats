@@ -16,14 +16,14 @@ import { FilterOption, ListFiltersComponent } from '../util-components/list-filt
 @Component({
     selector: 'app-parks',
     imports: [
-    MatTableModule,
-    TypeSafeMatCellDef,
-    TypeSafeMatRowDef,
-    MatSortModule,
-    RouterModule,
-    InfiniteScrollDirective,
-    ListFiltersComponent
-],
+        MatTableModule,
+        TypeSafeMatCellDef,
+        TypeSafeMatRowDef,
+        MatSortModule,
+        RouterModule,
+        InfiniteScrollDirective,
+        ListFiltersComponent
+    ],
     templateUrl: './parks.component.html',
     styleUrl: './parks.component.scss'
 })

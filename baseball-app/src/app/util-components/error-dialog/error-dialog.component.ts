@@ -2,7 +2,6 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { BaseballApiService } from '../../baseball-api.service';
-import { Observable } from 'rxjs';
 
 export type ErrorData = string | HttpErrorResponse;
 

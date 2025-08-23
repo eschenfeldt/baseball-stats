@@ -19,15 +19,15 @@ import { FilterOption, ListFilterParams, ListFiltersComponent } from '../util-co
 @Component({
     selector: 'app-teams',
     imports: [
-    MatTableModule,
-    TypeSafeMatCellDef,
-    TypeSafeMatRowDef,
-    MatPaginatorModule,
-    MatSortModule,
-    RouterModule,
-    InfiniteScrollDirective,
-    ListFiltersComponent
-],
+        MatTableModule,
+        TypeSafeMatCellDef,
+        TypeSafeMatRowDef,
+        MatPaginatorModule,
+        MatSortModule,
+        RouterModule,
+        InfiniteScrollDirective,
+        ListFiltersComponent
+    ],
     templateUrl: './teams.component.html',
     styleUrl: './teams.component.scss'
 })
