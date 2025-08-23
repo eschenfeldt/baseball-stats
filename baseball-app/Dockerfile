@@ -1,8 +1,10 @@
 FROM node:alpine AS build
 
 WORKDIR /usr/src/app
+COPY package.json package-lock.json ./
+# install node packages before copying files to avoid copying node_modules
+RUN npm install 
 COPY . .
-RUN npm install
 RUN npm run build
 
 FROM nginx:latest AS prod
