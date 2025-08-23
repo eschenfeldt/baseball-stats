@@ -4,13 +4,16 @@ import { StatPipe } from '../../stat.pipe';
 import { Utils } from '../../utils';
 import { SummaryStat } from '../../contracts/summary-stat';
 import { StatCategory } from '../../contracts/stat-category';
+import { ActivatedRoute, Params, RouterModule } from '@angular/router';
+import { BASEBALL_ROUTES } from '../../app.routes';
 
 @Component({
     selector: 'app-summary-stats',
     standalone: true,
     imports: [
         MatCardModule,
-        StatPipe
+        StatPipe,
+        RouterModule
     ],
     templateUrl: './summary-stats.component.html',
     styleUrl: './summary-stats.component.scss'
@@ -55,6 +58,40 @@ export class SummaryStatsComponent {
     }
     public get partialInningsPitched(): string | null {
         return Utils.partialSummaryInningsPitched(this.summaryStats);
+    }
+
+    /**Convert all current path and query parameters into a query parameter array used to filter a target list*/
+    get allParams(): Params {
+        const params: Params = {}
+        // query parameters first so path parameters take priority if we have an overlap
+        this.route.snapshot.queryParamMap.keys.forEach(k => {
+            params[k] = this.route.snapshot.queryParamMap.get(k)
+        })
+        this.route.snapshot.paramMap.keys.forEach(k => {
+            params[k] = this.route.snapshot.paramMap.get(k)
+        })
+        return params;
+    }
+
+    public constructor(private route: ActivatedRoute) { }
+
+    public statRouterLink(stat: SummaryStat): string[] | null {
+        if (this.category !== StatCategory.general) {
+            return null;
+        } else {
+            switch (stat.definition.name) {
+                case 'Parks':
+                    return ['/', BASEBALL_ROUTES.PARKS]
+                case 'Games':
+                    return ['/', BASEBALL_ROUTES.GAMES]
+                case 'Teams':
+                    return ['/', BASEBALL_ROUTES.TEAMS]
+                case 'Players':
+                    return ['/', BASEBALL_ROUTES.LEADERS]
+                default:
+                    return null;
+            }
+        }
     }
 
 }

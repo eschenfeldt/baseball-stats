@@ -4,25 +4,20 @@ import { BaseballApiService } from '../baseball-api.service';
 import { MatTableModule } from '@angular/material/table';
 import { TypeSafeMatCellDef } from '../type-safe-mat-cell-def.directive';
 import { TypeSafeMatRowDef } from '../type-safe-mat-row-def.directive';
-import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { MatPaginatorModule } from '@angular/material/paginator';
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { MatSort, MatSortModule } from '@angular/material/sort';
-import { RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Team } from '../contracts/team';
 import { BaseballApiFilter, BaseballFilterService } from '../baseball-filter.service';
-import { Observable } from 'rxjs';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatSelectModule } from '@angular/material/select';
-import { MatInputModule } from '@angular/material/input';
-import { FormsModule } from '@angular/forms';
 import { Utils } from '../utils';
 import { SortPipe } from '../sort.pipe';
-import { MatExpansionModule } from '@angular/material/expansion';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { GameSummary } from '../contracts/game-summary';
 import { Park } from '../contracts/park';
 import { InfiniteScrollDirective } from 'ngx-infinite-scroll';
 import { BaseballTableComponent } from '../baseball-table-component';
+import { ListFiltersComponent } from '../util-components/list-filters/list-filters.component';
 
 @Component({
     selector: 'app-games',
@@ -33,21 +28,15 @@ import { BaseballTableComponent } from '../baseball-table-component';
         TypeSafeMatRowDef,
         MatPaginatorModule,
         MatSortModule,
-        AsyncPipe,
-        SortPipe,
         CommonModule,
         RouterModule,
-        FormsModule,
-        MatInputModule,
-        MatFormFieldModule,
-        MatSelectModule,
-        MatExpansionModule,
-        InfiniteScrollDirective
+        InfiniteScrollDirective,
+        ListFiltersComponent
     ],
     templateUrl: './games.component.html',
     styleUrl: './games.component.scss'
 })
-export class GamesComponent extends BaseballTableComponent<GamesListParams, GameSummary> implements OnInit, OnChanges {
+export class GamesComponent extends BaseballTableComponent<GamesListParams, GameSummary> implements OnChanges {
 
     @Input()
     public team?: Team
@@ -67,24 +56,15 @@ export class GamesComponent extends BaseballTableComponent<GamesListParams, Game
         'homeScore',
         'location',
     ];
-    displayedColumns = GamesComponent.allDisplayedColumns;
+    displayedColumns = GamesComponent.allDisplayedColumns
     protected override get defaultFilters(): BaseballApiFilter {
-        return {};
+        return {}
     }
 
-    public condenseInformation: boolean = false;
-
-    public yearOptions$?: Observable<number[]>;
-
-    public get selectedYear(): number | undefined {
-        return this.filterService.getFilterValue<GamesListParams>(this.uniqueIdentifier, 'year');
-    }
-    public set selectedYear(value: number) {
-        this.filterService.setFilterValue<GamesListParams>(this.uniqueIdentifier, 'year', value);
-    }
+    public condenseInformation: boolean = false
 
     constructor(
-        private api: BaseballApiService,
+        api: BaseballApiService,
         private filterService: BaseballFilterService,
         private breakpointObserver: BreakpointObserver
     ) {
@@ -100,11 +80,6 @@ export class GamesComponent extends BaseballTableComponent<GamesListParams, Game
                 this.condenseInformation = false;
             }
         });
-    }
-
-    public override ngOnInit(): void {
-        super.ngOnInit();
-        this.yearOptions$ = this.api.makeApiGet<number[]>('games/years', { teamId: this.team?.id, parkId: this.park?.id });
     }
 
     ngOnChanges(_changes: SimpleChanges): void {
@@ -139,18 +114,6 @@ export class GamesComponent extends BaseballTableComponent<GamesListParams, Game
     public endTime(game: GameSummary): string {
         if (game.endTime) {
             return Utils.formatTime(game.endTime);
-        } else {
-            return '';
-        }
-    }
-
-    readonly filterOpenState = signal(false);
-
-    public get filterSummary(): string {
-        if (this.filterOpenState()) {
-            return '';
-        } else if (this.selectedYear) {
-            return `Year: ${this.selectedYear}`;
         } else {
             return '';
         }

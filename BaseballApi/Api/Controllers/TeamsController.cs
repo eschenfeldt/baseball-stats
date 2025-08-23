@@ -1,15 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using BaseballApi;
 using BaseballApi.Models;
 using BaseballApi.Contracts;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.EntityFrameworkCore.Internal;
 
 namespace BaseballApi.Controllers
 {
@@ -26,18 +19,55 @@ namespace BaseballApi.Controllers
 
         // GET: api/Teams
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Team>>> GetTeams()
+        public async Task<ActionResult<IEnumerable<Team>>> GetTeams(long? parkId = null, int? year = null, long? playerId = null)
         {
-            return await _context.Teams.ToListAsync();
+            IQueryable<Game> games = _context.Games;
+            if (parkId.HasValue)
+            {
+                games = games.Where(g => g.LocationId == parkId);
+            }
+            if (year.HasValue)
+            {
+                games = games.Where(g => g.Date.Year == year);
+            }
+            IQueryable<Game> awayGames = games;
+            IQueryable<Game> homeGames = games;
+            if (playerId.HasValue)
+            {
+                // we want to scope to teams the player was actually on so this isn't a straight games filter
+                awayGames = games.Where(g => g.AwayBoxScore != null && (
+                    g.AwayBoxScore.Batters.Any(b => b.PlayerId == playerId)
+                    || g.AwayBoxScore.Pitchers.Any(p => p.PlayerId == playerId)
+                    || g.AwayBoxScore.Fielders.Any(f => f.PlayerId == playerId)));
+                homeGames = games.Where(g => g.HomeBoxScore != null && (
+                    g.HomeBoxScore.Batters.Any(b => b.PlayerId == playerId)
+                    || g.HomeBoxScore.Pitchers.Any(p => p.PlayerId == playerId)
+                    || g.HomeBoxScore.Fielders.Any(f => f.PlayerId == playerId)
+                ));
+            }
+
+            var awayTeams = _context.Teams.Join(awayGames, t => t.Id, g => g.Away.Id, (team, games) => team);
+            var homeTeams = _context.Teams.Join(homeGames, t => t.Id, g => g.Home.Id, (team, games) => team);
+            return await awayTeams.Union(homeTeams).OrderBy(t => t.City).ThenBy(t => t.Name).ToListAsync();
         }
 
         [HttpGet("summaries")]
-        public ActionResult<PagedResult<TeamSummary>> GetTeamSummaries(int skip, int take, string? sort = null, bool asc = false)
+        public ActionResult<PagedResult<TeamSummary>> GetTeamSummaries(int skip, int take, string? sort = null, bool asc = false, long? parkId = null, int? year = null)
         {
             TeamSummaryOrder order = sort.ToEnumOrDefault<TeamSummaryOrder, ParamValueAttribute>();
 
+            IQueryable<Game> games = _context.Games;
+            if (parkId.HasValue)
+            {
+                games = games.Where(g => g.LocationId == parkId);
+            }
+            if (year.HasValue)
+            {
+                games = games.Where(g => g.Date.Year == year);
+            }
+
             var awayGames = _context.Teams
-                .GroupJoin(_context.Games, t => t.Id, g => g.Away.Id, (team, games) => new
+                .GroupJoin(games, t => t.Id, g => g.Away.Id, (team, games) => new
                 {
                     Team = team,
                     Games = games.Count(),
@@ -47,7 +77,7 @@ namespace BaseballApi.Controllers
                     Parks = games.Select(g => g.LocationId).Distinct()
                 });
             var homeGames = _context.Teams
-                .GroupJoin(_context.Games, t => t.Id, g => g.Home.Id, (team, games) => new
+                .GroupJoin(games, t => t.Id, g => g.Home.Id, (team, games) => new
                 {
                     Team = team,
                     Games = games.Count(),
@@ -66,7 +96,7 @@ namespace BaseballApi.Controllers
                 Losses = ag.Losses + hg.Losses,
                 LastGameDate = ag.LastGame > hg.LastGame ? ag.LastGame : hg.LastGame,
                 Parks = ag.Parks.Union(hg.Parks).Count(id => id.HasValue)
-            }).AsEnumerable();
+            }).Where(t => t.Games > 0).AsEnumerable();
             var sorted = GetSorted(query, order, asc);
             return new PagedResult<TeamSummary>
             {

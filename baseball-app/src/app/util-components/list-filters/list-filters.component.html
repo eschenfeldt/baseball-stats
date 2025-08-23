@@ -1,0 +1,51 @@
+<mat-expansion-panel (opened)="filterOpenState.set(true)" (closed)="filterOpenState.set(false)">
+    <mat-expansion-panel-header>
+        <mat-panel-title>Filter</mat-panel-title>
+        <mat-panel-description>{{filterSummary}}</mat-panel-description>
+    </mat-expansion-panel-header>
+    <div class="filters">
+        @if (yearOptions$ | async; as yearOptions) {
+        <mat-form-field>
+            <mat-label>Year</mat-label>
+            <mat-select [(ngModel)]="selectedYear">
+                <mat-option [value]=""></mat-option>
+                @for (year of yearOptions| sort: null: 'desc'; track year) {
+                <mat-option [value]="year">{{year}}</mat-option>
+                }
+            </mat-select>
+        </mat-form-field>
+        }
+        @if (team == null) {
+        @if (teamOptions$ | async; as teamOptions) {
+        <mat-form-field>
+            <mat-label>Team</mat-label>
+            <mat-select [(ngModel)]="selectedTeamId">
+                <mat-option [value]=""></mat-option>
+                @for (team of teamOptions; track team.id) {
+                <mat-option [value]="team.id">{{team.city}} {{team.name}}</mat-option>
+                }
+            </mat-select>
+        </mat-form-field>
+        }
+        }
+        @if (park == null) {
+        @if (parkOptions$ | async; as parkOptions) {
+        <mat-form-field>
+            <mat-label>Park</mat-label>
+            <mat-select [(ngModel)]="selectedParkId">
+                <mat-option [value]=""></mat-option>
+                @for (park of parkOptions; track park.id) {
+                <mat-option [value]="park.id">{{park.name}}</mat-option>
+                }
+            </mat-select>
+        </mat-form-field>
+        }
+        }
+        @if (includePlayerSearch) {
+        <mat-form-field>
+            <mat-label>Search</mat-label>
+            <input type="text" matInput placeholder="Player Name" [(ngModel)]="search">
+        </mat-form-field>
+        }
+    </div>
+</mat-expansion-panel>

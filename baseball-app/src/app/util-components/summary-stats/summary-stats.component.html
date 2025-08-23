@@ -19,7 +19,12 @@
         } @else {
         <mat-card-header>
             <mat-card-title>
-                @if (stat.value !== null) {
+                @if (stat.value !== null && statRouterLink(stat) !== null) {
+                <a [routerLink]="statRouterLink(stat)" [queryParams]="allParams">
+                    {{stat.value | stat: stat.definition}}
+                </a>
+                }
+                @else if (stat.value !== null) {
                 {{stat.value | stat: stat.definition}}
                 } @else {
                 -

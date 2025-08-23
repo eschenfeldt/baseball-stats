@@ -33,7 +33,7 @@ namespace BaseballApi.Controllers
 
         // GET: api/Player/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<PlayerSummary>> GetPlayer(long id)
+        public async Task<ActionResult<PlayerSummary>> GetPlayer(long id, long? teamId = null, long? parkId = null, int? year = null)
         {
             Player? player = await _context.Players
                 .Include(p => p.Media)
@@ -46,7 +46,7 @@ namespace BaseballApi.Controllers
                 return NotFound();
             }
 
-            return await this.GetPlayerSummary(player);
+            return await this.GetPlayerSummary(player, teamId, parkId, year);
         }
 
         [HttpGet("random")]
@@ -79,7 +79,7 @@ namespace BaseballApi.Controllers
             return await this.GetPlayerSummary(player);
         }
 
-        private async Task<PlayerSummary> GetPlayerSummary(Player player)
+        private async Task<PlayerSummary> GetPlayerSummary(Player player, long? teamId = null, long? parkId = null, int? year = null)
         {
             PlayerSummary summary = new()
             {
@@ -89,7 +89,10 @@ namespace BaseballApi.Controllers
 
             var calculator = new StatCalculator(_context)
             {
-                PlayerId = player.Id
+                PlayerId = player.Id,
+                TeamId = teamId,
+                ParkId = parkId,
+                Year = year
             };
 
             var aggregateBatting = await calculator.GetBattingStats().FirstOrDefaultAsync();
@@ -128,9 +131,21 @@ namespace BaseballApi.Controllers
             int skip = 0,
             int take = 10,
             bool asc = false,
-            int? year = null)
+            int? year = null,
+            long? teamId = null,
+            long? parkId = null)
         {
-            var query = this.GetPlayerGamesQuery(playerId)
+            IQueryable<Game> games = _context.Games;
+            if (year.HasValue)
+            {
+                games = games.Where(g => g.Date.Year == year);
+            }
+            if (parkId.HasValue)
+            {
+                games = games.Where(g => g.LocationId == parkId);
+            }
+
+            var query = ConstructPlayerGamesQuery(playerId, games, teamId)
                 .Include(g => g.Home)
                 .Include(g => g.Away)
                 .Include(g => g.AwayBoxScore)
@@ -153,11 +168,6 @@ namespace BaseballApi.Controllers
                         .ThenInclude(p => p.Player)
                 .AsSplitQuery();
 
-            if (year.HasValue)
-            {
-                query = query.Where(g => g.Date.Year == year);
-            }
-
             var sorted = asc ? query.OrderBy(g => g.StartTime ?? g.ScheduledTime ?? g.Date.ToDateTime(TimeOnly.MinValue))
                 : query.OrderByDescending(g => g.StartTime ?? g.ScheduledTime ?? g.Date.ToDateTime(TimeOnly.MinValue));
 
@@ -174,26 +184,22 @@ namespace BaseballApi.Controllers
             };
         }
 
-        [HttpGet("years")]
-        public async Task<ActionResult<List<int>>> GetGameYears(long playerId)
+        public static IQueryable<Game> ConstructPlayerGamesQuery(long playerId, IQueryable<Game> baseGames, long? teamId = null)
         {
-            IQueryable<Game> query = this.GetPlayerGamesQuery(playerId);
-
-            return await query.Select(g => g.Date.Year).Distinct().OrderBy(i => i).ToListAsync();
-        }
-
-        private IQueryable<Game> GetPlayerGamesQuery(long playerId)
-        {
-            return _context.Games
-                .Where(g => g.AwayBoxScore != null && (
+            return baseGames
+                .Where(g => (
+                    (teamId == null || g.Away.Id == teamId)
+                    && g.AwayBoxScore != null && (
                     g.AwayBoxScore.Batters.Any(b => b.PlayerId == playerId)
                     || g.AwayBoxScore.Pitchers.Any(p => p.PlayerId == playerId)
                     || g.AwayBoxScore.Fielders.Any(f => f.PlayerId == playerId)
-                ) || g.HomeBoxScore != null && (
+                )) || (
+                    (teamId == null || g.Home.Id == teamId)
+                    && g.HomeBoxScore != null && (
                     g.HomeBoxScore.Batters.Any(b => b.PlayerId == playerId)
                     || g.HomeBoxScore.Pitchers.Any(p => p.PlayerId == playerId)
                     || g.HomeBoxScore.Fielders.Any(f => f.PlayerId == playerId)
-                ));
+                )));
         }
     }
 }

@@ -160,7 +160,7 @@ namespace BaseballApi.Controllers
         }
 
         [HttpGet("years")]
-        public async Task<ActionResult<List<int>>> GetGameYears(long? teamId = null, long? parkId = null)
+        public async Task<ActionResult<List<int>>> GetGameYears(long? teamId = null, long? parkId = null, long? playerId = null)
         {
             IQueryable<Game> query = _context.Games;
 
@@ -171,6 +171,10 @@ namespace BaseballApi.Controllers
             if (parkId.HasValue)
             {
                 query = query.Where(g => g.LocationId == parkId);
+            }
+            if (playerId.HasValue)
+            {
+                query = PlayerController.ConstructPlayerGamesQuery(playerId.Value, query, teamId);
             }
             return await query.Select(g => g.Date.Year).Distinct().OrderBy(i => i).ToListAsync();
         }

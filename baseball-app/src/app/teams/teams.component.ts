@@ -14,6 +14,7 @@ import { BaseballFilterService, BaseballApiFilter } from '../baseball-filter.ser
 import { Team } from '../contracts/team';
 import { Utils } from '../utils';
 import { InfiniteScrollDirective } from 'ngx-infinite-scroll';
+import { FilterOption, ListFilterParams, ListFiltersComponent } from '../util-components/list-filters/list-filters.component';
 
 @Component({
     selector: 'app-teams',
@@ -27,7 +28,8 @@ import { InfiniteScrollDirective } from 'ngx-infinite-scroll';
         AsyncPipe,
         CommonModule,
         RouterModule,
-        InfiniteScrollDirective
+        InfiniteScrollDirective,
+        ListFiltersComponent
     ],
     templateUrl: './teams.component.html',
     styleUrl: './teams.component.scss'
@@ -40,7 +42,7 @@ export class TeamsComponent extends BaseballTableComponent<PagedApiParameters, T
     protected sort!: MatSort;
 
     dataSource: TeamsDataSource;
-    displayedColumns = [
+    private static readonly allColumns = [
         'team',
         'lastGame',
         'games',
@@ -48,7 +50,9 @@ export class TeamsComponent extends BaseballTableComponent<PagedApiParameters, T
         'losses',
         'parks'
     ]
+    displayedColumns = TeamsComponent.allColumns
     protected override defaultFilters?: BaseballApiFilter = {};
+    readonly hideTeamFilter = FilterOption.hide
 
     backgroundColor(team: Team): string {
         return Utils.transparentTeamColor(team, 20);
@@ -67,6 +71,14 @@ export class TeamsComponent extends BaseballTableComponent<PagedApiParameters, T
             true,
             this.defaultFilters
         );
+        this.filterService.filtersChanged$(this.uniqueIdentifier).subscribe(() => {
+            if (this.filterService.getFilterValue<ListFilterParams>(this.uniqueIdentifier, 'parkId')) {
+                // hide this column that would just always show 1 with a misleading link
+                this.displayedColumns = TeamsComponent.allColumns.filter(c => c !== 'parks')
+            } else {
+                this.displayedColumns = TeamsComponent.allColumns
+            }
+        })
     }
 
     lastGameDate(team: TeamSummary): string {

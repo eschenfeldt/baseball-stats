@@ -25,6 +25,8 @@ public class LeaderboardController : ControllerBase
         {
             Year = leaderboardParams.Year,
             PlayerId = leaderboardParams.PlayerId,
+            TeamId = leaderboardParams.TeamId,
+            ParkId = leaderboardParams.ParkId,
             PlayerSearch = leaderboardParams.PlayerSearch,
             MinPlateAppearances = leaderboardParams.MinPlateAppearances,
             OrderBy = leaderboardParams.Sort,
@@ -75,6 +77,8 @@ public class LeaderboardController : ControllerBase
         {
             Year = leaderboardParams.Year,
             PlayerId = leaderboardParams.PlayerId,
+            TeamId = leaderboardParams.TeamId,
+            ParkId = leaderboardParams.ParkId,
             PlayerSearch = leaderboardParams.PlayerSearch,
             MinInningsPitched = leaderboardParams.MinInningsPitched,
             OrderBy = leaderboardParams.Sort,

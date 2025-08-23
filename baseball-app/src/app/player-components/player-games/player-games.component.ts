@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnChanges, Output, signal, ViewChild } from '@angular/core';
+import { Component, Input, OnChanges, ViewChild } from '@angular/core';
 import { BaseballTableComponent } from '../../baseball-table-component';
 import { PlayerGamesDataSource, PlayerGamesParameters } from './player-games-datasource';
 import { PlayerGame } from '../../contracts/player-game';
@@ -6,7 +6,7 @@ import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { BaseballApiFilter, BaseballFilterService } from '../../baseball-filter.service';
 import { BaseballApiService } from '../../baseball-api.service';
-import { combineLatest, Observable } from 'rxjs';
+import { combineLatest } from 'rxjs';
 import { MatTableModule } from '@angular/material/table';
 import { TypeSafeMatCellDef } from '../../type-safe-mat-cell-def.directive';
 import { TypeSafeMatRowDef } from '../../type-safe-mat-row-def.directive';
@@ -22,6 +22,7 @@ import { StatPipe } from '../../stat.pipe';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { SortPipe } from '../../sort.pipe';
+import { ListFiltersComponent } from '../../util-components/list-filters/list-filters.component';
 
 enum ColumnGroup {
     general = 'general',
@@ -50,7 +51,8 @@ enum ColumnGroup {
         CommonModule,
         RouterModule,
         StatPipe,
-        SortPipe
+        SortPipe,
+        ListFiltersComponent
     ],
     templateUrl: './player-games.component.html',
     styleUrl: './player-games.component.scss'
@@ -62,9 +64,6 @@ export class PlayerGamesComponent extends BaseballTableComponent<PlayerGamesPara
 
     @ViewChild(MatPaginator) paginator!: MatPaginator;
     @ViewChild(MatSort) sort!: MatSort;
-
-    @Output()
-    public uniqueIdentifierSet = new EventEmitter<string>();
 
     dataSource: PlayerGamesDataSource;
     displayedColumns: string[] = [
@@ -79,15 +78,6 @@ export class PlayerGamesComponent extends BaseballTableComponent<PlayerGamesPara
         return {};
     }
     override defaultPageSize: number = 5;
-
-    public yearOptions$?: Observable<number[]>;
-
-    public get selectedYear(): number | undefined {
-        return this.filterService.getFilterValue<PlayerGamesParameters>(this.uniqueIdentifier, 'year');
-    }
-    public set selectedYear(value: number) {
-        this.filterService.setFilterValue<PlayerGamesParameters>(this.uniqueIdentifier, 'year', value);
-    }
 
     battingStats: StatDefCollection = {};
     pitchingStats: StatDefCollection = {};
@@ -127,8 +117,6 @@ export class PlayerGamesComponent extends BaseballTableComponent<PlayerGamesPara
 
     private initialize(): void {
         this.filterService.setFilterValue<PlayerGamesParameters>(this.uniqueIdentifier, 'playerId', this.playerId);
-        this.yearOptions$ = this.api.makeApiGet<number[]>('player/years', { playerId: this.playerId }, false, false);
-        this.uniqueIdentifierSet.emit(this.uniqueIdentifier);
     }
 
     public getStat(playerGame: PlayerGame, statName: string, statGroup: ColumnGroup): number | null {
@@ -219,18 +207,6 @@ export class PlayerGamesComponent extends BaseballTableComponent<PlayerGamesPara
     public hideGroup(group: ColumnGroup) {
         this.optionalColumnGroupSelection = this.optionalColumnGroupSelection.filter(g => g !== group);
         this.updateColumns();
-    }
-
-    readonly filterOpenState = signal(false);
-
-    public get filterSummary(): string {
-        if (this.filterOpenState()) {
-            return '';
-        } else if (this.selectedYear) {
-            return `Year: ${this.selectedYear}`;
-        } else {
-            return '';
-        }
     }
 
     public gameDate(game: PlayerGame): string {

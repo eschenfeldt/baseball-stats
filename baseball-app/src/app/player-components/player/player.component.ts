@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { BaseballApiService } from '../../baseball-api.service';
-import { Observable, switchMap } from 'rxjs';
-import { RouterModule } from '@angular/router';
+import { combineLatestWith, mergeWith, Observable, switchMap } from 'rxjs';
+import { ActivatedRoute, RouterModule } from '@angular/router';
 import { param } from '../../param.decorator';
 import { BASEBALL_ROUTES } from '../../app.routes';
 import { AsyncPipe } from '@angular/common';
@@ -32,21 +32,17 @@ export class PlayerComponent implements OnInit {
     playerId$!: Observable<number>
     player$?: Observable<PlayerSummary>;
 
-    gamesIdentifier?: string;
-
     constructor(
-        private api: BaseballApiService
+        private api: BaseballApiService,
+        private route: ActivatedRoute
     ) { }
 
     ngOnInit(): void {
         this.player$ = this.playerId$.pipe(
-            switchMap((playerId) => {
-                return this.api.makeApiGet<PlayerSummary>(`player/${playerId}`);
+            combineLatestWith(this.route.queryParams),
+            switchMap(([playerId, params]) => {
+                return this.api.makeApiGet<PlayerSummary>(`player/${playerId}`, params);
             }));
-    }
-
-    setGamesIdentifier(value: string): void {
-        this.gamesIdentifier = value;
     }
 
     hasStatCategory(player: PlayerSummary, category: StatCategory): boolean {

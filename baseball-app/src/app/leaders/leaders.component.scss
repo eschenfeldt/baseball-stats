@@ -7,14 +7,24 @@ $table-margin: 15pt;
     flex-wrap: wrap;
     justify-content: space-around;
     align-items: center;
-    column-gap: 10pt;
+    column-gap: 5pt;
     row-gap: 5pt;
-    margin: $table-margin
+
+    margin: $table-margin mat-button-toggle-group {
+        flex-shrink: 0;
+        flex-grow: 0
+    }
 }
 
-mat-expansion-panel {
+.filters-container {
+
+    flex-shrink: 10;
+    flex-grow: 0.1;
+    min-width: 0;
+    max-width: 69%;
+
     @media (max-width: 500pt) {
-        max-width: 144pt;
+        max-width: 166pt;
     }
 }
 

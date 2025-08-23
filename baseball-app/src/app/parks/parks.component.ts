@@ -1,7 +1,6 @@
 import { Component, ViewChild } from '@angular/core';
 import { ParksDataSource, ParkSummary, ParkSummaryParameters } from './parks-datasource';
 import { BaseballTableComponent } from '../baseball-table-component';
-import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { BaseballApiFilter, BaseballFilterService } from '../baseball-filter.service';
 import { ApiMethod, BaseballApiService } from '../baseball-api.service';
@@ -12,6 +11,7 @@ import { RouterModule } from '@angular/router';
 import { TypeSafeMatCellDef } from '../type-safe-mat-cell-def.directive';
 import { TypeSafeMatRowDef } from '../type-safe-mat-row-def.directive';
 import { InfiniteScrollDirective } from 'ngx-infinite-scroll';
+import { FilterOption, ListFiltersComponent } from '../util-components/list-filters/list-filters.component';
 
 @Component({
     selector: 'app-parks',
@@ -20,12 +20,12 @@ import { InfiniteScrollDirective } from 'ngx-infinite-scroll';
         MatTableModule,
         TypeSafeMatCellDef,
         TypeSafeMatRowDef,
-        MatPaginatorModule,
         MatSortModule,
         AsyncPipe,
         CommonModule,
         RouterModule,
-        InfiniteScrollDirective
+        InfiniteScrollDirective,
+        ListFiltersComponent
     ],
     templateUrl: './parks.component.html',
     styleUrl: './parks.component.scss'
@@ -47,7 +47,7 @@ export class ParksComponent extends BaseballTableComponent<ParkSummaryParameters
         'teams'
     ]
     protected override defaultFilters?: BaseballApiFilter = {};
-
+    public readonly hideParkFilter: FilterOption = FilterOption.hide;
 
     constructor(
         api: BaseballApiService,
