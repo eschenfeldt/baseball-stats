@@ -43,12 +43,17 @@ public class ImportTests(TestImportDatabaseFixture fixture) : IClassFixture<Test
         await context.SaveChangesAsync();
         Assert.NotEqual(0, park.Id);
 
+        // The park and team endpoints filter out entries with no associated games, so also check the db
         var parksBefore = await parkController.GetParks();
         Assert.NotNull(parksBefore.Value);
-        Assert.Single(parksBefore.Value);
+        Assert.Empty(parksBefore.Value);
+        var parkCount = await context.Parks.CountAsync();
+        Assert.Equal(1, parkCount);
         var teamsBefore = await teamsController.GetTeams();
         Assert.NotNull(teamsBefore.Value);
-        Assert.Single(teamsBefore.Value);
+        Assert.Empty(teamsBefore.Value);
+        var teamCount = await context.Teams.CountAsync();
+        Assert.Equal(1, teamCount);
         var playersBefore = await playerController.GetPlayers();
         Assert.NotNull(playersBefore.Value);
         Assert.Single(playersBefore.Value);
@@ -145,12 +150,13 @@ public class ImportTests(TestImportDatabaseFixture fixture) : IClassFixture<Test
             Assert.NotNull(teamsAfter.Value);
             Assert.Collection(teamsAfter.Value, t =>
             {
-                Assert.Equal("Washington", t.City);
-                Assert.Equal("Nationals", t.Name);
-            }, t =>
-            {
                 Assert.Equal("St. Louis", t.City);
                 Assert.Equal("Cardinals", t.Name);
+            },
+            t =>
+            {
+                Assert.Equal("Washington", t.City);
+                Assert.Equal("Nationals", t.Name);
             });
         }
         await ValidateTeams();
