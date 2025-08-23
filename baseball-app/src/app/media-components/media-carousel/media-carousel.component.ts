@@ -102,7 +102,13 @@ export class MediaCarouselComponent implements OnInit {
     headerText(focusedItem: RemoteOriginal): string {
         const file = focusedItem.photo || focusedItem.video;
         if (focusedItem.gameName) {
-            return `${focusedItem.gameName} - ${Utils.formatTime(file.dateTime)}`;
+            const gameDate = Utils.formatDate(focusedItem.gameDate);
+            const fileDate = Utils.formatDate(file.dateTime);
+            if (gameDate === fileDate) {
+                return `${focusedItem.gameName} - ${Utils.formatTime(file.dateTime)}`;
+            } else {
+                return `${focusedItem.gameName} - ${Utils.formatDateTime(file.dateTime)}`;
+            }
         } else {
             return Utils.formatDateTime(file.dateTime);
         }
