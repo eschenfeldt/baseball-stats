@@ -10,8 +10,6 @@ import { BatterLeaderboardParams } from '../leaderboard-batters/leaderboard-batt
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { zip } from 'rxjs';
 import { MatSelectModule } from '@angular/material/select';
-import { AsyncPipe } from '@angular/common';
-import { SortPipe } from '../sort.pipe';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { ListFiltersComponent } from '../util-components/list-filters/list-filters.component';
@@ -27,8 +25,6 @@ import { ListFiltersComponent } from '../util-components/list-filters/list-filte
         MatButtonToggleModule,
         MatSelectModule,
         MatExpansionModule,
-        AsyncPipe,
-        SortPipe,
         ListFiltersComponent
     ],
     templateUrl: './leaders.component.html',

@@ -1,16 +1,12 @@
 import { Component, OnInit } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { GameCardComponent } from '../game-card/game-card.component';
 import { BaseballApiService } from '../../baseball-api.service';
 import { Observable } from 'rxjs';
 import { GameSummary } from '../../contracts/game-summary';
-import { GameDetail } from '../../contracts/game-detail';
 import { AsyncPipe } from '@angular/common';
 import { PlayerCardComponent } from '../player-card/player-card.component';
 import { PlayerSummary } from '../../contracts/player-summary';
 import { SummaryStat } from '../../contracts/summary-stat';
-import { SummaryStatsComponent } from '../../util-components/summary-stats/summary-stats.component';
-import { StatCategory } from '../../contracts/stat-category';
 import { SummaryStatsCardComponent } from '../../util-components/summary-stats-card/summary-stats-card.component';
 
 @Component({
@@ -18,7 +14,6 @@ import { SummaryStatsCardComponent } from '../../util-components/summary-stats-c
     templateUrl: './home.component.html',
     styleUrl: './home.component.scss',
     imports: [
-        RouterLink,
         AsyncPipe,
         SummaryStatsCardComponent,
         GameCardComponent,

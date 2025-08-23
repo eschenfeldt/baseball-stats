@@ -8,7 +8,7 @@ import { TeamsDataSource, TeamSummary } from './teams-datasource';
 import { MatTableModule } from '@angular/material/table';
 import { TypeSafeMatCellDef } from '../type-safe-mat-cell-def.directive';
 import { TypeSafeMatRowDef } from '../type-safe-mat-row-def.directive';
-import { AsyncPipe, CommonModule } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { BaseballFilterService, BaseballApiFilter } from '../baseball-filter.service';
 import { Team } from '../contracts/team';
@@ -24,7 +24,6 @@ import { FilterOption, ListFilterParams, ListFiltersComponent } from '../util-co
         TypeSafeMatRowDef,
         MatPaginatorModule,
         MatSortModule,
-        AsyncPipe,
         CommonModule,
         RouterModule,
         InfiniteScrollDirective,
