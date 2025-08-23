@@ -33,7 +33,7 @@ namespace BaseballApi.Controllers
 
         // GET: api/Player/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<PlayerSummary>> GetPlayer(long id)
+        public async Task<ActionResult<PlayerSummary>> GetPlayer(long id, long? teamId = null, long? parkId = null, int? year = null)
         {
             Player? player = await _context.Players
                 .Include(p => p.Media)
@@ -46,7 +46,7 @@ namespace BaseballApi.Controllers
                 return NotFound();
             }
 
-            return await this.GetPlayerSummary(player);
+            return await this.GetPlayerSummary(player, teamId, parkId, year);
         }
 
         [HttpGet("random")]
@@ -79,7 +79,7 @@ namespace BaseballApi.Controllers
             return await this.GetPlayerSummary(player);
         }
 
-        private async Task<PlayerSummary> GetPlayerSummary(Player player)
+        private async Task<PlayerSummary> GetPlayerSummary(Player player, long? teamId = null, long? parkId = null, int? year = null)
         {
             PlayerSummary summary = new()
             {
@@ -89,7 +89,10 @@ namespace BaseballApi.Controllers
 
             var calculator = new StatCalculator(_context)
             {
-                PlayerId = player.Id
+                PlayerId = player.Id,
+                TeamId = teamId,
+                ParkId = parkId,
+                Year = year
             };
 
             var aggregateBatting = await calculator.GetBattingStats().FirstOrDefaultAsync();
