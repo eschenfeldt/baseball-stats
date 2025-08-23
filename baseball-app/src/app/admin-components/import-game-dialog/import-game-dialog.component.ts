@@ -5,7 +5,7 @@ import { MatInput, MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
 import { MatDialogActions, MatDialogClose, MatDialogContent, MatDialogRef, MatDialogTitle } from '@angular/material/dialog';
-import { NgFor, NgIf } from '@angular/common';
+
 import { BaseballApiService } from '../../baseball-api.service';
 import { Team } from '../../contracts/team';
 import { GameMetadata } from '../../contracts/game-metadata';
@@ -13,21 +13,19 @@ import { GameMetadata } from '../../contracts/game-metadata';
 @Component({
     selector: 'app-import-game-dialog',
     imports: [
-        NgIf,
-        NgFor,
-        FormsModule,
-        ReactiveFormsModule,
-        MatLabel,
-        MatInput,
-        MatFormField,
-        MatDialogTitle,
-        MatDialogContent,
-        MatDialogActions,
-        MatDialogClose,
-        MatButtonModule,
-        MatSelectModule,
-        MatInputModule
-    ],
+    FormsModule,
+    ReactiveFormsModule,
+    MatLabel,
+    MatInput,
+    MatFormField,
+    MatDialogTitle,
+    MatDialogContent,
+    MatDialogActions,
+    MatDialogClose,
+    MatButtonModule,
+    MatSelectModule,
+    MatInputModule
+],
     templateUrl: './import-game-dialog.component.html',
     styleUrl: './import-game-dialog.component.scss'
 })

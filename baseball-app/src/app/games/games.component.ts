@@ -5,7 +5,7 @@ import { MatTableModule } from '@angular/material/table';
 import { TypeSafeMatCellDef } from '../type-safe-mat-cell-def.directive';
 import { TypeSafeMatRowDef } from '../type-safe-mat-row-def.directive';
 import { MatPaginatorModule } from '@angular/material/paginator';
-import { AsyncPipe, CommonModule } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Team } from '../contracts/team';
@@ -22,16 +22,15 @@ import { ListFiltersComponent } from '../util-components/list-filters/list-filte
 @Component({
     selector: 'app-games',
     imports: [
-        MatTableModule,
-        TypeSafeMatCellDef,
-        TypeSafeMatRowDef,
-        MatPaginatorModule,
-        MatSortModule,
-        CommonModule,
-        RouterModule,
-        InfiniteScrollDirective,
-        ListFiltersComponent
-    ],
+    MatTableModule,
+    TypeSafeMatCellDef,
+    TypeSafeMatRowDef,
+    MatPaginatorModule,
+    MatSortModule,
+    RouterModule,
+    InfiniteScrollDirective,
+    ListFiltersComponent
+],
     templateUrl: './games.component.html',
     styleUrl: './games.component.scss'
 })

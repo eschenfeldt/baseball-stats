@@ -6,7 +6,7 @@ import { BaseballApiFilter, BaseballFilterService } from '../baseball-filter.ser
 import { ApiMethod, BaseballApiService } from '../baseball-api.service';
 import { Utils } from '../utils';
 import { MatTableModule } from '@angular/material/table';
-import { CommonModule } from '@angular/common';
+
 import { RouterModule } from '@angular/router';
 import { TypeSafeMatCellDef } from '../type-safe-mat-cell-def.directive';
 import { TypeSafeMatRowDef } from '../type-safe-mat-row-def.directive';
@@ -16,15 +16,14 @@ import { FilterOption, ListFiltersComponent } from '../util-components/list-filt
 @Component({
     selector: 'app-parks',
     imports: [
-        MatTableModule,
-        TypeSafeMatCellDef,
-        TypeSafeMatRowDef,
-        MatSortModule,
-        CommonModule,
-        RouterModule,
-        InfiniteScrollDirective,
-        ListFiltersComponent
-    ],
+    MatTableModule,
+    TypeSafeMatCellDef,
+    TypeSafeMatRowDef,
+    MatSortModule,
+    RouterModule,
+    InfiniteScrollDirective,
+    ListFiltersComponent
+],
     templateUrl: './parks.component.html',
     styleUrl: './parks.component.scss'
 })

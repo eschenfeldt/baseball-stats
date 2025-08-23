@@ -1,67 +1,73 @@
 <h2 mat-dialog-title>
-    Import Game from iScore Baseball
+  Import Game from iScore Baseball
 </h2>
 <mat-dialog-content>
-    <p>
-        Upload files emailed from iScore Baseball and enter the following details:
-    </p>
-    <div class="details">
-        <mat-form-field>
-            <ul *ngIf="filesUploaded">
-                <li *ngFor="let fileName of fileNames">
-                    {{fileName}}
-                </li>
-            </ul>
-            <span *ngIf="!filesUploaded"></span>
-            <input type="file" class="file-input" (change)="onFileSelected($event)" #zipFileUpload multiple>
-            <input matInput>
-            <button mat-button (click)="zipFileUpload.click()">Upload</button>
-        </mat-form-field>
-        <form [formGroup]="metadata">
-            <mat-form-field>
-                <mat-label>Away Team</mat-label>
-                <mat-select formControlName="away">
-                    @for (team of teams; track team.id) {
-                    <mat-option [value]="team">{{team.city}} {{team.name}}</mat-option>
-                    }
-                </mat-select>
-            </mat-form-field>
-            <mat-form-field>
-                <mat-label>Home Team</mat-label>
-                <mat-select formControlName="home">
-                    @for (team of teams; track team.id) {
-                    <mat-option [value]="team">{{team.city}} {{team.name}}</mat-option>
-                    }
-                </mat-select>
-            </mat-form-field>
-            <mat-form-field>
-                <mat-label>Scheduled Start Date</mat-label>
-                <input type="date" formControlName="scheduledStartDate" matInput>
-            </mat-form-field>
-            <mat-form-field>
-                <mat-label>Time</mat-label>
-                <input type="time" formControlName="scheduledStartTime" matInput>
-            </mat-form-field>
-            <mat-form-field>
-                <mat-label>Actual Start Date</mat-label>
-                <input type="date" formControlName="actualStartDate" matInput>
-            </mat-form-field>
-            <mat-form-field>
-                <mat-label>Time</mat-label>
-                <input type="time" formControlName="actualStartTime" matInput>
-            </mat-form-field>
-            <mat-form-field>
-                <mat-label>End Date</mat-label>
-                <input type="date" formControlName="endDate" matInput>
-            </mat-form-field>
-            <mat-form-field>
-                <mat-label>Time</mat-label>
-                <input type="time" formControlName="endTime" matInput>
-            </mat-form-field>
-        </form>
-    </div>
+  <p>
+    Upload files emailed from iScore Baseball and enter the following details:
+  </p>
+  <div class="details">
+    <mat-form-field>
+      @if (filesUploaded) {
+        <ul>
+          @for (fileName of fileNames; track fileName) {
+            <li>
+              {{fileName}}
+            </li>
+          }
+        </ul>
+      }
+      @if (!filesUploaded) {
+        <span></span>
+      }
+      <input type="file" class="file-input" (change)="onFileSelected($event)" #zipFileUpload multiple>
+      <input matInput>
+      <button mat-button (click)="zipFileUpload.click()">Upload</button>
+    </mat-form-field>
+    <form [formGroup]="metadata">
+      <mat-form-field>
+        <mat-label>Away Team</mat-label>
+        <mat-select formControlName="away">
+          @for (team of teams; track team.id) {
+            <mat-option [value]="team">{{team.city}} {{team.name}}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field>
+        <mat-label>Home Team</mat-label>
+        <mat-select formControlName="home">
+          @for (team of teams; track team.id) {
+            <mat-option [value]="team">{{team.city}} {{team.name}}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field>
+        <mat-label>Scheduled Start Date</mat-label>
+        <input type="date" formControlName="scheduledStartDate" matInput>
+      </mat-form-field>
+      <mat-form-field>
+        <mat-label>Time</mat-label>
+        <input type="time" formControlName="scheduledStartTime" matInput>
+      </mat-form-field>
+      <mat-form-field>
+        <mat-label>Actual Start Date</mat-label>
+        <input type="date" formControlName="actualStartDate" matInput>
+      </mat-form-field>
+      <mat-form-field>
+        <mat-label>Time</mat-label>
+        <input type="time" formControlName="actualStartTime" matInput>
+      </mat-form-field>
+      <mat-form-field>
+        <mat-label>End Date</mat-label>
+        <input type="date" formControlName="endDate" matInput>
+      </mat-form-field>
+      <mat-form-field>
+        <mat-label>Time</mat-label>
+        <input type="time" formControlName="endTime" matInput>
+      </mat-form-field>
+    </form>
+  </div>
 </mat-dialog-content>
 <mat-dialog-actions>
-    <button mat-button [disabled]="!filesUploaded" (click)="import()">Import</button>
-    <button mat-button mat-dialog-close>Close</button>
+  <button mat-button [disabled]="!filesUploaded" (click)="import()">Import</button>
+  <button mat-button mat-dialog-close>Close</button>
 </mat-dialog-actions>
