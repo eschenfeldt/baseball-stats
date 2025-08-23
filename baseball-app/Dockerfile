@@ -2,7 +2,7 @@ FROM node:alpine AS build
 
 WORKDIR /usr/src/app
 COPY package.json package-lock.json ./
-# install node packages before copying files to avoid copying node_modules
+# install node packages before copying files to avoid copying node_modules between architectures
 RUN npm install 
 COPY . .
 RUN npm run build
