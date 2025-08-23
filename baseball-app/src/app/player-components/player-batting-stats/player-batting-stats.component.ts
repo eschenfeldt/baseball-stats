@@ -14,6 +14,7 @@ import { TypeSafeMatCellDef } from '../../type-safe-mat-cell-def.directive';
 import { TypeSafeMatRowDef } from '../../type-safe-mat-row-def.directive';
 import { StatPipe } from '../../stat.pipe';
 import { PlayerGamesParameters } from '../player-games/player-games-datasource';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
     selector: 'app-player-batting-stats',
@@ -42,9 +43,6 @@ export class PlayerBattingStatsComponent extends BaseballTableComponent<BatterLe
     @ViewChild(MatSort)
     protected sort!: MatSort;
 
-    @Output()
-    public uniqueIdentifierSet = new EventEmitter<string>();
-
     dataSource: LeaderboardBattersDataSource;
     displayedColumns: string[] = [
         'year'
@@ -62,9 +60,31 @@ export class PlayerBattingStatsComponent extends BaseballTableComponent<BatterLe
         return Object.keys(this.stats);
     }
 
+    private get teamId(): number | undefined {
+        return this.filterService.getFilterValue<BatterLeaderboardParams>(this.uniqueIdentifier, 'teamId')
+    }
+    private set teamId(value: number | undefined) {
+        this.filterService.setFilterValue<BatterLeaderboardParams>(this.uniqueIdentifier, 'teamId', value)
+    }
+
+    private get parkId(): number | undefined {
+        return this.filterService.getFilterValue<BatterLeaderboardParams>(this.uniqueIdentifier, 'parkId')
+    }
+    private set parkId(value: number | undefined) {
+        this.filterService.setFilterValue<BatterLeaderboardParams>(this.uniqueIdentifier, 'parkId', value)
+    }
+
+    private get year(): number | undefined {
+        return this.filterService.getFilterValue<BatterLeaderboardParams>(this.uniqueIdentifier, 'year')
+    }
+    private set year(value: number | undefined) {
+        this.filterService.setFilterValue<BatterLeaderboardParams>(this.uniqueIdentifier, 'year', value)
+    }
+
     constructor(
         api: BaseballApiService,
-        private filterService: BaseballFilterService
+        private filterService: BaseballFilterService,
+        private route: ActivatedRoute
     ) {
         super();
         this.dataSource = new LeaderboardBattersDataSource(
@@ -78,7 +98,23 @@ export class PlayerBattingStatsComponent extends BaseballTableComponent<BatterLe
     }
 
     public override ngOnInit(): void {
-        this.initialize();
+        this.route.queryParams.subscribe((params: BatterLeaderboardParams) => {
+            if (params.teamId && +params.teamId !== this.teamId) {
+                this.teamId = +params.teamId
+            } else if (params.teamId == null && this.teamId) {
+                this.teamId = undefined
+            }
+            if (params.parkId && +params.parkId !== this.parkId) {
+                this.parkId = +params.parkId
+            } else if (params.parkId == null && this.parkId) {
+                this.parkId = undefined
+            }
+            if (params.year && +params.year !== this.year) {
+                this.year = +params.year
+            } else if (params.year == null && this.year) {
+                this.year = undefined
+            }
+        })
     }
 
     public ngOnChanges(): void {
@@ -96,7 +132,6 @@ export class PlayerBattingStatsComponent extends BaseballTableComponent<BatterLe
                 ...this.statNames
             ]
         })
-        this.uniqueIdentifierSet.emit(this.uniqueIdentifier);
     }
 
     public setYear(year: number | undefined): void {

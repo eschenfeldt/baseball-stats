@@ -2,20 +2,16 @@
 <h3>
     {{player.info.name}}
 </h3>
-<app-player-games [playerId]="player.info.id" (uniqueIdentifierSet)="setGamesIdentifier($event)"
-    [battingStatsIdentifier]="battingStatsIdentifier"
-    [pitchingStatsIdentifier]="pitchingStatsIdentifier"></app-player-games>
+<app-player-games [playerId]="player.info.id" (uniqueIdentifierSet)="setGamesIdentifier($event)"></app-player-games>
 @if(gamesIdentifier) {
 @for (category of orderedCategories(player); track category) {
 
 <app-summary-stats [summaryStats]="player.summaryStats" [category]="category"></app-summary-stats>
 @if(category === StatCategory.batting) {
-<app-player-batting-stats [playerId]="player.info.id" [gamesIdentifier]="gamesIdentifier"
-    (uniqueIdentifierSet)="setBattingStatsIdentifier($event)"></app-player-batting-stats>
+<app-player-batting-stats [playerId]="player.info.id" [gamesIdentifier]="gamesIdentifier"></app-player-batting-stats>
 }
 @if(category === StatCategory.pitching) {
-<app-player-pitching-stats [playerId]="player.info.id" [gamesIdentifier]="gamesIdentifier"
-    (uniqueIdentifierSet)="setPitchingStatsIdentifier($event)"></app-player-pitching-stats>
+<app-player-pitching-stats [playerId]="player.info.id" [gamesIdentifier]="gamesIdentifier"></app-player-pitching-stats>
 }
 }
 }
