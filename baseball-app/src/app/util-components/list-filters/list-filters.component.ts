@@ -14,7 +14,7 @@ import { BaseballApiService } from '../../baseball-api.service';
 import { AsyncPipe } from '@angular/common';
 import { SortPipe } from '../../sort.pipe';
 
-interface ListFilterParams extends PagedApiParameters {
+export interface ListFilterParams extends PagedApiParameters {
     teamId?: number;
     parkId?: number;
     year?: number;
