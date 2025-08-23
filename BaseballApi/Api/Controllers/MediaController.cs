@@ -36,6 +36,7 @@ namespace BaseballApi.Controllers
                     {
                         FileType = r.ResourceType.Humanize(),
                         GameName = r.Game != null ? r.Game.Name : null,
+                        GameDate = r.Game != null ? r.Game.Date : null,
                         Photo = r.ResourceType == MediaResourceType.Photo || r.ResourceType == MediaResourceType.LivePhoto ? r.Files.Where(f => f.Purpose == RemoteFilePurpose.Original && !VIDEO_EXTENSIONS.Contains(f.Extension))
                         .Select(f => new RemoteFileDetail
                         {
