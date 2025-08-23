@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnInit, signal, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ViewChild } from '@angular/core';
 import { LeaderboardBattersComponent } from '../leaderboard-batters/leaderboard-batters.component';
 import { LeaderboardPitchersComponent } from '../leaderboard-pitchers/leaderboard-pitchers.component';
 import { BaseballFilterService } from '../baseball-filter.service';
