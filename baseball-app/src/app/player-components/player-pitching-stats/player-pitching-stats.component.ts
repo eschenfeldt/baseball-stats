@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, OnInit, ViewChild } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, ViewChild } from '@angular/core';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { BaseballApiService, ApiMethod } from '../../baseball-api.service';
@@ -42,6 +42,9 @@ export class PlayerPitchingStatsComponent extends BaseballTableComponent<Pitcher
     protected paginator!: MatPaginator;
     @ViewChild(MatSort)
     protected sort!: MatSort;
+
+    @Output()
+    public uniqueIdentifierSet = new EventEmitter<string>();
 
     dataSource: LeaderboardPitchersDataSource;
     displayedColumns: string[] = [
@@ -93,6 +96,7 @@ export class PlayerPitchingStatsComponent extends BaseballTableComponent<Pitcher
                 ...this.statNames
             ]
         })
+        this.uniqueIdentifierSet.emit(this.uniqueIdentifier);
     }
 
     public setYear(year: number | undefined): void {

@@ -36,7 +36,7 @@ import { ListFiltersComponent } from '../util-components/list-filters/list-filte
     templateUrl: './games.component.html',
     styleUrl: './games.component.scss'
 })
-export class GamesComponent extends BaseballTableComponent<GamesListParams, GameSummary> implements OnInit, OnChanges {
+export class GamesComponent extends BaseballTableComponent<GamesListParams, GameSummary> implements OnChanges {
 
     @Input()
     public team?: Team
@@ -64,11 +64,9 @@ export class GamesComponent extends BaseballTableComponent<GamesListParams, Game
     public condenseInformation: boolean = false
 
     constructor(
-        private api: BaseballApiService,
+        api: BaseballApiService,
         private filterService: BaseballFilterService,
-        private breakpointObserver: BreakpointObserver,
-        private router: Router,
-        private route: ActivatedRoute
+        private breakpointObserver: BreakpointObserver
     ) {
         super();
         this.dataSource = new GamesDataSource(api, filterService);
@@ -82,10 +80,6 @@ export class GamesComponent extends BaseballTableComponent<GamesListParams, Game
                 this.condenseInformation = false;
             }
         });
-    }
-
-    public override ngOnInit(): void {
-
     }
 
     ngOnChanges(_changes: SimpleChanges): void {

@@ -5,7 +5,7 @@
         <mat-button-toggle value="pitchers">{{pitcherLabel}}</mat-button-toggle>
     </mat-button-toggle-group>
     <div class="filters-container">
-        <app-list-filters [uniqueIdentifier]="batterIdentifier" [secondaryUniqueIdentifier]="pitcherIdentifier"
+        <app-list-filters [uniqueIdentifier]="batterIdentifier" [secondaryUniqueIdentifiers]="[pitcherIdentifier]"
             [includePlayerSearch]="true"></app-list-filters>
     </div>
 </div>

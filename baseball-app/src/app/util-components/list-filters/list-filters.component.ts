@@ -47,7 +47,7 @@ export class ListFiltersComponent implements OnInit {
     public uniqueIdentifier!: string
 
     @Input()
-    public secondaryUniqueIdentifier?: string
+    public secondaryUniqueIdentifiers?: string[]
 
     @Input()
     public team?: Team | FilterOption
@@ -73,8 +73,10 @@ export class ListFiltersComponent implements OnInit {
     }
     public set selectedYear(value: number | undefined) {
         this.filterService.setFilterValue<ListFilterParams>(this.uniqueIdentifier, 'year', value);
-        if (this.secondaryUniqueIdentifier) {
-            this.filterService.setFilterValue<ListFilterParams>(this.secondaryUniqueIdentifier, 'year', value)
+        if (this.secondaryUniqueIdentifiers) {
+            this.secondaryUniqueIdentifiers.forEach(ui => {
+                this.filterService.setFilterValue<ListFilterParams>(ui, 'year', value)
+            })
         }
         this.router.navigate([], { queryParams: { year: value }, queryParamsHandling: 'merge' })
     }
@@ -84,8 +86,10 @@ export class ListFiltersComponent implements OnInit {
     }
     public set selectedTeamId(value: number | undefined) {
         this.filterService.setFilterValue<ListFilterParams>(this.uniqueIdentifier, 'teamId', value)
-        if (this.secondaryUniqueIdentifier) {
-            this.filterService.setFilterValue<ListFilterParams>(this.secondaryUniqueIdentifier, 'teamId', value)
+        if (this.secondaryUniqueIdentifiers) {
+            this.secondaryUniqueIdentifiers.forEach(ui => {
+                this.filterService.setFilterValue<ListFilterParams>(ui, 'teamId', value)
+            })
         }
         this.router.navigate([], { queryParams: { teamId: value }, queryParamsHandling: 'merge' })
     }
@@ -102,8 +106,10 @@ export class ListFiltersComponent implements OnInit {
     }
     public set selectedParkId(value: number | undefined) {
         this.filterService.setFilterValue<ListFilterParams>(this.uniqueIdentifier, 'parkId', value)
-        if (this.secondaryUniqueIdentifier) {
-            this.filterService.setFilterValue<ListFilterParams>(this.secondaryUniqueIdentifier, 'parkId', value)
+        if (this.secondaryUniqueIdentifiers) {
+            this.secondaryUniqueIdentifiers.forEach(ui => {
+                this.filterService.setFilterValue<ListFilterParams>(ui, 'parkId', value)
+            })
         }
         this.router.navigate([], { queryParams: { parkId: value }, queryParamsHandling: 'merge' })
     }
@@ -120,8 +126,10 @@ export class ListFiltersComponent implements OnInit {
     }
     public set search(val: string) {
         this.filterService.setFilterValue<ListFilterParams>(this.uniqueIdentifier, 'playerSearch', val);
-        if (this.secondaryUniqueIdentifier) {
-            this.filterService.setFilterValue<ListFilterParams>(this.secondaryUniqueIdentifier, 'playerSearch', val);
+        if (this.secondaryUniqueIdentifiers) {
+            this.secondaryUniqueIdentifiers.forEach(ui => {
+                this.filterService.setFilterValue<ListFilterParams>(ui, 'playerSearch', val)
+            })
         }
     }
 

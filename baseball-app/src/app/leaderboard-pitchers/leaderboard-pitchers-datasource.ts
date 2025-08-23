@@ -7,6 +7,8 @@ export interface PitcherLeaderboardParams extends PagedApiParameters {
     playerId?: number,
     minInningsPitched?: number
     year?: number
+    teamId?: number
+    parkId?: number
 }
 
 export class LeaderboardPitchersDataSource extends BaseballDataSource<PitcherLeaderboardParams, LeaderboardPlayer> {

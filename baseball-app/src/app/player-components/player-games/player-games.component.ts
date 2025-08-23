@@ -62,6 +62,12 @@ export class PlayerGamesComponent extends BaseballTableComponent<PlayerGamesPara
     @Input({ required: true })
     public playerId!: number
 
+    @Input()
+    public battingStatsIdentifier?: string
+
+    @Input()
+    public pitchingStatsIdentifier?: string
+
     @ViewChild(MatPaginator) paginator!: MatPaginator;
     @ViewChild(MatSort) sort!: MatSort;
 
@@ -89,6 +95,16 @@ export class PlayerGamesComponent extends BaseballTableComponent<PlayerGamesPara
     }
     get battingStatNames(): string[] {
         return Object.keys(this.battingStats);
+    }
+    get secondaryUniqueIdentifiers(): string[] {
+        const result: string[] = []
+        if (this.battingStatsIdentifier) {
+            result.push(this.battingStatsIdentifier)
+        }
+        if (this.pitchingStatsIdentifier) {
+            result.push(this.pitchingStatsIdentifier)
+        }
+        return result
     }
 
     public constructor(

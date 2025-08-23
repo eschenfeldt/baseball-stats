@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, OnInit, ViewChild } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, ViewChild } from '@angular/core';
 import { BaseballTableComponent } from '../../baseball-table-component';
 import { BatterLeaderboardParams, LeaderboardBattersDataSource } from '../../leaderboard-batters/leaderboard-batters-datasource';
 import { LeaderboardPlayer } from '../../contracts/leaderboard-player';
@@ -41,6 +41,9 @@ export class PlayerBattingStatsComponent extends BaseballTableComponent<BatterLe
     protected paginator!: MatPaginator;
     @ViewChild(MatSort)
     protected sort!: MatSort;
+
+    @Output()
+    public uniqueIdentifierSet = new EventEmitter<string>();
 
     dataSource: LeaderboardBattersDataSource;
     displayedColumns: string[] = [
@@ -93,6 +96,7 @@ export class PlayerBattingStatsComponent extends BaseballTableComponent<BatterLe
                 ...this.statNames
             ]
         })
+        this.uniqueIdentifierSet.emit(this.uniqueIdentifier);
     }
 
     public setYear(year: number | undefined): void {

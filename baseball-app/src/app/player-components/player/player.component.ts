@@ -33,6 +33,8 @@ export class PlayerComponent implements OnInit {
     player$?: Observable<PlayerSummary>;
 
     gamesIdentifier?: string;
+    battingStatsIdentifier?: string;
+    pitchingStatsIdentifier?: string;
 
     constructor(
         private api: BaseballApiService
@@ -47,6 +49,14 @@ export class PlayerComponent implements OnInit {
 
     setGamesIdentifier(value: string): void {
         this.gamesIdentifier = value;
+    }
+
+    setBattingStatsIdentifier(value: string): void {
+        this.battingStatsIdentifier = value;
+    }
+
+    setPitchingStatsIdentifier(value: string): void {
+        this.pitchingStatsIdentifier = value;
     }
 
     hasStatCategory(player: PlayerSummary, category: StatCategory): boolean {
