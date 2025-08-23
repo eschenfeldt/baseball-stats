@@ -1,16 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using BaseballApi;
 using BaseballApi.Models;
 using BaseballApi.Contracts;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.EntityFrameworkCore.Internal;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace BaseballApi.Controllers
 {
