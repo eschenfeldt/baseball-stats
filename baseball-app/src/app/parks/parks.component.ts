@@ -15,7 +15,6 @@ import { FilterOption, ListFiltersComponent } from '../util-components/list-filt
 
 @Component({
     selector: 'app-parks',
-    standalone: true,
     imports: [
         MatTableModule,
         TypeSafeMatCellDef,

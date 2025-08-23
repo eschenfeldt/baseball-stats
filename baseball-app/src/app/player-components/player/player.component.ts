@@ -14,7 +14,6 @@ import { StatCategory } from '../../contracts/stat-category';
 
 @Component({
     selector: 'app-player',
-    standalone: true,
     imports: [
         AsyncPipe,
         RouterModule,

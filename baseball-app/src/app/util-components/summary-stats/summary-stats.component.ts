@@ -9,7 +9,6 @@ import { BASEBALL_ROUTES } from '../../app.routes';
 
 @Component({
     selector: 'app-summary-stats',
-    standalone: true,
     imports: [
         MatCardModule,
         StatPipe,

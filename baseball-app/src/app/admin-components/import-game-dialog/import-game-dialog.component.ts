@@ -12,7 +12,6 @@ import { GameMetadata } from '../../contracts/game-metadata';
 
 @Component({
     selector: 'app-import-game-dialog',
-    standalone: true,
     imports: [
         NgIf,
         NgFor,

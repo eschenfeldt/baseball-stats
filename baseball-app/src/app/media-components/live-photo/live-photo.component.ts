@@ -7,7 +7,6 @@ import { MatButtonModule } from '@angular/material/button';
 
 @Component({
     selector: 'app-live-photo',
-    standalone: true,
     imports: [
         MatIconModule,
         MatButtonModule
@@ -16,14 +15,8 @@ import { MatButtonModule } from '@angular/material/button';
     styleUrl: './live-photo.component.scss',
     animations: [
         trigger('fade', [
-            state(
-                'visible',
-                style({ 'opacity': 1, 'z-index': 2 })
-            ),
-            state(
-                'hidden',
-                style({ 'opacity': 0, 'z-index': 1 })
-            ),
+            state('visible', style({ 'opacity': 1, 'z-index': 2 })),
+            state('hidden', style({ 'opacity': 0, 'z-index': 1 })),
             transition('visible => hidden, hidden => visible', [animate('0.5s')])
         ])
     ]

@@ -11,7 +11,6 @@ import { ScorecardDetail } from '../../contracts/scorecard-detail';
 
 @Component({
     selector: 'app-import-scorecard-dialog',
-    standalone: true,
     imports: [
         ReactiveFormsModule,
         MatDialogModule,

@@ -18,7 +18,6 @@ import { FilterOption, ListFilterParams, ListFiltersComponent } from '../util-co
 
 @Component({
     selector: 'app-teams',
-    standalone: true,
     imports: [
         MatTableModule,
         TypeSafeMatCellDef,

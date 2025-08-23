@@ -28,7 +28,6 @@ export enum FilterOption {
 
 @Component({
     selector: 'app-list-filters',
-    standalone: true,
     imports: [
         FormsModule,
         MatInputModule,

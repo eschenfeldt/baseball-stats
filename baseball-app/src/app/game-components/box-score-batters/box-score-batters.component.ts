@@ -11,7 +11,6 @@ import { StatDefCollection } from '../../contracts/stat-def';
 
 @Component({
     selector: 'app-box-score-batters',
-    standalone: true,
     imports: [
         MatTableModule,
         TypeSafeMatCellDef,

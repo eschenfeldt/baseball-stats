@@ -34,7 +34,6 @@ enum ColumnGroup {
 
 @Component({
     selector: 'app-player-games',
-    standalone: true,
     imports: [
         MatTableModule,
         TypeSafeMatCellDef,

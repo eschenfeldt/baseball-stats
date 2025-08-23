@@ -13,7 +13,6 @@ import { MatIconModule } from '@angular/material/icon';
 
 @Component({
     selector: 'app-thumbnail-scroll',
-    standalone: true,
     imports: [
         MatButtonModule,
         MatIconModule,

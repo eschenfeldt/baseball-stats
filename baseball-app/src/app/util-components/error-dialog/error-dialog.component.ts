@@ -8,7 +8,6 @@ export type ErrorData = string | HttpErrorResponse;
 
 @Component({
     selector: 'app-error-dialog',
-    standalone: true,
     imports: [MatDialogModule],
     templateUrl: './error-dialog.component.html',
     styleUrl: './error-dialog.component.scss'

@@ -14,7 +14,6 @@ import { MediaImportTaskStatus } from '../../contracts/media-import-task-status'
 
 @Component({
     selector: 'app-import-media-dialog',
-    standalone: true,
     imports: [
         FormsModule,
         MatFormField,

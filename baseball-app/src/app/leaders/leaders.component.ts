@@ -18,7 +18,6 @@ import { ListFiltersComponent } from '../util-components/list-filters/list-filte
 
 @Component({
     selector: 'app-leaders',
-    standalone: true,
     imports: [
         LeaderboardBattersComponent,
         LeaderboardPitchersComponent,

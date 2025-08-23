@@ -11,7 +11,6 @@ import { Utils } from '../../utils';
 
 @Component({
     selector: 'app-box-score-pitchers',
-    standalone: true,
     imports: [
         RouterModule,
         MatTableModule,

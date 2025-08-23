@@ -17,7 +17,6 @@ import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
     selector: 'app-player-batting-stats',
-    standalone: true,
     imports: [
         MatTableModule,
         TypeSafeMatCellDef,

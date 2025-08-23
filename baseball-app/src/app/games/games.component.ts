@@ -21,7 +21,6 @@ import { ListFiltersComponent } from '../util-components/list-filters/list-filte
 
 @Component({
     selector: 'app-games',
-    standalone: true,
     imports: [
         MatTableModule,
         TypeSafeMatCellDef,

@@ -17,7 +17,6 @@ import { SummaryStatsCardComponent } from '../../util-components/summary-stats-c
     selector: 'app-home',
     templateUrl: './home.component.html',
     styleUrl: './home.component.scss',
-    standalone: true,
     imports: [
         RouterLink,
         AsyncPipe,

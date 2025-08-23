@@ -18,7 +18,6 @@ import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
     selector: 'app-player-pitching-stats',
-    standalone: true,
     imports: [
         MatTableModule,
         TypeSafeMatCellDef,

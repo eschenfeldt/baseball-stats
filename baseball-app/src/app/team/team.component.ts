@@ -12,7 +12,6 @@ import { SummaryStatsCardComponent } from '../util-components/summary-stats-card
 
 @Component({
     selector: 'app-team',
-    standalone: true,
     imports: [
         AsyncPipe,
         GamesComponent,

@@ -9,7 +9,6 @@ import { MatSelectModule } from '@angular/material/select';
 
 @Component({
     selector: 'app-import-constants-dialog',
-    standalone: true,
     imports: [
         ReactiveFormsModule,
         MatDialogModule,

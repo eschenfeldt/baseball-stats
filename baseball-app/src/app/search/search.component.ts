@@ -14,7 +14,6 @@ import { MatIconModule } from '@angular/material/icon';
 
 @Component({
     selector: 'app-search',
-    standalone: true,
     imports: [
         FormsModule,
         MatFormFieldModule,

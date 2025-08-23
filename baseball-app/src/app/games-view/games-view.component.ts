@@ -3,7 +3,6 @@ import { GamesComponent } from '../games/games.component';
 
 @Component({
     selector: 'app-games-view',
-    standalone: true,
     imports: [
         GamesComponent
     ],

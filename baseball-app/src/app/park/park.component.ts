@@ -14,7 +14,6 @@ import { BreakpointObserver } from '@angular/cdk/layout';
 
 @Component({
     selector: 'app-park',
-    standalone: true,
     imports: [
         AsyncPipe,
         GamesComponent,

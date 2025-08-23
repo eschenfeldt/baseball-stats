@@ -10,7 +10,6 @@ import { MediaParams } from '../../media-components/media-gallery/media-gallery.
 
 @Component({
     selector: 'app-summary-stats-card',
-    standalone: true,
     imports: [
         MatCardModule,
         MatExpansionModule,
