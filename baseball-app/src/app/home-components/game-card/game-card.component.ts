@@ -17,7 +17,6 @@ import { MatDividerModule } from '@angular/material/divider';
 
 @Component({
     selector: 'app-game-card',
-    standalone: true,
     imports: [
         MatButtonModule,
         MatCardModule,

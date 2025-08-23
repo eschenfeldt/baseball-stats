@@ -1,5 +1,5 @@
 import { AsyncPipe } from '@angular/common';
-import { Component, ElementRef, ViewChild } from '@angular/core';
+import { Component } from '@angular/core';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -14,7 +14,6 @@ import { MatIconModule } from '@angular/material/icon';
 
 @Component({
     selector: 'app-search',
-    standalone: true,
     imports: [
         FormsModule,
         MatFormFieldModule,

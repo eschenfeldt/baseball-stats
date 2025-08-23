@@ -13,7 +13,6 @@ import { SearchComponent } from './search/search.component';
 
 @Component({
     selector: 'app-root',
-    standalone: true,
     imports: [
         MatToolbarModule,
         MatButtonModule,

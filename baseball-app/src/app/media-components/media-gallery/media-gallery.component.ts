@@ -23,7 +23,6 @@ export interface ThumbnailParams extends MediaParams {
 
 @Component({
     selector: 'app-media-gallery',
-    standalone: true,
     imports: [
         MatPaginatorModule,
         MatProgressSpinnerModule,

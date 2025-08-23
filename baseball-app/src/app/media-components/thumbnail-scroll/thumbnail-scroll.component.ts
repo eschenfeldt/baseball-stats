@@ -1,4 +1,4 @@
-import { afterNextRender, afterRender, AfterRenderPhase, AfterViewChecked, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnInit, ViewChild, viewChild } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { InfiniteScrollDirective } from 'ngx-infinite-scroll';
 import { RemoteFileDetail } from '../../contracts/remote-file-detail';
 import { ThumbnailComponent } from '../thumbnail/thumbnail.component';
@@ -13,7 +13,6 @@ import { MatIconModule } from '@angular/material/icon';
 
 @Component({
     selector: 'app-thumbnail-scroll',
-    standalone: true,
     imports: [
         MatButtonModule,
         MatIconModule,

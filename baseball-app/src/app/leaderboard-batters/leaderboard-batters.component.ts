@@ -20,7 +20,6 @@ import { StatPipe } from '../stat.pipe';
 
 @Component({
     selector: 'app-leaderboard-batters',
-    standalone: true,
     imports: [
         MatTableModule,
         TypeSafeMatCellDef,

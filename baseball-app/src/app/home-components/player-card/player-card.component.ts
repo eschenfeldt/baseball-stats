@@ -12,7 +12,6 @@ import { SummaryStatsComponent } from '../../util-components/summary-stats/summa
 
 @Component({
     selector: 'app-player-card',
-    standalone: true,
     imports: [
         MatCardModule,
         MatButtonModule,

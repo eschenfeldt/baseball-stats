@@ -21,7 +21,6 @@ import { Utils } from '../../utils';
 import { StatPipe } from '../../stat.pipe';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatExpansionModule } from '@angular/material/expansion';
-import { SortPipe } from '../../sort.pipe';
 import { ListFiltersComponent } from '../../util-components/list-filters/list-filters.component';
 
 enum ColumnGroup {
@@ -34,7 +33,6 @@ enum ColumnGroup {
 
 @Component({
     selector: 'app-player-games',
-    standalone: true,
     imports: [
         MatTableModule,
         TypeSafeMatCellDef,
@@ -51,7 +49,6 @@ enum ColumnGroup {
         CommonModule,
         RouterModule,
         StatPipe,
-        SortPipe,
         ListFiltersComponent
     ],
     templateUrl: './player-games.component.html',

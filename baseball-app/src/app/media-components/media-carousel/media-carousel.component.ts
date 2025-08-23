@@ -12,7 +12,6 @@ import { ThumbnailScrollComponent } from '../thumbnail-scroll/thumbnail-scroll.c
 
 @Component({
     selector: 'app-media-carousel',
-    standalone: true,
     imports: [
         MatProgressSpinnerModule,
         AsyncPipe,

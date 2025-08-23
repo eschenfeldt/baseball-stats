@@ -1,7 +1,6 @@
 import { CdkCellDef } from "@angular/cdk/table";
 import { Directive, Input } from "@angular/core";
-import { MatRowDef, MatTable, MatTableDataSource } from "@angular/material/table";
-import { Observable } from "rxjs";
+import { MatRowDef, MatTable } from "@angular/material/table";
 import { TypeSafeMatCellDef } from "./type-safe-mat-cell-def.directive";
 
 /**From https://nartc.me/blog/typed-mat-cell-def/ */

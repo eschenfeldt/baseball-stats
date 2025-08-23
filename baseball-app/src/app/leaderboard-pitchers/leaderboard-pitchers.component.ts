@@ -21,7 +21,6 @@ import { StatPipe } from '../stat.pipe';
 
 @Component({
     selector: 'app-leaderboard-pitchers',
-    standalone: true,
     imports: [
         MatTableModule,
         TypeSafeMatCellDef,

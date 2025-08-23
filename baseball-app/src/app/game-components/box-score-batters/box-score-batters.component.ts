@@ -6,19 +6,16 @@ import { TypeSafeMatCellDef } from '../../type-safe-mat-cell-def.directive';
 import { TypeSafeMatRowDef } from '../../type-safe-mat-row-def.directive';
 import { RouterModule } from '@angular/router';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
-import { NgClass } from '@angular/common';
 import { StatDefCollection } from '../../contracts/stat-def';
 
 @Component({
     selector: 'app-box-score-batters',
-    standalone: true,
     imports: [
         MatTableModule,
         TypeSafeMatCellDef,
         TypeSafeMatRowDef,
         MatSortModule,
-        RouterModule,
-        NgClass
+        RouterModule
     ],
     templateUrl: './box-score-batters.component.html',
     styleUrl: './box-score-batters.component.scss'

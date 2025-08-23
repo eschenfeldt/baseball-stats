@@ -6,7 +6,6 @@ import { Utils } from '../../utils';
 
 @Component({
     selector: 'app-game-details',
-    standalone: true,
     imports: [
         RouterModule,
         MatDividerModule

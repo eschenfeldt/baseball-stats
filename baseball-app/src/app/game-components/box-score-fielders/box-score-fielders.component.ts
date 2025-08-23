@@ -9,7 +9,6 @@ import { StatDefCollection } from '../../contracts/stat-def';
 
 @Component({
     selector: 'app-box-score-fielders',
-    standalone: true,
     imports: [
         RouterModule,
         MatTableModule,

@@ -12,7 +12,6 @@ import { ImportConstantsDialogComponent } from '../import-constants-dialog/impor
 
 @Component({
     selector: 'app-admin',
-    standalone: true,
     imports: [
         MatButtonModule,
         MatFormField,

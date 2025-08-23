@@ -7,7 +7,6 @@ import { MediaParams } from '../media-gallery/media-gallery.component';
 
 @Component({
     selector: 'app-thumbnail',
-    standalone: true,
     imports: [
         MatTooltip,
         RouterModule

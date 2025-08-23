@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { BaseballApiService } from '../../baseball-api.service';
-import { combineLatestWith, mergeWith, Observable, switchMap } from 'rxjs';
+import { combineLatestWith, Observable, switchMap } from 'rxjs';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { param } from '../../param.decorator';
 import { BASEBALL_ROUTES } from '../../app.routes';
@@ -14,7 +14,6 @@ import { StatCategory } from '../../contracts/stat-category';
 
 @Component({
     selector: 'app-player',
-    standalone: true,
     imports: [
         AsyncPipe,
         RouterModule,

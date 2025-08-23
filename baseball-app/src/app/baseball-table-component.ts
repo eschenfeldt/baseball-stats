@@ -6,7 +6,10 @@ import { merge, tap } from "rxjs";
 import { MatSort } from "@angular/material/sort";
 import { BaseballApiFilter } from "./baseball-filter.service";
 
-@Component({ template: '' })
+@Component({
+    template: '',
+    standalone: false
+})
 export abstract class BaseballTableComponent<ArgType extends PagedApiParameters, ReturnType> implements OnInit, AfterViewInit {
 
     protected abstract paginator: MatPaginator | null;

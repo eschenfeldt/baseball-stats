@@ -14,7 +14,6 @@ import { ImportScorecardDialogComponent } from '../import-scorecard-dialog/impor
 
 @Component({
     selector: 'app-scorecard',
-    standalone: true,
     imports: [
         PdfViewerModule,
         FormsModule,
