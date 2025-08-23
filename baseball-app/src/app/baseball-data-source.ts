@@ -9,6 +9,7 @@ import { BaseballApiFilter, BaseballFilterService } from './baseball-filter.serv
 import { v4 as uuidv4 } from 'uuid';
 import { StatDefCollection } from './contracts/stat-def';
 import { Leaderboard } from './contracts/leaderboard';
+import equal from 'fast-deep-equal'
 
 export abstract class BaseballDataSource<ArgType extends PagedApiParameters, ReturnType> extends DataSource<ReturnType> {
 
@@ -80,7 +81,7 @@ export abstract class BaseballDataSource<ArgType extends PagedApiParameters, Ret
         return this.isInfiniteScrollEnabled
             && this.executingQuery != null
             && !this.executingQuery.closed
-            && this.executingQueryBody === newBody;
+            && equal(this.executingQueryBody, newBody);
     }
 
     public loadData(): void {
