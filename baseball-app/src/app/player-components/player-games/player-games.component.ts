@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnChanges, Output, signal, ViewChild } from '@angular/core';
+import { Component, Input, OnChanges, ViewChild } from '@angular/core';
 import { BaseballTableComponent } from '../../baseball-table-component';
 import { PlayerGamesDataSource, PlayerGamesParameters } from './player-games-datasource';
 import { PlayerGame } from '../../contracts/player-game';
@@ -62,17 +62,8 @@ export class PlayerGamesComponent extends BaseballTableComponent<PlayerGamesPara
     @Input({ required: true })
     public playerId!: number
 
-    @Input()
-    public battingStatsIdentifier?: string
-
-    @Input()
-    public pitchingStatsIdentifier?: string
-
     @ViewChild(MatPaginator) paginator!: MatPaginator;
     @ViewChild(MatSort) sort!: MatSort;
-
-    @Output()
-    public uniqueIdentifierSet = new EventEmitter<string>();
 
     dataSource: PlayerGamesDataSource;
     displayedColumns: string[] = [
@@ -95,16 +86,6 @@ export class PlayerGamesComponent extends BaseballTableComponent<PlayerGamesPara
     }
     get battingStatNames(): string[] {
         return Object.keys(this.battingStats);
-    }
-    get secondaryUniqueIdentifiers(): string[] {
-        const result: string[] = []
-        if (this.battingStatsIdentifier) {
-            result.push(this.battingStatsIdentifier)
-        }
-        if (this.pitchingStatsIdentifier) {
-            result.push(this.pitchingStatsIdentifier)
-        }
-        return result
     }
 
     public constructor(
@@ -136,7 +117,6 @@ export class PlayerGamesComponent extends BaseballTableComponent<PlayerGamesPara
 
     private initialize(): void {
         this.filterService.setFilterValue<PlayerGamesParameters>(this.uniqueIdentifier, 'playerId', this.playerId);
-        this.uniqueIdentifierSet.emit(this.uniqueIdentifier);
     }
 
     public getStat(playerGame: PlayerGame, statName: string, statGroup: ColumnGroup): number | null {

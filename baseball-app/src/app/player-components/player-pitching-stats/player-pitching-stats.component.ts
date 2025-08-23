@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output, ViewChild } from '@angular/core';
+import { Component, Input, OnChanges, OnInit, ViewChild } from '@angular/core';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { BaseballApiService, ApiMethod } from '../../baseball-api.service';
@@ -6,7 +6,6 @@ import { BaseballApiFilter, BaseballFilterService } from '../../baseball-filter.
 import { BaseballTableComponent } from '../../baseball-table-component';
 import { LeaderboardPlayer } from '../../contracts/leaderboard-player';
 import { StatDefCollection } from '../../contracts/stat-def';
-import { PlayerGamesParameters } from '../player-games/player-games-datasource';
 import { LeaderboardPitchersDataSource, PitcherLeaderboardParams } from '../../leaderboard-pitchers/leaderboard-pitchers-datasource';
 import { LeaderboardPitchersComponent } from '../../leaderboard-pitchers/leaderboard-pitchers.component';
 import { AsyncPipe } from '@angular/common';
@@ -15,7 +14,7 @@ import { StatPipe } from '../../stat.pipe';
 import { TypeSafeMatCellDef } from '../../type-safe-mat-cell-def.directive';
 import { TypeSafeMatRowDef } from '../../type-safe-mat-row-def.directive';
 import { Utils } from '../../utils';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
     selector: 'app-player-pitching-stats',
@@ -36,8 +35,6 @@ export class PlayerPitchingStatsComponent extends BaseballTableComponent<Pitcher
 
     @Input({ required: true })
     playerId!: number;
-    @Input()
-    gamesIdentifier?: string;
 
     @ViewChild(MatPaginator)
     protected paginator!: MatPaginator;
@@ -85,6 +82,7 @@ export class PlayerPitchingStatsComponent extends BaseballTableComponent<Pitcher
     constructor(
         api: BaseballApiService,
         private filterService: BaseballFilterService,
+        private router: Router,
         private route: ActivatedRoute
     ) {
         super();
@@ -135,9 +133,7 @@ export class PlayerPitchingStatsComponent extends BaseballTableComponent<Pitcher
     }
 
     public setYear(year: number | undefined): void {
-        if (this.gamesIdentifier) {
-            this.filterService.setFilterValue<PlayerGamesParameters>(this.gamesIdentifier, 'year', year);
-        }
+        this.router.navigate([], { queryParams: { year: year }, queryParamsHandling: 'merge' })
     }
 
 

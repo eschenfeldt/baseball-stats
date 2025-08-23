@@ -32,8 +32,6 @@ export class PlayerComponent implements OnInit {
     playerId$!: Observable<number>
     player$?: Observable<PlayerSummary>;
 
-    gamesIdentifier?: string;
-
     constructor(
         private api: BaseballApiService,
         private route: ActivatedRoute
@@ -45,10 +43,6 @@ export class PlayerComponent implements OnInit {
             switchMap(([playerId, params]) => {
                 return this.api.makeApiGet<PlayerSummary>(`player/${playerId}`, params);
             }));
-    }
-
-    setGamesIdentifier(value: string): void {
-        this.gamesIdentifier = value;
     }
 
     hasStatCategory(player: PlayerSummary, category: StatCategory): boolean {

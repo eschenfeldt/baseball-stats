@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output, ViewChild } from '@angular/core';
+import { Component, Input, OnChanges, OnInit, ViewChild } from '@angular/core';
 import { BaseballTableComponent } from '../../baseball-table-component';
 import { BatterLeaderboardParams, LeaderboardBattersDataSource } from '../../leaderboard-batters/leaderboard-batters-datasource';
 import { LeaderboardPlayer } from '../../contracts/leaderboard-player';
@@ -13,8 +13,7 @@ import { MatTableModule } from '@angular/material/table';
 import { TypeSafeMatCellDef } from '../../type-safe-mat-cell-def.directive';
 import { TypeSafeMatRowDef } from '../../type-safe-mat-row-def.directive';
 import { StatPipe } from '../../stat.pipe';
-import { PlayerGamesParameters } from '../player-games/player-games-datasource';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
     selector: 'app-player-batting-stats',
@@ -35,8 +34,6 @@ export class PlayerBattingStatsComponent extends BaseballTableComponent<BatterLe
 
     @Input({ required: true })
     playerId!: number;
-    @Input()
-    gamesIdentifier?: string;
 
     @ViewChild(MatPaginator)
     protected paginator!: MatPaginator;
@@ -84,6 +81,7 @@ export class PlayerBattingStatsComponent extends BaseballTableComponent<BatterLe
     constructor(
         api: BaseballApiService,
         private filterService: BaseballFilterService,
+        private router: Router,
         private route: ActivatedRoute
     ) {
         super();
@@ -135,8 +133,6 @@ export class PlayerBattingStatsComponent extends BaseballTableComponent<BatterLe
     }
 
     public setYear(year: number | undefined): void {
-        if (this.gamesIdentifier) {
-            this.filterService.setFilterValue<PlayerGamesParameters>(this.gamesIdentifier, 'year', year);
-        }
+        this.router.navigate([], { queryParams: { year: year }, queryParamsHandling: 'merge' })
     }
 }
