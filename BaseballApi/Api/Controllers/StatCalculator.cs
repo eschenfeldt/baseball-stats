@@ -36,11 +36,12 @@ internal class StatCalculator
         {Stat.Games.Name, b => b.Games},
         {Stat.PlateAppearances.Name, b => b.PlateAppearances},
         {Stat.Homeruns.Name, b => b.Homeruns},
+        {Stat.StolenBases.Name, b => b.StolenBases},
         {Stat.BattingAverage.Name, b => b.AVG},
         {Stat.OnBasePercentage.Name, b => b.OBP},
         {Stat.SluggingPercentage.Name, b => b.SLG},
         {Stat.OnBasePlusSlugging.Name, b => b.OPS},
-        {Stat.WeightedOnBaseAverage.Name, b => b.WOBA }
+        {Stat.WeightedOnBaseAverage.Name, b => b.WOBA}
     };
     private static readonly Dictionary<string, Func<BattingStat, decimal?>> CompiledBattingStatSelectors = BattingStatSelectors.ToDictionary(
         kvp => kvp.Key,
@@ -62,6 +63,7 @@ internal class StatCalculator
         public int Games { get; set; }
         public int PlateAppearances { get; set; }
         public int Homeruns { get; set; }
+        public int StolenBases { get; set; }
         public decimal? WOBA { get; set; }
         public decimal? OPS { get; set; }
         public decimal? SLG { get; set; }
@@ -100,6 +102,7 @@ internal class StatCalculator
                 SUM(b.""Games"") AS ""Games"",
                 SUM(b.""PlateAppearances"") AS ""PlateAppearances"",
                 SUM(b.""Homeruns"") AS ""Homeruns"",
+                SUM(b.""StolenBases"") AS ""StolenBases"",
                 SUM(b.""Hits"" + b.""Walks"" + b.""HitByPitch"")::decimal
                     / NULLIF(SUM(b.""AtBats"" + b.""Walks"" + b.""HitByPitch"" + b.""SacrificeFlies""), 0) AS ""OBP"",
                 SUM(c.""WBB"" * b.""Walks"" + c.""WHBP"" * b.""HitByPitch"" + c.""W1B"" * b.""Singles""
