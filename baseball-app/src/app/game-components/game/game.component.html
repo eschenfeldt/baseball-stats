@@ -5,7 +5,13 @@
         {{gameDate(game)}}
     </span>
     <span>-</span>
-    <span>{{game.away.abbreviation}} <small>{{game.awayScore}}</small></span>
+    <span>{{game.away.abbreviation}}
+    </span>
+    <span class="game-score-container">
+        <span class="game-score" [style.background-color]="color(game.away)">
+            {{game.awayScore}}
+        </span>
+    </span>
     <span>
         @if (boxScoresActive) {
         <mat-card-actions>
@@ -20,7 +26,13 @@
     </span>
     <span> @ </span>
     <span>
-        {{game.home.abbreviation}} <small>{{game.homeScore}}</small>
+        {{game.home.abbreviation}}
+    </span>
+
+    <span class="game-score-container">
+        <span class="game-score" [style.background-color]="color(game.home)">
+            {{game.homeScore}}
+        </span>
     </span>
     <span>
         @if (boxScoresActive) {
