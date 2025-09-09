@@ -59,6 +59,7 @@ export class GameComponent implements OnInit {
 
     boxScoreOption: BoxScoreOption = BoxScoreOption.homeBatters;
     abbreviateBoxScoreOptions = false;
+    condensedHeader = false;
     tabIndex: GameTab = GameTab.boxScore;
 
     get boxScoresActive(): boolean {
@@ -118,12 +119,22 @@ export class GameComponent implements OnInit {
 
         this.breakpointObserver.observe([
             Breakpoints.XSmall,
+            Breakpoints.HandsetLandscape,
             Breakpoints.TabletPortrait // sidebar menu shows up here
         ]).subscribe(result => {
             if (result.matches) {
                 this.abbreviateBoxScoreOptions = true;
             } else {
                 this.abbreviateBoxScoreOptions = false;
+            }
+        });
+        this.breakpointObserver.observe([
+            Breakpoints.HandsetLandscape
+        ]).subscribe(result => {
+            if (result.matches) {
+                this.condensedHeader = true;
+            } else {
+                this.condensedHeader = false;
             }
         });
     }
@@ -147,6 +158,10 @@ export class GameComponent implements OnInit {
     }
     public get fielderLabel(): string {
         return this.abbreviateBoxScoreOptions ? 'F' : 'Fielders';
+    }
+
+    public gameDate(game: GameDetail): string {
+        return Utils.formatDate(game.date);
     }
 
     openImportMediaDialog(game: GameDetail) {

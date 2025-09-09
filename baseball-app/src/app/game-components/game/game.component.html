@@ -1,12 +1,50 @@
 @if (game$ | async; as game) {
 <h5>
+    @if (condensedHeader) {
+    <span>
+        {{gameDate(game)}}
+    </span>
+    <span>-</span>
+    <span>{{game.away.abbreviation}} <small>{{game.awayScore}}</small></span>
+    <span>
+        @if (boxScoresActive) {
+        <mat-card-actions>
+            <mat-button-toggle-group name="awayTeamOptions" aria-label="Away Team Options" [(ngModel)]="boxScoreOption"
+                [hideSingleSelectionIndicator]="true">
+                <mat-button-toggle value="awayBatters">{{batterLabel}}</mat-button-toggle>
+                <mat-button-toggle value="awayPitchers">{{pitcherLabel}}</mat-button-toggle>
+                <mat-button-toggle value="awayFielders">{{fielderLabel}}</mat-button-toggle>
+            </mat-button-toggle-group>
+        </mat-card-actions>
+        }
+    </span>
+    <span> @ </span>
+    <span>
+        {{game.home.abbreviation}} <small>{{game.homeScore}}</small>
+    </span>
+    <span>
+        @if (boxScoresActive) {
+        <mat-card-actions>
+            <mat-button-toggle-group name="homeTeamOptions" aria-label="home Team Options" [(ngModel)]="boxScoreOption"
+                [hideSingleSelectionIndicator]="true">
+                <mat-button-toggle value="homeBatters">{{batterLabel}}</mat-button-toggle>
+                <mat-button-toggle value="homePitchers">{{pitcherLabel}}</mat-button-toggle>
+                <mat-button-toggle value="homeFielders">{{fielderLabel}}</mat-button-toggle>
+            </mat-button-toggle-group>
+        </mat-card-actions>
+        }
+    </span>
+    }
+    @else {
     {{game.name}}
+    }
     @if (isLoggedIn$ | async) {
     <button mat-icon-button (click)="openImportMediaDialog(game)">
         <mat-icon>cloud_upload</mat-icon>
     </button>
     }
 </h5>
+@if (!condensedHeader) {
 <div class="game-teams">
     <mat-card appearance="raised">
         <mat-card-header>
@@ -61,7 +99,7 @@
         }
     </mat-card>
 </div>
-
+}
 <mat-tab-group [(selectedIndex)]="tabIndex">
     <mat-tab label="Details">
         <div class="mat-tab-body-wrapper">
