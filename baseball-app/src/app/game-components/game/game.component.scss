@@ -67,8 +67,16 @@ h5 {
         color: var(--primary-color);
     }
 
-    .game-score {
-        color: var(--mat-sidenav-content-text-color, var(--mat-sys-on-background))
+    .condensed-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-grow: 0.4;
+
+
+        .game-score {
+            color: var(--mat-sidenav-content-text-color, var(--mat-sys-on-background))
+        }
     }
 }
 

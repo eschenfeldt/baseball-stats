@@ -1,50 +1,52 @@
 @if (game$ | async; as game) {
 <h5>
     @if (condensedHeader) {
-    <span>
-        {{gameDate(game)}}
-    </span>
-    <span>-</span>
-    <span>{{game.away.abbreviation}}
-    </span>
-    <span class="game-score-container">
-        <span class="game-score" [style.background-color]="color(game.away)">
-            {{game.awayScore}}
+    <span class="condensed-header">
+        <span>
+            {{gameDate(game)}}
         </span>
-    </span>
-    <span>
-        @if (boxScoresActive) {
-        <mat-card-actions>
-            <mat-button-toggle-group name="awayTeamOptions" aria-label="Away Team Options" [(ngModel)]="boxScoreOption"
-                [hideSingleSelectionIndicator]="true">
-                <mat-button-toggle value="awayBatters">{{batterLabel}}</mat-button-toggle>
-                <mat-button-toggle value="awayPitchers">{{pitcherLabel}}</mat-button-toggle>
-                <mat-button-toggle value="awayFielders">{{fielderLabel}}</mat-button-toggle>
-            </mat-button-toggle-group>
-        </mat-card-actions>
-        }
-    </span>
-    <span> @ </span>
-    <span>
-        {{game.home.abbreviation}}
-    </span>
+        <span>-</span>
+        <span>{{game.away.abbreviation}}
+        </span>
+        <span class="game-score-container">
+            <span class="game-score" [style.background-color]="color(game.away)">
+                {{game.awayScore}}
+            </span>
+        </span>
+        <span>
+            @if (boxScoresActive) {
+            <mat-card-actions>
+                <mat-button-toggle-group name="awayTeamOptions" aria-label="Away Team Options"
+                    [(ngModel)]="boxScoreOption" [hideSingleSelectionIndicator]="true">
+                    <mat-button-toggle value="awayBatters">{{batterLabel}}</mat-button-toggle>
+                    <mat-button-toggle value="awayPitchers">{{pitcherLabel}}</mat-button-toggle>
+                    <mat-button-toggle value="awayFielders">{{fielderLabel}}</mat-button-toggle>
+                </mat-button-toggle-group>
+            </mat-card-actions>
+            }
+        </span>
+        <span> @ </span>
+        <span>
+            {{game.home.abbreviation}}
+        </span>
 
-    <span class="game-score-container">
-        <span class="game-score" [style.background-color]="color(game.home)">
-            {{game.homeScore}}
+        <span class="game-score-container">
+            <span class="game-score" [style.background-color]="color(game.home)">
+                {{game.homeScore}}
+            </span>
         </span>
-    </span>
-    <span>
-        @if (boxScoresActive) {
-        <mat-card-actions>
-            <mat-button-toggle-group name="homeTeamOptions" aria-label="home Team Options" [(ngModel)]="boxScoreOption"
-                [hideSingleSelectionIndicator]="true">
-                <mat-button-toggle value="homeBatters">{{batterLabel}}</mat-button-toggle>
-                <mat-button-toggle value="homePitchers">{{pitcherLabel}}</mat-button-toggle>
-                <mat-button-toggle value="homeFielders">{{fielderLabel}}</mat-button-toggle>
-            </mat-button-toggle-group>
-        </mat-card-actions>
-        }
+        <span>
+            @if (boxScoresActive) {
+            <mat-card-actions>
+                <mat-button-toggle-group name="homeTeamOptions" aria-label="home Team Options"
+                    [(ngModel)]="boxScoreOption" [hideSingleSelectionIndicator]="true">
+                    <mat-button-toggle value="homeBatters">{{batterLabel}}</mat-button-toggle>
+                    <mat-button-toggle value="homePitchers">{{pitcherLabel}}</mat-button-toggle>
+                    <mat-button-toggle value="homeFielders">{{fielderLabel}}</mat-button-toggle>
+                </mat-button-toggle-group>
+            </mat-card-actions>
+            }
+        </span>
     </span>
     }
     @else {
