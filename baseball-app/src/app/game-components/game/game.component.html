@@ -6,8 +6,9 @@
             {{gameDate(game)}}
         </span>
         <span>-</span>
-        <span>{{game.away.abbreviation}}
-        </span>
+        <a [routerLink]="['/team', game.away.id]" routerLinkActive="router-link-active">
+            {{game.away.abbreviation}}
+        </a>
         <span class="game-score-container">
             <span class="game-score" [style.background-color]="color(game.away)">
                 {{game.awayScore}}
@@ -26,10 +27,9 @@
             }
         </span>
         <span> @ </span>
-        <span>
+        <a [routerLink]="['/team', game.home.id]" routerLinkActive="router-link-active">
             {{game.home.abbreviation}}
-        </span>
-
+        </a>
         <span class="game-score-container">
             <span class="game-score" [style.background-color]="color(game.home)">
                 {{game.homeScore}}
