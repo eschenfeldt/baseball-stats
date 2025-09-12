@@ -18,7 +18,8 @@
             @if (boxScoresActive) {
             <mat-card-actions>
                 <mat-button-toggle-group name="awayTeamOptions" aria-label="Away Team Options"
-                    [(ngModel)]="boxScoreOption" [hideSingleSelectionIndicator]="true">
+                    (change)="setRouteFromBoxScoreOption($event)" [(ngModel)]="boxScoreOption"
+                    [hideSingleSelectionIndicator]="true">
                     <mat-button-toggle value="awayBatters">{{batterLabel}}</mat-button-toggle>
                     <mat-button-toggle value="awayPitchers">{{pitcherLabel}}</mat-button-toggle>
                     <mat-button-toggle value="awayFielders">{{fielderLabel}}</mat-button-toggle>
@@ -39,7 +40,8 @@
             @if (boxScoresActive) {
             <mat-card-actions>
                 <mat-button-toggle-group name="homeTeamOptions" aria-label="home Team Options"
-                    [(ngModel)]="boxScoreOption" [hideSingleSelectionIndicator]="true">
+                    (change)="setRouteFromBoxScoreOption($event)" [(ngModel)]="boxScoreOption"
+                    [hideSingleSelectionIndicator]="true">
                     <mat-button-toggle value="homeBatters">{{batterLabel}}</mat-button-toggle>
                     <mat-button-toggle value="homePitchers">{{pitcherLabel}}</mat-button-toggle>
                     <mat-button-toggle value="homeFielders">{{fielderLabel}}</mat-button-toggle>
@@ -78,7 +80,7 @@
         @if (boxScoresActive) {
         <mat-card-actions>
             <mat-button-toggle-group name="awayTeamOptions" aria-label="Away Team Options" [(ngModel)]="boxScoreOption"
-                [hideSingleSelectionIndicator]="true">
+                (change)="setRouteFromBoxScoreOption($event)" [hideSingleSelectionIndicator]="true">
                 <mat-button-toggle value="awayBatters">{{batterLabel}}</mat-button-toggle>
                 <mat-button-toggle value="awayPitchers">{{pitcherLabel}}</mat-button-toggle>
                 <mat-button-toggle value="awayFielders">{{fielderLabel}}</mat-button-toggle>
@@ -104,7 +106,7 @@
         @if (boxScoresActive) {
         <mat-card-actions>
             <mat-button-toggle-group name="homeTeamOptions" aria-label="home Team Options" [(ngModel)]="boxScoreOption"
-                [hideSingleSelectionIndicator]="true">
+                (change)="setRouteFromBoxScoreOption($event)" [hideSingleSelectionIndicator]="true">
                 <mat-button-toggle value="homeBatters">{{batterLabel}}</mat-button-toggle>
                 <mat-button-toggle value="homePitchers">{{pitcherLabel}}</mat-button-toggle>
                 <mat-button-toggle value="homeFielders">{{fielderLabel}}</mat-button-toggle>
@@ -114,7 +116,7 @@
     </mat-card>
 </div>
 }
-<mat-tab-group [(selectedIndex)]="tabIndex">
+<mat-tab-group [(selectedIndex)]="tabIndex" (selectedTabChange)="setRouteFromTab($event)">
     <mat-tab label="Details">
         <div class="mat-tab-body-wrapper">
             <app-game-details [game]="game"></app-game-details>
