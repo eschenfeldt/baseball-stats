@@ -6,7 +6,7 @@
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
-    align-items: flex-start;
+    align-items: stretch;
     flex-shrink: 1;
     flex-grow: 1;
     min-height: 0;
@@ -28,6 +28,11 @@
     &.large {
         max-width: 19%;
     }
+}
+
+.item {
+    display: flex;
+    align-items: center;
 }
 
 mat-spinner {

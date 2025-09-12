@@ -1,16 +1,15 @@
-import { AfterViewInit, Component, Input, OnInit, ViewChild } from '@angular/core';
-import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
-import { combineLatest, Observable, startWith, Subscription, switchMap } from 'rxjs';
+import { AfterViewInit, Component, Input, OnInit } from '@angular/core';
+import { Observable, Subscription } from 'rxjs';
 import { PagedResult } from '../../contracts/paged-result';
 import { RemoteFileDetail } from '../../contracts/remote-file-detail';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { AsyncPipe } from '@angular/common';
 import { PagedApiParameters } from '../../paged-api-parameters';
 import { BaseballApiService } from '../../baseball-api.service';
 import { ThumbnailComponent } from '../thumbnail/thumbnail.component';
 import { BreakpointObserver, Breakpoints, BreakpointState } from '@angular/cdk/layout';
 import { ThumbnailSize } from '../../contracts/thumbnail-size';
 import { InfiniteScrollDirective } from 'ngx-infinite-scroll';
+import { MatIcon } from '@angular/material/icon';
 
 export interface MediaParams extends PagedApiParameters {
     gameId?: number,
@@ -27,7 +26,8 @@ export interface ThumbnailParams extends MediaParams {
     imports: [
         MatProgressSpinnerModule,
         ThumbnailComponent,
-        InfiniteScrollDirective
+        InfiniteScrollDirective,
+        MatIcon
     ],
     templateUrl: './media-gallery.component.html',
     styleUrl: './media-gallery.component.scss'

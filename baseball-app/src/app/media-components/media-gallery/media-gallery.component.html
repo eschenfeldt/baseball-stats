@@ -5,6 +5,13 @@
         <app-thumbnail [file]="file" [singleDayMode]="gameId != null" [queryParams]="mediaQueryParams"></app-thumbnail>
     </span>
     }
+    @if (!loading && !this.allDataLoaded) {
+    <span class="item">
+        <button mat-mini-fab aria-label="Load more thumbnails" (click)="loadData(false)">
+            <mat-icon>arrow_forward_ios</mat-icon>
+        </button>
+    </span>
+    }
 </div>
 @if (loading) {
 <mat-spinner></mat-spinner>
