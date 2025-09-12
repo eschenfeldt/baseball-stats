@@ -50,7 +50,7 @@ export class MediaGalleryComponent implements OnInit, AfterViewInit {
     dataLoad?: Subscription;
     totalCount?: number;
     loading: boolean = true;
-    private readonly pageSize = 10;
+    private readonly pageSize = 30;
 
     constructor(
         private api: BaseballApiService,
