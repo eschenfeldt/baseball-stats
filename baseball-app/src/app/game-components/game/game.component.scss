@@ -19,6 +19,10 @@
         text-align: center;
         font-weight: bolder;
     }
+
+    mat-card-title {
+        margin-bottom: 0.2em;
+    }
 }
 
 mat-spinner {
@@ -52,12 +56,27 @@ mat-tab-group {
 h5 {
     margin-left: 2em;
     margin-right: 2em;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
     font-size: larger;
     display: flex;
     justify-content: space-between;
+    align-items: center;
 
     mat-icon {
         color: var(--primary-color);
+    }
+
+    .condensed-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-grow: 0.4;
+
+
+        .game-score {
+            color: var(--mat-sidenav-content-text-color, var(--mat-sys-on-background))
+        }
     }
 }
 
@@ -73,6 +92,5 @@ h5 {
         display: flex;
         justify-content: center;
         align-items: center;
-        margin-top: 0.5em;
     }
 }

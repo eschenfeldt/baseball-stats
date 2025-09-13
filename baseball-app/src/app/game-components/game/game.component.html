@@ -1,12 +1,66 @@
 @if (game$ | async; as game) {
 <h5>
+    @if (condensedHeader) {
+    <span class="condensed-header">
+        <span>
+            {{gameDate(game)}}
+        </span>
+        <span>-</span>
+        <a [routerLink]="['/team', game.away.id]" routerLinkActive="router-link-active">
+            {{game.away.abbreviation}}
+        </a>
+        <span class="game-score-container">
+            <span class="game-score" [style.background-color]="color(game.away)">
+                {{game.awayScore}}
+            </span>
+        </span>
+        <span>
+            @if (boxScoresActive) {
+            <mat-card-actions>
+                <mat-button-toggle-group name="awayTeamOptions" aria-label="Away Team Options"
+                    (change)="setRouteFromBoxScoreOption($event)" [(ngModel)]="boxScoreOption"
+                    [hideSingleSelectionIndicator]="true">
+                    <mat-button-toggle value="awayBatters">{{batterLabel}}</mat-button-toggle>
+                    <mat-button-toggle value="awayPitchers">{{pitcherLabel}}</mat-button-toggle>
+                    <mat-button-toggle value="awayFielders">{{fielderLabel}}</mat-button-toggle>
+                </mat-button-toggle-group>
+            </mat-card-actions>
+            }
+        </span>
+        <span> @ </span>
+        <a [routerLink]="['/team', game.home.id]" routerLinkActive="router-link-active">
+            {{game.home.abbreviation}}
+        </a>
+        <span class="game-score-container">
+            <span class="game-score" [style.background-color]="color(game.home)">
+                {{game.homeScore}}
+            </span>
+        </span>
+        <span>
+            @if (boxScoresActive) {
+            <mat-card-actions>
+                <mat-button-toggle-group name="homeTeamOptions" aria-label="home Team Options"
+                    (change)="setRouteFromBoxScoreOption($event)" [(ngModel)]="boxScoreOption"
+                    [hideSingleSelectionIndicator]="true">
+                    <mat-button-toggle value="homeBatters">{{batterLabel}}</mat-button-toggle>
+                    <mat-button-toggle value="homePitchers">{{pitcherLabel}}</mat-button-toggle>
+                    <mat-button-toggle value="homeFielders">{{fielderLabel}}</mat-button-toggle>
+                </mat-button-toggle-group>
+            </mat-card-actions>
+            }
+        </span>
+    </span>
+    }
+    @else {
     {{game.name}}
+    }
     @if (isLoggedIn$ | async) {
     <button mat-icon-button (click)="openImportMediaDialog(game)">
         <mat-icon>cloud_upload</mat-icon>
     </button>
     }
 </h5>
+@if (!condensedHeader) {
 <div class="game-teams">
     <mat-card appearance="raised">
         <mat-card-header>
@@ -26,7 +80,7 @@
         @if (boxScoresActive) {
         <mat-card-actions>
             <mat-button-toggle-group name="awayTeamOptions" aria-label="Away Team Options" [(ngModel)]="boxScoreOption"
-                [hideSingleSelectionIndicator]="true">
+                (change)="setRouteFromBoxScoreOption($event)" [hideSingleSelectionIndicator]="true">
                 <mat-button-toggle value="awayBatters">{{batterLabel}}</mat-button-toggle>
                 <mat-button-toggle value="awayPitchers">{{pitcherLabel}}</mat-button-toggle>
                 <mat-button-toggle value="awayFielders">{{fielderLabel}}</mat-button-toggle>
@@ -52,7 +106,7 @@
         @if (boxScoresActive) {
         <mat-card-actions>
             <mat-button-toggle-group name="homeTeamOptions" aria-label="home Team Options" [(ngModel)]="boxScoreOption"
-                [hideSingleSelectionIndicator]="true">
+                (change)="setRouteFromBoxScoreOption($event)" [hideSingleSelectionIndicator]="true">
                 <mat-button-toggle value="homeBatters">{{batterLabel}}</mat-button-toggle>
                 <mat-button-toggle value="homePitchers">{{pitcherLabel}}</mat-button-toggle>
                 <mat-button-toggle value="homeFielders">{{fielderLabel}}</mat-button-toggle>
@@ -61,8 +115,8 @@
         }
     </mat-card>
 </div>
-
-<mat-tab-group [(selectedIndex)]="tabIndex">
+}
+<mat-tab-group [(selectedIndex)]="tabIndex" (selectedTabChange)="setRouteFromTab($event)">
     <mat-tab label="Details">
         <div class="mat-tab-body-wrapper">
             <app-game-details [game]="game"></app-game-details>

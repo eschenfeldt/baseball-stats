@@ -1,15 +1,15 @@
-import { AfterViewInit, Component, Input, OnInit, ViewChild } from '@angular/core';
-import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
-import { combineLatest, Observable, startWith, switchMap } from 'rxjs';
+import { AfterViewInit, Component, Input, OnInit } from '@angular/core';
+import { Observable, Subscription } from 'rxjs';
 import { PagedResult } from '../../contracts/paged-result';
 import { RemoteFileDetail } from '../../contracts/remote-file-detail';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { AsyncPipe } from '@angular/common';
 import { PagedApiParameters } from '../../paged-api-parameters';
 import { BaseballApiService } from '../../baseball-api.service';
 import { ThumbnailComponent } from '../thumbnail/thumbnail.component';
 import { BreakpointObserver, Breakpoints, BreakpointState } from '@angular/cdk/layout';
 import { ThumbnailSize } from '../../contracts/thumbnail-size';
+import { InfiniteScrollDirective } from 'ngx-infinite-scroll';
+import { MatIcon } from '@angular/material/icon';
 
 export interface MediaParams extends PagedApiParameters {
     gameId?: number,
@@ -24,10 +24,10 @@ export interface ThumbnailParams extends MediaParams {
 @Component({
     selector: 'app-media-gallery',
     imports: [
-        MatPaginatorModule,
         MatProgressSpinnerModule,
-        AsyncPipe,
-        ThumbnailComponent
+        ThumbnailComponent,
+        InfiniteScrollDirective,
+        MatIcon
     ],
     templateUrl: './media-gallery.component.html',
     styleUrl: './media-gallery.component.scss'
@@ -43,13 +43,14 @@ export class MediaGalleryComponent implements OnInit, AfterViewInit {
     @Input()
     parkId?: number;
 
-    @ViewChild(MatPaginator)
-    private paginator!: MatPaginator;
     private breakpoints$?: Observable<BreakpointState>;
 
-    data$?: Observable<PagedResult<RemoteFileDetail>>
-    defaultPageSize = 20;
+    data: RemoteFileDetail[] = [];
     thumbnailSize: ThumbnailSize = ThumbnailSize.small;
+    dataLoad?: Subscription;
+    totalCount?: number;
+    loading: boolean = true;
+    private readonly pageSize = 30;
 
     constructor(
         private api: BaseballApiService,
@@ -73,36 +74,63 @@ export class MediaGalleryComponent implements OnInit, AfterViewInit {
         this.registerLoad();
     }
 
-    private load(): Observable<PagedResult<RemoteFileDetail>> {
-        let params: ThumbnailParams = {
+    onScroll(): void {
+        this.loadData(false);
+    }
+
+    get allDataLoaded(): boolean {
+        return this.data.length === this.totalCount;
+    }
+
+    loadData(reset: boolean): void {
+        if (reset && this.dataLoad) {
+            this.clearLoad();
+        } else if (this.dataLoad || (!reset && this.allDataLoaded)) {
+            // already loading or nothing left to load
+            return;
+        }
+
+        this.loading = true;
+        let thumbnailParams: ThumbnailParams = {
             gameId: this.gameId,
             playerId: this.playerId,
             parkId: this.parkId,
-            size: this.thumbnailSize
+            size: this.thumbnailSize,
+            take: this.pageSize
         };
-        if (this.paginator) {
-            params.skip = this.paginator.pageIndex * this.paginator.pageSize;
-            params.take = this.paginator.pageSize;
+        if (reset) {
+            thumbnailParams.skip = 0;
         } else {
-            params.skip = 0;
-            params.take = this.defaultPageSize;
+            thumbnailParams.skip = this.data.length;
         }
-        return this.api.makeApiGet<PagedResult<RemoteFileDetail>>('media/thumbnails', params);
+        this.dataLoad = this.api.makeApiGet<PagedResult<RemoteFileDetail>>(
+            'media/thumbnails',
+            thumbnailParams
+        ).subscribe(newData => {
+            this.totalCount = newData.totalCount;
+            if (reset) {
+                this.data = newData.results;
+            } else {
+                this.data.push(...newData.results);
+            }
+            this.clearLoad();
+            this.loading = false;
+        });
+    }
+
+    private clearLoad(): void {
+        this.dataLoad?.unsubscribe();
+        this.dataLoad = undefined;
     }
 
     private registerLoad(): void {
-        if (this.paginator && this.breakpoints$) {
-            this.data$ = combineLatest([
-                this.paginator.page.pipe(startWith(null)),
-                this.breakpoints$.pipe(startWith(null))
-            ]).pipe(
-                switchMap(([, breakpointState], _) => {
-                    if (breakpointState) {
-                        this.updateSize(breakpointState);
-                    }
-                    return this.load();
-                })
-            );
+        if (this.breakpoints$) {
+            this.breakpoints$.subscribe(breakpointState => {
+                if (breakpointState) {
+                    this.updateSize(breakpointState);
+                    this.loadData(true);
+                }
+            });
         }
     }
 

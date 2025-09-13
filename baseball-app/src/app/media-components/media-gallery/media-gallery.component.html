@@ -1,14 +1,18 @@
-@if (data$ | async; as data) {
-<div class="media-gallery">
-    @for(file of data.results; track file.assetIdentifier) {
+<div class="media-gallery" infiniteScroll [infiniteScrollDistance]="1" [infiniteScrollThrottle]="50"
+    [scrollWindow]="false" [immediateCheck]="true" (scrolled)="onScroll()">
+    @for(file of data; track file.assetIdentifier) {
     <span class="thumbnail" [class.medium]="thumbnailSize === 'medium'" [class.large]="thumbnailSize === 'large'">
         <app-thumbnail [file]="file" [singleDayMode]="gameId != null" [queryParams]="mediaQueryParams"></app-thumbnail>
     </span>
     }
+    @if (!loading && !this.allDataLoaded) {
+    <span class="item">
+        <button mat-mini-fab aria-label="Load more thumbnails" (click)="loadData(false)">
+            <mat-icon>arrow_forward_ios</mat-icon>
+        </button>
+    </span>
+    }
 </div>
-} @else {
+@if (loading) {
 <mat-spinner></mat-spinner>
 }
-<mat-paginator #paginator [length]="(data$ | async)?.totalCount ?? 0" [pageIndex]="" [pageSize]="defaultPageSize"
-    [pageSizeOptions]="[5, 10, 20, 50, 100]" aria-label="Select page">
-</mat-paginator>
