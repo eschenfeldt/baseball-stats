@@ -47,6 +47,7 @@ export class LeadersComponent implements AfterViewInit {
     }
 
     public condenseInformation: boolean = false;
+    public safeAreaFooter: boolean = false;
     public get batterLabel(): string {
         return this.condenseInformation ? "B" : "Batters";
     }
@@ -70,8 +71,10 @@ export class LeadersComponent implements AfterViewInit {
         ]).subscribe(result => {
             if (result.matches) {
                 this.condenseInformation = true;
+                this.safeAreaFooter = true;
             } else {
                 this.condenseInformation = false;
+                this.safeAreaFooter = false;
             }
         });
     }
