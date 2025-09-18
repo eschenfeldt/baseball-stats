@@ -24,7 +24,7 @@ export abstract class BaseballDataSource<ArgType extends PagedApiParameters, Ret
     private dataSubject = new BehaviorSubject<ReturnType[]>([]);
     private statsSubject = new BehaviorSubject<StatDefCollection>({});
     private loadingSubject = new BehaviorSubject<boolean>(false);
-    private totalCountSubject = new BehaviorSubject<number>(0);
+    private totalCountSubject = new BehaviorSubject<number | null>(null);
     private activeSortSubject = new BehaviorSubject<Sort | null>(null);
 
     public uniqueIdentifier: string;
@@ -96,7 +96,8 @@ export abstract class BaseballDataSource<ArgType extends PagedApiParameters, Ret
             this.executingQuery.unsubscribe();
         }
 
-        if (body.skip && body.skip > this.totalCountSubject.getValue()) {
+        const totalCount = this.totalCountSubject.getValue();
+        if (body.skip && totalCount && body.skip > totalCount) {
             return; // skip if the requested page is beyond the total count
         }
         let queryBase;

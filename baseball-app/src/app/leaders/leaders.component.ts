@@ -82,11 +82,11 @@ export class LeadersComponent implements AfterViewInit {
     public ngAfterViewInit(): void {
         const allCounts = zip(this.batters.dataSource.totalCount$, this.pitchers.dataSource.totalCount$);
         allCounts.subscribe(counts => {
-            if (counts.every(c => c < 5 && c > 0)) {
+            if (counts.every(c => c != null && c < 5 && c > 0)) {
                 this.showTables = [Table.batters, Table.pitchers];
-            } else if (counts[0] === 0 && counts[1] > 0) {
+            } else if (counts[0] === 0 && counts[1] != null && counts[1] > 0) {
                 this.showTables = [Table.pitchers];
-            } else if (counts[0] > 0 && counts[1] === 0) {
+            } else if (counts[0] != null && counts[0] > 0 && counts[1] === 0) {
                 this.showTables = [Table.batters];
             } else if (counts.every(c => c === 0)) {
                 // expand playing time filters when there are no results
