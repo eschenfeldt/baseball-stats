@@ -11,6 +11,7 @@ import { SummaryStatsComponent } from '../../util-components/summary-stats/summa
 import { PlayerGamesComponent } from '../player-games/player-games.component';
 import { PlayerPitchingStatsComponent } from '../player-pitching-stats/player-pitching-stats.component';
 import { StatCategory } from '../../contracts/stat-category';
+import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 
 @Component({
     selector: 'app-player',
@@ -31,9 +32,12 @@ export class PlayerComponent implements OnInit {
     playerId$!: Observable<number>
     player$?: Observable<PlayerSummary>;
 
+    public safeAreaFooter = false;
+
     constructor(
         private api: BaseballApiService,
-        private route: ActivatedRoute
+        private route: ActivatedRoute,
+        private breakpointObserver: BreakpointObserver
     ) { }
 
     ngOnInit(): void {
@@ -42,6 +46,15 @@ export class PlayerComponent implements OnInit {
             switchMap(([playerId, params]) => {
                 return this.api.makeApiGet<PlayerSummary>(`player/${playerId}`, params);
             }));
+        this.breakpointObserver.observe([
+            Breakpoints.HandsetPortrait
+        ]).subscribe(result => {
+            if (result.matches) {
+                this.safeAreaFooter = true;
+            } else {
+                this.safeAreaFooter = false;
+            }
+        });
     }
 
     hasStatCategory(player: PlayerSummary, category: StatCategory): boolean {
