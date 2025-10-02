@@ -22,6 +22,16 @@ public class ImportTests(TestImportDatabaseFixture fixture) : IClassFixture<Test
     [Fact]
     public async void TestImportGameViaController()
     {
+        using BaseballContext setupContext = Fixture.CreateContext();
+
+        // add one of the teams and players from the test game before importing to be sure the importer doesn't duplicate them
+        var park = new Park { Name = "Nationals Park", TimeZone = "Eastern Standard Time" };
+        setupContext.Parks.Add(park);
+        setupContext.Teams.Add(new Team { City = "Washington", Name = "Nationals", HomePark = park });
+        setupContext.Players.Add(new Player { Name = "Willson Contreras" });
+        await setupContext.SaveChangesAsync();
+        Assert.NotEqual(0, park.Id);
+
         using BaseballContext context = Fixture.CreateContext();
         var builder = new ConfigurationBuilder()
             .AddJsonFile("/run/secrets/app_settings", optional: true)
@@ -32,16 +42,7 @@ public class ImportTests(TestImportDatabaseFixture fixture) : IClassFixture<Test
         var parkController = new ParkController(context);
         var playerController = new PlayerController(context);
         var teamsController = new TeamsController(context);
-
         var remoteValidator = new RemoteFileValidator(remoteFileManager);
-
-        // add one of the teams and players from the test game before importing to be sure the importer doesn't duplicate them
-        var park = new Park { Name = "Nationals Park", TimeZone = "Eastern Standard Time" };
-        context.Parks.Add(park);
-        context.Teams.Add(new Team { City = "Washington", Name = "Nationals", HomePark = park });
-        context.Players.Add(new Player { Name = "Willson Contreras" });
-        await context.SaveChangesAsync();
-        Assert.NotEqual(0, park.Id);
 
         // The park and team endpoints filter out entries with no associated games, so also check the db
         var parksBefore = await parkController.GetParks();
