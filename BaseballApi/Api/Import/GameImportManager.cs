@@ -56,7 +56,7 @@ public class GameImportManager
     private async Task<Team> GetTeam(string city, string name)
     {
         var altName = $"{city} {name}";
-        var existing = await Context.Teams.FirstOrDefaultAsync(t =>
+        var existing = await Context.Teams.Include(t => t.HomePark).FirstOrDefaultAsync(t =>
             t.City == city && t.Name == name
             || t.AlternateTeamNames.Any(atn => atn.FullName == altName)
         );
