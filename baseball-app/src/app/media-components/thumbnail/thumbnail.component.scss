@@ -3,6 +3,10 @@ img {
     max-height: 100%;
 }
 
+:host {
+    max-height: 100%;
+}
+
 // https://github.com/angular/components/issues/25566
 .mat-mdc-tooltip-trigger {
     touch-action: auto !important;

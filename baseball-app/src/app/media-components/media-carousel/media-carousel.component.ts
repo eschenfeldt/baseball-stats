@@ -9,6 +9,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { RemoteOriginal } from '../../contracts/remote-original';
 import { Utils } from '../../utils';
 import { ThumbnailScrollComponent } from '../thumbnail-scroll/thumbnail-scroll.component';
+import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 
 @Component({
     selector: 'app-media-carousel',
@@ -27,8 +28,11 @@ export class MediaCarouselComponent implements OnInit {
     assetIdentifier$!: Observable<string>;
     focusedOriginal$?: Observable<RemoteOriginal>;
 
+    public safeAreaFooter = false;
+
     constructor(
-        private api: BaseballApiService
+        private api: BaseballApiService,
+        private breakpointObserver: BreakpointObserver
     ) { }
 
     ngOnInit(): void {
@@ -36,6 +40,15 @@ export class MediaCarouselComponent implements OnInit {
             switchMap((assetIdentifier) => {
                 return this.api.makeApiGet<RemoteOriginal>(`media/original/${assetIdentifier}`);
             }));
+        this.breakpointObserver.observe([
+            Breakpoints.Handset
+        ]).subscribe(result => {
+            if (result.matches) {
+                this.safeAreaFooter = true;
+            } else {
+                this.safeAreaFooter = false;
+            }
+        });
     }
 
     photoUrl(focusedItem: RemoteOriginal): string | null {
