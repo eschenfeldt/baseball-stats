@@ -35,7 +35,8 @@ namespace BaseballApi.Controllers
             bool asc = false,
             long? teamId = null,
             long? parkId = null,
-            int? year = null)
+            int? year = null,
+            GameType? gameType = null)
         {
             var query = _context.Games
                 .Include(nameof(Game.Away))
@@ -58,6 +59,10 @@ namespace BaseballApi.Controllers
             if (year.HasValue)
             {
                 query = query.Where(g => g.Date.Year == year);
+            }
+            if (gameType.HasValue)
+            {
+                query = query.Where(g => g.GameType == gameType);
             }
 
             var sorted = asc ? query.OrderBy(g => g.StartTime ?? g.ScheduledTime ?? g.Date.ToDateTime(TimeOnly.MinValue))

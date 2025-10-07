@@ -1,4 +1,5 @@
 import { environment } from '../environments/environment';
+import { GameType } from './contracts/game-type';
 import { SummaryStat } from './contracts/summary-stat';
 import { Team } from './contracts/team';
 
@@ -99,6 +100,32 @@ export class Utils {
             case '.mp4':
             default:
                 return 'video/mp4';
+        }
+    }
+
+    public static gameTypeDisplayName(gameType: GameType): string {
+        switch (gameType) {
+            case GameType.MajorLeagueRegularSeason:
+                return 'MLB Regular Season';
+            case GameType.MajorLeaguePostSeason:
+                return 'MLB Postseason';
+            case GameType.MinorLeague:
+                return 'Minor League';
+            default:
+                return 'Unknown';
+        }
+    }
+
+    public static gameTypeShortName(gameType: GameType): string {
+        switch (gameType) {
+            case GameType.MajorLeagueRegularSeason:
+                return 'MLB';
+            case GameType.MajorLeaguePostSeason:
+                return 'Playoffs';
+            case GameType.MinorLeague:
+                return 'MiLB';
+            default:
+                return 'Unknown';
         }
     }
 }
