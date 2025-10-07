@@ -14,6 +14,7 @@ internal class StatCalculator
     public long? PlayerId { get; set; }
     public long? TeamId { get; set; }
     public long? ParkId { get; set; }
+    public GameType? GameType { get; set; }
 
     public bool GroupByPlayer { get; set; } = true;
     public bool GroupByYear { get; set; } = false;
@@ -145,6 +146,11 @@ internal class StatCalculator
         {
             where += " AND g.\"LocationId\" = @parkId";
             parameters.Add(new NpgsqlParameter("parkId", ParkId));
+        }
+        if (GameType.HasValue)
+        {
+            where += " AND g.\"GameType\" = @gameType";
+            parameters.Add(new NpgsqlParameter("gameType", (long)GameType));
         }
         if (!string.IsNullOrEmpty(PlayerSearch))
         {
@@ -304,6 +310,11 @@ internal class StatCalculator
         {
             where += " AND g.\"LocationId\" = @parkId";
             parameters.Add(new NpgsqlParameter("parkId", ParkId));
+        }
+        if (GameType.HasValue)
+        {
+            where += " AND g.\"GameType\" = @gameType";
+            parameters.Add(new NpgsqlParameter("gameType", (long)GameType));
         }
         if (!string.IsNullOrEmpty(PlayerSearch))
         {

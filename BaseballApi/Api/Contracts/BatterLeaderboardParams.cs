@@ -1,4 +1,6 @@
-﻿namespace BaseballApi.Contracts;
+﻿using BaseballApi.Models;
+
+namespace BaseballApi.Contracts;
 
 public struct BatterLeaderboardParams : ILeaderboardParams
 {
@@ -10,6 +12,7 @@ public struct BatterLeaderboardParams : ILeaderboardParams
     public long? TeamId { get; set; }
     public long? ParkId { get; set; }
     public long? PlayerId { get; set; }
+    public GameType? GameType { get; set; }
     public string? PlayerSearch { get; set; }
     public int Skip { get; set; } = 0;
     public int Take { get; set; } = 10;
