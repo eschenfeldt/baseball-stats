@@ -75,6 +75,7 @@ public class ImportTests(TestImportDatabaseFixture fixture) : IClassFixture<Test
             Assert.Equal(metadata.ScheduledStart, gameSummary.ScheduledTime);
             Assert.Equal(expectedActualStart, gameSummary.StartTime);
             Assert.Equal(metadata.End, gameSummary.EndTime);
+            Assert.Equal(GameType.MajorLeagueRegularSeason, gameSummary.GameType);
             Assert.Equal(park.Name, gameSummary.Location?.Name);
             Assert.Equal(park.Id, gameSummary.Location?.Id);
             Assert.Equal(6, gameSummary.AwayScore);
@@ -93,6 +94,7 @@ public class ImportTests(TestImportDatabaseFixture fixture) : IClassFixture<Test
             Assert.Equal(metadata.ScheduledStart, game.ScheduledTime);
             Assert.Equal(expectedActualStart, game.StartTime);
             Assert.Equal(metadata.End, game.EndTime);
+            Assert.Equal(GameType.MajorLeagueRegularSeason, game.GameType);
             Assert.Equal(park.Name, game.Location?.Name);
             Assert.Equal(park.Id, game.Location?.Id);
             Assert.Equal(6, game.AwayScore);

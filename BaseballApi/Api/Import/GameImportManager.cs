@@ -36,6 +36,7 @@ public class GameImportManager
             ScheduledTime = Metadata.ScheduledStart?.ToUniversalTime(),
             StartTime = Metadata.ActualStart?.ToUniversalTime(),
             EndTime = Metadata.End?.ToUniversalTime(),
+            GameType = Metadata.GameType,
             HomeTeamName = homeTeamName,
             Home = await this.GetTeam(Metadata.Home.City, Metadata.Home.Name),
             AwayTeamName = awayTeamName,
