@@ -8,7 +8,7 @@ namespace BaseballApiTests;
 
 public class MockRemoteFileManager : IRemoteFileManager
 {
-    HashSet<string> MockUploadedKeys { get; } = [];
+    readonly Dictionary<string, string> ContentTypes = [];
 
     public Task<DeleteObjectsResponse> DeleteResource(RemoteResource resource)
     {
@@ -20,7 +20,7 @@ public class MockRemoteFileManager : IRemoteFileManager
         throw new NotImplementedException();
     }
 
-    public Task<GetObjectMetadataResponse> GetFileMetadata(RemoteFileDetail fileDetail)
+    public async Task<GetObjectMetadataResponse> GetFileMetadata(RemoteFileDetail fileDetail)
     {
         throw new NotImplementedException();
     }
@@ -33,7 +33,8 @@ public class MockRemoteFileManager : IRemoteFileManager
     public async Task<PutObjectResponse> UploadFile(RemoteFile file, string filePath)
     {
         RemoteFileDetail fileDetail = new(file);
-        this.MockUploadedKeys.Add(fileDetail.Key);
+        Assert.NotNull(file.ContentType);
+        this.ContentTypes[fileDetail.Key] = file.ContentType;
         return new PutObjectResponse();
     }
 }

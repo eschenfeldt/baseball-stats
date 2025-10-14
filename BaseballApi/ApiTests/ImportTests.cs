@@ -37,7 +37,7 @@ public class ImportTests(TestImportDatabaseFixture fixture) : IClassFixture<Test
             .AddJsonFile("/run/secrets/app_settings", optional: true)
             .AddUserSecrets<TestDatabaseFixture>();
         IConfiguration configuration = builder.Build();
-        MockRemoteFileManager remoteFileManager = new();
+        RemoteFileManager remoteFileManager = new(configuration, nameof(ImportTests));
         var gamesController = new GamesController(context, remoteFileManager);
         var parkController = new ParkController(context);
         var playerController = new PlayerController(context);
