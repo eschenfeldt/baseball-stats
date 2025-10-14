@@ -53,6 +53,38 @@ public class GameImportManager
         }
     }
 
+    public void AddPitcherDecisions(Game game)
+    {
+        if (game.WinningTeam == game.Home && game.HomeBoxScore != null)
+        {
+            this.AddWinningTeamDecisions(game, game.HomeBoxScore);
+        }
+        else if (game.WinningTeam == game.Away && game.AwayBoxScore != null)
+        {
+            this.AddWinningTeamDecisions(game, game.AwayBoxScore);
+        }
+
+        if (game.LosingTeam == game.Home && game.HomeBoxScore != null)
+        {
+            this.AddLosingTeamDecisions(game, game.HomeBoxScore);
+        }
+        else if (game.LosingTeam == game.Away && game.AwayBoxScore != null)
+        {
+            this.AddLosingTeamDecisions(game, game.AwayBoxScore);
+        }
+    }
+
+    private void AddWinningTeamDecisions(Game game, BoxScore winningBoxScore)
+    {
+        game.WinningPitcher = winningBoxScore.Pitchers.FirstOrDefault(p => p.Wins > 0)?.Player;
+        game.SavingPitcher = winningBoxScore.Pitchers.FirstOrDefault(p => p.Saves > 0)?.Player;
+    }
+
+    private void AddLosingTeamDecisions(Game game, BoxScore losingBoxScore)
+    {
+        game.LosingPitcher = losingBoxScore.Pitchers.FirstOrDefault(p => p.Losses > 0)?.Player;
+    }
+
     private async Task<Team> GetTeam(string city, string name)
     {
         var altName = $"{city} {name}";
