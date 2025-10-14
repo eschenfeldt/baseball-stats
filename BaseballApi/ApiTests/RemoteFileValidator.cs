@@ -4,14 +4,9 @@ using BaseballApi.Import;
 
 namespace BaseballApiTests;
 
-public class RemoteFileValidator
+public class RemoteFileValidator(IRemoteFileManager fileManager)
 {
-    RemoteFileManager Manager { get; }
-
-    public RemoteFileValidator(RemoteFileManager fileManager)
-    {
-        this.Manager = fileManager;
-    }
+    IRemoteFileManager Manager { get; } = fileManager;
 
     public async Task ValidateFileExists(RemoteFileDetail fileDetail, string expectedContentType)
     {
