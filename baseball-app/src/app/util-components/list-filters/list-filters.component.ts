@@ -66,7 +66,7 @@ export class ListFiltersComponent implements OnInit {
     public yearOptions$?: Observable<number[]>
     public teamOptions$?: Observable<Team[]>
     public parkOptions$?: Observable<Park[]>
-    public gameTypeOptions: GameType[] = [GameType.MajorLeagueRegularSeason, GameType.MajorLeaguePostSeason, GameType.MinorLeague]
+    public gameTypeOptions: GameType[] = [GameType.MajorLeagueRegularSeason, GameType.MajorLeaguePostseason, GameType.MinorLeague]
 
     private teamCache: { [id: number]: Team } = {}
     private parkCache: { [id: number]: Park } = []

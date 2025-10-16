@@ -1,5 +1,5 @@
 export enum GameType {
     MajorLeagueRegularSeason = 0,
-    MajorLeaguePostSeason = 1,
+    MajorLeaguePostseason = 1,
     MinorLeague = 2
 }

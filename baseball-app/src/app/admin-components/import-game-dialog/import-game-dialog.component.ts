@@ -35,7 +35,7 @@ export class ImportGameDialogComponent implements OnInit {
 
     public readonly gameTypeOptions = [
         GameType.MajorLeagueRegularSeason,
-        GameType.MajorLeaguePostSeason,
+        GameType.MajorLeaguePostseason,
         GameType.MinorLeague
     ];
 

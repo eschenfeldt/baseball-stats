@@ -107,7 +107,7 @@ export class Utils {
         switch (gameType) {
             case GameType.MajorLeagueRegularSeason:
                 return 'MLB Regular Season';
-            case GameType.MajorLeaguePostSeason:
+            case GameType.MajorLeaguePostseason:
                 return 'MLB Postseason';
             case GameType.MinorLeague:
                 return 'Minor League';
@@ -120,7 +120,7 @@ export class Utils {
         switch (gameType) {
             case GameType.MajorLeagueRegularSeason:
                 return 'MLB';
-            case GameType.MajorLeaguePostSeason:
+            case GameType.MajorLeaguePostseason:
                 return 'Playoffs';
             case GameType.MinorLeague:
                 return 'MiLB';
