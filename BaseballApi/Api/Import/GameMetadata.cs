@@ -9,4 +9,5 @@ public struct GameMetadata
     public DateTimeOffset? ScheduledStart { get; set; }
     public DateTimeOffset? ActualStart { get; set; }
     public DateTimeOffset? End { get; set; }
+    public GameType? GameType { get; set; }
 }

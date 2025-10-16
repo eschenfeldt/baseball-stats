@@ -35,7 +35,8 @@ namespace BaseballApi.Controllers
             bool asc = false,
             long? teamId = null,
             long? parkId = null,
-            int? year = null)
+            int? year = null,
+            GameType? gameType = null)
         {
             var query = _context.Games
                 .Include(nameof(Game.Away))
@@ -58,6 +59,10 @@ namespace BaseballApi.Controllers
             if (year.HasValue)
             {
                 query = query.Where(g => g.Date.Year == year);
+            }
+            if (gameType.HasValue)
+            {
+                query = query.Where(g => g.GameType == gameType);
             }
 
             var sorted = asc ? query.OrderBy(g => g.StartTime ?? g.ScheduledTime ?? g.Date.ToDateTime(TimeOnly.MinValue))
@@ -160,7 +165,7 @@ namespace BaseballApi.Controllers
         }
 
         [HttpGet("years")]
-        public async Task<ActionResult<List<int>>> GetGameYears(long? teamId = null, long? parkId = null, long? playerId = null)
+        public async Task<ActionResult<List<int>>> GetGameYears(long? teamId = null, long? parkId = null, long? playerId = null, GameType? gameType = null)
         {
             IQueryable<Game> query = _context.Games;
 
@@ -175,6 +180,10 @@ namespace BaseballApi.Controllers
             if (playerId.HasValue)
             {
                 query = PlayerController.ConstructPlayerGamesQuery(playerId.Value, query, teamId);
+            }
+            if (gameType.HasValue)
+            {
+                query = query.Where(g => g.GameType == gameType);
             }
             return await query.Select(g => g.Date.Year).Distinct().OrderBy(i => i).ToListAsync();
         }

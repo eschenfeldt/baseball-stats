@@ -13,12 +13,15 @@ import { PagedApiParameters } from '../../paged-api-parameters';
 import { BaseballApiService } from '../../baseball-api.service';
 import { AsyncPipe } from '@angular/common';
 import { SortPipe } from '../../sort.pipe';
+import { GameType } from '../../contracts/game-type';
+import { Utils } from '../../utils';
 
 export interface ListFilterParams extends PagedApiParameters {
     teamId?: number;
     parkId?: number;
     year?: number;
     playerId?: number;
+    gameType?: GameType;
     playerSearch?: string;
 }
 
@@ -63,6 +66,7 @@ export class ListFiltersComponent implements OnInit {
     public yearOptions$?: Observable<number[]>
     public teamOptions$?: Observable<Team[]>
     public parkOptions$?: Observable<Park[]>
+    public gameTypeOptions: GameType[] = [GameType.MajorLeagueRegularSeason, GameType.MajorLeaguePostseason, GameType.MinorLeague]
 
     private teamCache: { [id: number]: Team } = {}
     private parkCache: { [id: number]: Park } = []
@@ -120,6 +124,19 @@ export class ListFiltersComponent implements OnInit {
         }
     }
 
+    public get selectedGameType(): GameType | undefined {
+        return this.filterService.getFilterValue<ListFilterParams>(this.uniqueIdentifier, 'gameType')
+    }
+    public set selectedGameType(value: GameType | undefined) {
+        this.filterService.setFilterValue<ListFilterParams>(this.uniqueIdentifier, 'gameType', value)
+        if (this.secondaryUniqueIdentifiers) {
+            this.secondaryUniqueIdentifiers.forEach(ui => {
+                this.filterService.setFilterValue<ListFilterParams>(ui, 'gameType', value)
+            })
+        }
+        this.router.navigate([], { queryParams: { gameType: value }, queryParamsHandling: 'merge' })
+    }
+
     public get search(): string {
         return this.filterService.getFilterValue<ListFilterParams>(this.uniqueIdentifier, 'playerSearch');
     }
@@ -155,6 +172,11 @@ export class ListFiltersComponent implements OnInit {
                 this.selectedYear = +params.year
             } else if (params.year == null && this.selectedYear) {
                 this.selectedYear = undefined
+            }
+            if (params.gameType != null && params.gameType !== this.selectedGameType) {
+                this.selectedGameType = +params.gameType
+            } else if (params.gameType == null && this.selectedGameType) {
+                this.selectedGameType = undefined
             }
         })
         const updateTriggers$ = this.filterService.filtersChanged$(this.uniqueIdentifier);
@@ -192,6 +214,10 @@ export class ListFiltersComponent implements OnInit {
 
     readonly filterOpenState = signal(false);
 
+    public gameTypeDisplayName(gameType: GameType): string {
+        return Utils.gameTypeDisplayName(gameType);
+    }
+
     public get filterSummary(): string {
         let summary = '';
         if (this.filterOpenState()) {
@@ -211,6 +237,12 @@ export class ListFiltersComponent implements OnInit {
                 summary += ', '
             }
             summary += `Park: ${this.selectedPark.name}`
+        }
+        if (this.selectedGameType != null) {
+            if (summary) {
+                summary += ', '
+            }
+            summary += `Game Type: ${Utils.gameTypeShortName(this.selectedGameType)}`
         }
 
         return summary;

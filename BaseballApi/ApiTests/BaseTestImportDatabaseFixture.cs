@@ -71,7 +71,8 @@ public class BaseTestImportDatabaseFixture : IDisposable
             {
                 City = "Washington",
                 Name = "Nationals"
-            }
+            },
+            GameType = GameType.MajorLeagueRegularSeason
         };
     }
 

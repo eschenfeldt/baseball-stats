@@ -41,6 +41,15 @@
         </mat-form-field>
         }
         }
+        <mat-form-field>
+            <mat-label>Game Type</mat-label>
+            <mat-select [(ngModel)]="selectedGameType">
+                <mat-option [value]=""></mat-option>
+                @for (gameType of gameTypeOptions; track gameType) {
+                <mat-option [value]="gameType">{{gameTypeDisplayName(gameType)}}</mat-option>
+                }
+            </mat-select>
+        </mat-form-field>
         @if (includePlayerSearch) {
         <mat-form-field>
             <mat-label>Search</mat-label>

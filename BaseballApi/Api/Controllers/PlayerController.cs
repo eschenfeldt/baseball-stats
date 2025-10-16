@@ -33,7 +33,7 @@ namespace BaseballApi.Controllers
 
         // GET: api/Player/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<PlayerSummary>> GetPlayer(long id, long? teamId = null, long? parkId = null, int? year = null)
+        public async Task<ActionResult<PlayerSummary>> GetPlayer(long id, long? teamId = null, long? parkId = null, int? year = null, GameType? gameType = null)
         {
             Player? player = await _context.Players
                 .Include(p => p.Media)
@@ -46,7 +46,7 @@ namespace BaseballApi.Controllers
                 return NotFound();
             }
 
-            return await this.GetPlayerSummary(player, teamId, parkId, year);
+            return await this.GetPlayerSummary(player, teamId, parkId, year, gameType);
         }
 
         [HttpGet("random")]
@@ -79,7 +79,7 @@ namespace BaseballApi.Controllers
             return await this.GetPlayerSummary(player);
         }
 
-        private async Task<PlayerSummary> GetPlayerSummary(Player player, long? teamId = null, long? parkId = null, int? year = null)
+        private async Task<PlayerSummary> GetPlayerSummary(Player player, long? teamId = null, long? parkId = null, int? year = null, GameType? gameType = null)
         {
             PlayerSummary summary = new()
             {
@@ -92,6 +92,7 @@ namespace BaseballApi.Controllers
                 PlayerId = player.Id,
                 TeamId = teamId,
                 ParkId = parkId,
+                GameType = gameType,
                 Year = year
             };
 
@@ -133,7 +134,8 @@ namespace BaseballApi.Controllers
             bool asc = false,
             int? year = null,
             long? teamId = null,
-            long? parkId = null)
+            long? parkId = null,
+            GameType? gameType = null)
         {
             IQueryable<Game> games = _context.Games;
             if (year.HasValue)
@@ -143,6 +145,10 @@ namespace BaseballApi.Controllers
             if (parkId.HasValue)
             {
                 games = games.Where(g => g.LocationId == parkId);
+            }
+            if (gameType.HasValue)
+            {
+                games = games.Where(g => g.GameType == gameType);
             }
 
             var query = ConstructPlayerGamesQuery(playerId, games, teamId)

@@ -1,4 +1,5 @@
 import { BaseballDataSource } from '../baseball-data-source'
+import { GameType } from '../contracts/game-type';
 import { LeaderboardPlayer } from '../contracts/leaderboard-player';
 import { PagedApiParameters } from '../paged-api-parameters'
 
@@ -9,6 +10,7 @@ export interface BatterLeaderboardParams extends PagedApiParameters {
     year?: number
     teamId?: number
     parkId?: number
+    gameType?: GameType
 }
 
 export class LeaderboardBattersDataSource extends BaseballDataSource<BatterLeaderboardParams, LeaderboardPlayer> {

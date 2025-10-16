@@ -14,6 +14,7 @@ import { TypeSafeMatCellDef } from '../../type-safe-mat-cell-def.directive';
 import { TypeSafeMatRowDef } from '../../type-safe-mat-row-def.directive';
 import { StatPipe } from '../../stat.pipe';
 import { ActivatedRoute, Router } from '@angular/router';
+import { GameType } from '../../contracts/game-type';
 
 @Component({
     selector: 'app-player-batting-stats',
@@ -77,6 +78,13 @@ export class PlayerBattingStatsComponent extends BaseballTableComponent<BatterLe
         this.filterService.setFilterValue<BatterLeaderboardParams>(this.uniqueIdentifier, 'year', value)
     }
 
+    private get gameType(): GameType | undefined {
+        return this.filterService.getFilterValue<BatterLeaderboardParams>(this.uniqueIdentifier, 'gameType')
+    }
+    private set gameType(value: GameType | undefined) {
+        this.filterService.setFilterValue<BatterLeaderboardParams>(this.uniqueIdentifier, 'gameType', value)
+    }
+
     constructor(
         api: BaseballApiService,
         private filterService: BaseballFilterService,
@@ -110,6 +118,11 @@ export class PlayerBattingStatsComponent extends BaseballTableComponent<BatterLe
                 this.year = +params.year
             } else if (params.year == null && this.year) {
                 this.year = undefined
+            }
+            if (params.gameType && +params.gameType !== this.gameType) {
+                this.gameType = +params.gameType
+            } else if (params.gameType == null && this.gameType) {
+                this.gameType = undefined
             }
         })
     }

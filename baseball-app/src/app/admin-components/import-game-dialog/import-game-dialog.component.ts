@@ -9,27 +9,35 @@ import { MatDialogActions, MatDialogClose, MatDialogContent, MatDialogRef, MatDi
 import { BaseballApiService } from '../../baseball-api.service';
 import { Team } from '../../contracts/team';
 import { GameMetadata } from '../../contracts/game-metadata';
+import { GameType } from '../../contracts/game-type';
+import { Utils } from '../../utils';
 
 @Component({
     selector: 'app-import-game-dialog',
     imports: [
-    FormsModule,
-    ReactiveFormsModule,
-    MatLabel,
-    MatInput,
-    MatFormField,
-    MatDialogTitle,
-    MatDialogContent,
-    MatDialogActions,
-    MatDialogClose,
-    MatButtonModule,
-    MatSelectModule,
-    MatInputModule
-],
+        FormsModule,
+        ReactiveFormsModule,
+        MatLabel,
+        MatInput,
+        MatFormField,
+        MatDialogTitle,
+        MatDialogContent,
+        MatDialogActions,
+        MatDialogClose,
+        MatButtonModule,
+        MatSelectModule,
+        MatInputModule
+    ],
     templateUrl: './import-game-dialog.component.html',
     styleUrl: './import-game-dialog.component.scss'
 })
 export class ImportGameDialogComponent implements OnInit {
+
+    public readonly gameTypeOptions = [
+        GameType.MajorLeagueRegularSeason,
+        GameType.MajorLeaguePostseason,
+        GameType.MinorLeague
+    ];
 
     metadata = new FormGroup({
         scheduledStartDate: new FormControl<string | null>(null, Validators.required),
@@ -39,7 +47,8 @@ export class ImportGameDialogComponent implements OnInit {
         endDate: new FormControl<string | null>(null, Validators.required),
         endTime: new FormControl<string | null>(null, Validators.required),
         home: new FormControl<Team | null>(null, Validators.required),
-        away: new FormControl<Team | null>(null, Validators.required)
+        away: new FormControl<Team | null>(null, Validators.required),
+        gameType: new FormControl<GameType.MajorLeagueRegularSeason | null>(GameType.MajorLeagueRegularSeason, Validators.required)
     })
 
     files: File[] = [];
@@ -56,13 +65,14 @@ export class ImportGameDialogComponent implements OnInit {
     }
 
     private get metadataValue(): GameMetadata | null {
-        if (this.metadata.valid && this.metadata.value.home && this.metadata.value.away) {
+        if (this.metadata.valid && this.metadata.value.home && this.metadata.value.away && this.metadata.value.gameType) {
             const scheduled = this.metadata.value.scheduledStartDate ? new Date(`${this.metadata.value.scheduledStartDate} ${this.metadata.value.scheduledStartTime}`) : null;
             const actual = this.metadata.value.actualStartDate ? new Date(`${this.metadata.value.actualStartDate} ${this.metadata.value.actualStartTime}`) : null;
             const end = this.metadata.value.endDate ? new Date(`${this.metadata.value.endDate} ${this.metadata.value.endTime}`) : null;
             return {
                 home: this.metadata.value.home,
                 away: this.metadata.value.away,
+                gameType: this.metadata.value.gameType,
                 scheduledStart: scheduled,
                 actualStart: actual,
                 end: end
@@ -106,5 +116,9 @@ export class ImportGameDialogComponent implements OnInit {
         this.api.makeApiGet<Team[]>('Teams').subscribe(teams => {
             this.teams = teams.sort((a, b) => a.city.localeCompare(b.city));
         })
+    }
+
+    gameTypeDisplay(type: GameType): string {
+        return Utils.gameTypeDisplayName(type);
     }
 }
