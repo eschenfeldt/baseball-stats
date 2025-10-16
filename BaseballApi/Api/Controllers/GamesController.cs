@@ -361,9 +361,6 @@ namespace BaseballApi.Controllers
                 existingGame.AwayScore = newGame.AwayScore;
                 existingGame.WinningTeam = newGame.WinningTeam;
                 existingGame.LosingTeam = newGame.LosingTeam;
-                existingGame.WinningPitcher = newGame.WinningPitcher;
-                existingGame.LosingPitcher = newGame.LosingPitcher;
-                existingGame.SavingPitcher = newGame.SavingPitcher;
                 // TODO: update box scores
                 if (existingGame.Scorecard != null)
                 {
@@ -389,6 +386,7 @@ namespace BaseballApi.Controllers
             {
                 newGame.HomeBoxScore = homeBox;
                 newGame.AwayBoxScore = awayBox;
+                importManager.AddPitcherDecisions(newGame);
 
                 await _context.SaveChangesAsync();
             }
