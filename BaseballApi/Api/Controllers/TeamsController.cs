@@ -56,7 +56,7 @@ namespace BaseballApi.Controllers
         }
 
         [HttpGet("summaries")]
-        public ActionResult<PagedResult<TeamSummary>> GetTeamSummaries(int skip, int take, string? sort = null, bool asc = false, long? parkId = null, int? year = null)
+        public ActionResult<PagedResult<TeamSummary>> GetTeamSummaries(int skip, int take, string? sort = null, bool asc = false, long? parkId = null, int? year = null, GameType? gameType = null)
         {
             TeamSummaryOrder order = sort.ToEnumOrDefault<TeamSummaryOrder, ParamValueAttribute>();
 
@@ -68,6 +68,10 @@ namespace BaseballApi.Controllers
             if (year.HasValue)
             {
                 games = games.Where(g => g.Date.Year == year);
+            }
+            if (gameType.HasValue)
+            {
+                games = games.Where(g => g.GameType == gameType);
             }
 
             var awayGames = _context.Teams

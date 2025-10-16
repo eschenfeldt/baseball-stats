@@ -66,7 +66,7 @@ namespace BaseballApi.Controllers
         }
 
         [HttpGet("summaries")]
-        public async Task<ActionResult<PagedResult<ParkSummary>>> GetParkSummaries(int skip, int take, string? sort = null, bool asc = false, long? teamId = null, int? year = null)
+        public async Task<ActionResult<PagedResult<ParkSummary>>> GetParkSummaries(int skip, int take, string? sort = null, bool asc = false, long? teamId = null, int? year = null, GameType? gameType = null)
         {
             ParkSummaryOrder order = sort.ToEnumOrDefault<ParkSummaryOrder, ParamValueAttribute>();
 
@@ -78,6 +78,10 @@ namespace BaseballApi.Controllers
             if (year.HasValue)
             {
                 games = games.Where(g => g.Date.Year == year);
+            }
+            if (gameType.HasValue)
+            {
+                games = games.Where(g => g.GameType == gameType);
             }
 
             IQueryable<ParkSummary> parks = _context.Parks
