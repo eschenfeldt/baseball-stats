@@ -25,14 +25,6 @@
         </mat-form-field>
         <form [formGroup]="metadata">
             <mat-form-field>
-                <mat-label>Game Type</mat-label>
-                <mat-select formControlName="gameType">
-                    @for (type of gameTypeOptions; track type) {
-                    <mat-option [value]="type">{{gameTypeDisplay(type)}}</mat-option>
-                    }
-                </mat-select>
-            </mat-form-field>
-            <mat-form-field>
                 <mat-label>Away Team</mat-label>
                 <mat-select formControlName="away">
                     @for (team of teams; track team.id) {
@@ -71,6 +63,14 @@
             <mat-form-field>
                 <mat-label>Time</mat-label>
                 <input type="time" formControlName="endTime" matInput>
+            </mat-form-field>
+            <mat-form-field>
+                <mat-label>Game Type</mat-label>
+                <mat-select formControlName="gameType">
+                    @for (type of gameTypeOptions; track type) {
+                    <mat-option [value]="type">{{gameTypeDisplay(type)}}</mat-option>
+                    }
+                </mat-select>
             </mat-form-field>
         </form>
     </div>
