@@ -9,6 +9,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { RemoteOriginal } from '../../contracts/remote-original';
 import { Utils } from '../../utils';
 import { ThumbnailScrollComponent } from '../thumbnail-scroll/thumbnail-scroll.component';
+import { ActivatedRoute, RouterModule } from '@angular/router';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
     selector: 'app-media-carousel',
@@ -16,7 +18,9 @@ import { ThumbnailScrollComponent } from '../thumbnail-scroll/thumbnail-scroll.c
         MatProgressSpinnerModule,
         AsyncPipe,
         LivePhotoComponent,
-        ThumbnailScrollComponent
+        ThumbnailScrollComponent,
+        RouterModule,
+        MatIconModule
     ],
     templateUrl: './media-carousel.component.html',
     styleUrl: './media-carousel.component.scss'
@@ -27,8 +31,25 @@ export class MediaCarouselComponent implements OnInit {
     assetIdentifier$!: Observable<string>;
     focusedOriginal$?: Observable<RemoteOriginal>;
 
+    gameId?: string;
+    playerId?: string;
+    parkId?: string;
+
+    get backRoute(): string[] | null {
+        if (this.gameId) {
+            return ['/game', this.gameId, 'media'];
+        } else if (this.playerId) {
+            return ['/player', this.playerId];
+        } else if (this.parkId) {
+            return ['/park', this.parkId];
+        } else {
+            return null;
+        }
+    }
+
     constructor(
-        private api: BaseballApiService
+        private api: BaseballApiService,
+        private route: ActivatedRoute
     ) { }
 
     ngOnInit(): void {
@@ -36,6 +57,12 @@ export class MediaCarouselComponent implements OnInit {
             switchMap((assetIdentifier) => {
                 return this.api.makeApiGet<RemoteOriginal>(`media/original/${assetIdentifier}`);
             }));
+
+        this.route.queryParams.subscribe(params => {
+            this.gameId = params['gameId'];
+            this.playerId = params['playerId'];
+            this.parkId = params['parkId'];
+        });
     }
 
     photoUrl(focusedItem: RemoteOriginal): string | null {

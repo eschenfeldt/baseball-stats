@@ -1,6 +1,13 @@
 <div class="focused-item">
     @if(focusedOriginal$ | async; as focusedItem) {
-    <h6>{{headerText(focusedItem)}}</h6>
+    <h6>
+        @if (backRoute) {
+        <a [routerLink]="backRoute" class="back-link">
+            <mat-icon>arrow_back</mat-icon>
+        </a>
+        }
+        {{headerText(focusedItem)}}
+    </h6>
     <span class="focused-content">
         @if (focusedItem.fileType === 'Live photo') {
         <app-live-photo [photo]="focusedItem"></app-live-photo>
