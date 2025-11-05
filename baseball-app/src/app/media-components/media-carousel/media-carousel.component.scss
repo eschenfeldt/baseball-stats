@@ -47,7 +47,22 @@ mat-spinner {
 }
 
 h6 {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+
     font-size: 1em;
     margin-left: 1em;
     margin-top: 1em;
+    margin-bottom: 1em;
+
+    a {
+        line-height: 0;
+    }
+
+    .header-text {
+        vertical-align: middle;
+        display: flex;
+        align-items: center;
+    }
 }

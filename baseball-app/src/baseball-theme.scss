@@ -196,4 +196,8 @@ $dark-theme: mat.define-theme((color: (theme-type: dark,
     h5 {
         color: var(--secondary-color);
     }
+
+    h6 {
+        color: mat.get-theme-color($dark-theme, 'tertiary', 90);
+    }
 }
