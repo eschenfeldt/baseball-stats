@@ -10,7 +10,7 @@ public readonly record struct FangraphsPlayer(
     [property: JsonPropertyName("firstname")] string FirstName,
     [property: JsonPropertyName("birthdate")] DateTime? BirthDate,
     [property: JsonPropertyName("team")] string Team,
-    [property: JsonPropertyName("views")] int Views,
+    [property: JsonPropertyName("views")] int? Views,
     [property: JsonPropertyName("war")] double? War,
     [property: JsonPropertyName("position")] string Position,
     [property: JsonPropertyName("debut_season")] string? DebutSeason,
