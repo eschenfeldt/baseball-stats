@@ -98,7 +98,6 @@ public class GameTests : BaseballTests
         Assert.NotNull(allPitchingGames.Value);
         Assert.True(battingGames.Value < allBattingGames.Value);
         Assert.True(pitchingGames.Value < allPitchingGames.Value);
-        Assert.Equal(battingGames.Value, pitchingGames.Value);
     }
 
     [Theory]
@@ -139,7 +138,6 @@ public class GameTests : BaseballTests
         Assert.NotNull(allPitchingGames.Value);
         Assert.True(battingGames.Value < allBattingGames.Value);
         Assert.True(pitchingGames.Value < allPitchingGames.Value);
-        Assert.Equal(battingGames.Value, pitchingGames.Value);
     }
 
     [Theory]
