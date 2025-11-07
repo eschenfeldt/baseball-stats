@@ -23,6 +23,8 @@ public class TestGameManager
         Batters.Add(1, context.Players.First(p => p.Name == "Test Batter 1"));
         Batters.Add(2, context.Players.First(p => p.Name == "Test Batter 2"));
         Batters.Add(3, context.Players.First(p => p.Name == "Test Batter 3"));
+        Batters.Add(4, context.Players.First(p => p.Name == "Ambiguous Player"));
+        Batters.Add(5, context.Players.First(p => p.Name == "Ambiguous Player" && p.Id != Batters[4].Id));
         Pitchers.Add(1, context.Players.First(p => p.Name == "Test Pitcher 1"));
         Pitchers.Add(2, context.Players.First(p => p.Name == "Test Pitcher 2"));
         Parks.Add(1, context.Parks.First(p => p.Name == "Test Stadium"));
@@ -539,7 +541,7 @@ public class TestGameManager
                 Name = "2022 Test Game 2",
                 HomeScore = 0,
                 AwayScore = 0,
-                Away =new BoxScoreInfo
+                Away = new BoxScoreInfo
                 {
                     TeamNumber = 2,
                     Batters = [
@@ -550,6 +552,15 @@ public class TestGameManager
                             AtBats = 4,
                             Hits = 2,
                             Homeruns = 1,
+                            Runs = 0
+                        },
+                        new BatterInfo
+                        {
+                            BatterNumber = 4,
+                            PlateAppearances = 1,
+                            AtBats = 1,
+                            Hits = 0,
+                            Homeruns = 0,
                             Runs = 0
                         }
                     ],
@@ -575,6 +586,15 @@ public class TestGameManager
                             AtBats = 3,
                             Hits = 1,
                             Homeruns = 1,
+                            Runs = 0
+                        },
+                        new BatterInfo
+                        {
+                            BatterNumber = 5,
+                            PlateAppearances = 1,
+                            AtBats = 1,
+                            Hits = 0,
+                            Homeruns = 0,
                             Runs = 0
                         }
                     ],

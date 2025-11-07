@@ -35,7 +35,7 @@ public class TestDatabaseFixture
         }
     }
 
-    void AddTeams(BaseballContext context)
+    static void AddTeams(BaseballContext context)
     {
         context.AddRange(
             new Team { City = "Test City", Name = "Testers", Abbreviation = "TCT" },
@@ -53,7 +53,7 @@ public class TestDatabaseFixture
         );
     }
 
-    void AddPlayers(BaseballContext context)
+    static void AddPlayers(BaseballContext context)
     {
         context.AddRange(
             new Player { Name = "Test Pitcher 1" },
@@ -61,11 +61,13 @@ public class TestDatabaseFixture
             new Player { Name = "Test Pitcher 2" },
             new Player { Name = "Test Batter 2" },
             new Player { Name = "Test Batter 3" },
-            new Player { Name = "Test Bench Player" }
+            new Player { Name = "Test Bench Player" },
+            new Player { Name = "Ambiguous Player" },
+            new Player { Name = "Ambiguous Player" }
         );
     }
 
-    void AddLocations(BaseballContext context)
+    static void AddLocations(BaseballContext context)
     {
         context.AddRange(
             new Park { Name = "Test Park" },
@@ -73,7 +75,7 @@ public class TestDatabaseFixture
         );
     }
 
-    void AddConstants(BaseballContext context)
+    static void AddConstants(BaseballContext context)
     {
         context.AddRange(
             new FangraphsConstants { Year = 2024 },
@@ -82,7 +84,7 @@ public class TestDatabaseFixture
         );
     }
 
-    public BaseballContext CreateContext()
+    public static BaseballContext CreateContext()
     {
         var configPath = Path.Join("/", "run", "secrets", "app_settings");
         var builder = new ConfigurationBuilder()

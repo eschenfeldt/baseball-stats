@@ -3,6 +3,7 @@ using System.Linq.Expressions;
 using BaseballApi;
 using BaseballApi.Contracts;
 using BaseballApi.Controllers;
+using BaseballApi.Import;
 
 namespace BaseballApiTests;
 
@@ -10,11 +11,13 @@ public class PlayerTests : BaseballTests
 {
     private PlayerController Controller { get; }
     private LeaderboardController LeaderController { get; }
+    private TestGameManager GameManager { get; }
 
     public PlayerTests(TestDatabaseFixture fixture) : base(fixture)
     {
         Controller = new PlayerController(Context);
         LeaderController = new LeaderboardController(Context);
+        GameManager = new TestGameManager(Context);
     }
 
     [Theory]
@@ -30,6 +33,20 @@ public class PlayerTests : BaseballTests
         var player = players.Value.FirstOrDefault(p => p.Name == name);
         Assert.NotNull(player);
         Assert.Equal(name, player.Name);
+    }
+
+    [Theory]
+    [InlineData(4, 2, 2022)]
+    [InlineData(4, 2, null)]
+    [InlineData(5, 1, 2022)]
+    [InlineData(5, 1, null)]
+    public async void TestIdentifyAmbiguousPlayer(int expectedBatterNumber, long teamId, int? year)
+    {
+        string playerName = "Ambiguous Player";
+        var manager = new PlayerManager(Context);
+        var player = manager.GetOrCreatePlayer(playerName, teamId, year ?? 2025);
+        var expectedPlayerId = GameManager.GetPlayerId(expectedBatterNumber);
+        Assert.Equal(expectedPlayerId, player.Id);
     }
 
     static readonly string Batter1Name = "Test Batter 1";

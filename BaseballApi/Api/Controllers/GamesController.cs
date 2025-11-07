@@ -179,7 +179,7 @@ namespace BaseballApi.Controllers
             }
             if (playerId.HasValue)
             {
-                query = PlayerController.ConstructPlayerGamesQuery(playerId.Value, query, teamId);
+                query = PlayerManager.ConstructPlayerGamesQuery(playerId.Value, query, teamId);
             }
             if (gameType.HasValue)
             {

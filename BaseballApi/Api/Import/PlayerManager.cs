@@ -11,9 +11,9 @@ public class PlayerManager(BaseballContext context)
     public Player GetOrCreatePlayer(string name, long teamId, int year)
     {
         var matches = Context.Players
-            .Where(p => p.Name == name);
+            .Where(p => p.Name == name).ToList();
 
-        if (!matches.Any())
+        if (matches.Count == 0)
         {
             if (NewPlayers.TryGetValue(name, out var existingNewPlayer))
             {
@@ -26,12 +26,10 @@ public class PlayerManager(BaseballContext context)
                     Name = name
                 };
                 this.NewPlayers[name] = newPlayer;
-                Context.Players.Add(newPlayer);
-                Context.SaveChanges();
                 return newPlayer;
             }
         }
-        else if (matches.Count() == 1)
+        else if (matches.Count == 1)
         {
             return matches.First();
         }
@@ -40,9 +38,10 @@ public class PlayerManager(BaseballContext context)
             // multiple players with same name - try to disambiguate by team and year first
             foreach (var player in matches)
             {
-                var playedInTeamYear = Context.BoxScorePlayers
-                    .Any(bsp => bsp.PlayerId == player.Id && bsp.BoxScore.TeamId == teamId && bsp.BoxScore.Game.Date.Year == year);
-                if (playedInTeamYear)
+                var playedOnTeamInYear = ConstructPlayerGamesQuery(player.Id, Context.Games, teamId)
+                    .Where(g => g.Date.Year == year)
+                    .Any();
+                if (playedOnTeamInYear)
                 {
                     return player;
                 }
@@ -50,9 +49,9 @@ public class PlayerManager(BaseballContext context)
             // try by team only
             foreach (var player in matches)
             {
-                var playedInTeamYear = Context.BoxScorePlayers
-                    .Any(bsp => bsp.PlayerId == player.Id && bsp.BoxScore.TeamId == teamId);
-                if (playedInTeamYear)
+                var playedOnTeam = ConstructPlayerGamesQuery(player.Id, Context.Games, teamId)
+                    .Any();
+                if (playedOnTeam)
                 {
                     return player;
                 }
@@ -66,5 +65,23 @@ public class PlayerManager(BaseballContext context)
     public string FindFangraphsPageForPlayer(Player player)
     {
         throw new NotImplementedException();
+    }
+
+    public static IQueryable<Game> ConstructPlayerGamesQuery(long playerId, IQueryable<Game> baseGames, long? teamId = null)
+    {
+        return baseGames
+            .Where(g => (
+                (teamId == null || g.Away.Id == teamId)
+                && g.AwayBoxScore != null && (
+                g.AwayBoxScore.Batters.Any(b => b.PlayerId == playerId)
+                || g.AwayBoxScore.Pitchers.Any(p => p.PlayerId == playerId)
+                || g.AwayBoxScore.Fielders.Any(f => f.PlayerId == playerId)
+            )) || (
+                (teamId == null || g.Home.Id == teamId)
+                && g.HomeBoxScore != null && (
+                g.HomeBoxScore.Batters.Any(b => b.PlayerId == playerId)
+                || g.HomeBoxScore.Pitchers.Any(p => p.PlayerId == playerId)
+                || g.HomeBoxScore.Fielders.Any(f => f.PlayerId == playerId)
+            )));
     }
 }

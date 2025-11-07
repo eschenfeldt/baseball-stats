@@ -9,7 +9,7 @@ public abstract class BaseballTests : IClassFixture<TestDatabaseFixture>, IDispo
     protected BaseballTests(TestDatabaseFixture fixture)
     {
         Fixture = fixture;
-        Context = Fixture.CreateContext();
+        Context = TestDatabaseFixture.CreateContext();
         // Context.Database.BeginTransaction(); // allow changes without persisting to the db
     }
 
