@@ -49,7 +49,11 @@ public class TestDatabaseFixture
             },
             // teams with no specific tests, used for media import games
             new Team { City = "Dummyton", Name = "Dummies", Abbreviation = "DUM" },
-            new Team { City = "Blankville", Name = "Blanks", Abbreviation = "BNK" }
+            new Team { City = "Blankville", Name = "Blanks", Abbreviation = "BNK" },
+            // A few relevant teams for Will Smith tests
+            new Team { City = "Los Angeles", Name = "Dodgers", Abbreviation = "LAD" },
+            new Team { City = "Atlanta", Name = "Braves", Abbreviation = "ATL" },
+            new Team { City = "Texas", Name = "Rangers", Abbreviation = "TEX" }
         );
     }
 
@@ -63,7 +67,10 @@ public class TestDatabaseFixture
             new Player { Name = "Test Batter 3" },
             new Player { Name = "Test Bench Player" },
             new Player { Name = "Ambiguous Player" },
-            new Player { Name = "Ambiguous Player" }
+            new Player { Name = "Ambiguous Player" },
+            // Dodgers Will Smith (C) and Atlanta Will Smith (P)
+            new Player { Name = "Will Smith", FangraphsPage = new Uri("https://www.fangraphs.com/players/will-smith/19197/stats?position=C") },
+            new Player { Name = "Will Smith", FangraphsPage = new Uri("https://www.fangraphs.com/players/will-smith/8048/stats?position=P") }
         );
     }
 

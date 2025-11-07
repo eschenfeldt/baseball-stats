@@ -40,13 +40,31 @@ public class PlayerTests : BaseballTests
     [InlineData(4, 2, null)]
     [InlineData(5, 1, 2022)]
     [InlineData(5, 1, null)]
-    public async void TestIdentifyAmbiguousPlayer(int expectedBatterNumber, long teamId, int? year)
+    public void TestIdentifyAmbiguousPlayer(int expectedBatterNumber, long teamId, int? year)
     {
         string playerName = "Ambiguous Player";
         var manager = new PlayerManager(Context);
         var player = manager.GetOrCreatePlayer(playerName, teamId, year ?? 2025);
         var expectedPlayerId = GameManager.GetPlayerId(expectedBatterNumber);
         Assert.Equal(expectedPlayerId, player.Id);
+    }
+
+    [Theory]
+    [InlineData(19197, "LAD", 2022)] // Will Smith (C)
+    [InlineData(19197, "LAD", 2025)]
+    [InlineData(8048, "ATL", 2021)]  // Will Smith (P)
+    [InlineData(8048, "ATL", 2022)]  // played for two teams in 2022
+    [InlineData(8048, "TEX", 2023)]
+    public void TestIdentifyWillSmith(int expectedFangraphsId, string teamAbbreviation, int year)
+    {
+        string playerName = "Will Smith";
+        long teamId = Context.Teams.Single(t => t.Abbreviation == teamAbbreviation).Id;
+        var manager = new PlayerManager(Context);
+        var player = manager.GetOrCreatePlayer(playerName, teamId, year);
+        var idString = player.FangraphsPage?.Segments[3].Trim('/');
+        Assert.NotNull(idString);
+        var actualFangraphsId = int.Parse(idString);
+        Assert.Equal(expectedFangraphsId, actualFangraphsId);
     }
 
     static readonly string Batter1Name = "Test Batter 1";
