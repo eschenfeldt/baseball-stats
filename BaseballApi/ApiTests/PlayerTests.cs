@@ -1,9 +1,11 @@
 using System.ComponentModel;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 using BaseballApi;
 using BaseballApi.Contracts;
 using BaseballApi.Controllers;
 using BaseballApi.Import;
+using BaseballApi.Models;
 
 namespace BaseballApiTests;
 
@@ -63,6 +65,23 @@ public class PlayerTests : BaseballTests
         var player = manager.GetOrCreatePlayer(playerName, teamId, year);
         var idString = player.FangraphsPage?.Segments[3].Trim('/');
         Assert.NotNull(idString);
+        var actualFangraphsId = int.Parse(idString);
+        Assert.Equal(expectedFangraphsId, actualFangraphsId);
+    }
+
+    [Theory]
+    [InlineData(19197, "Will Smith", "1995-03-28")] // Will Smith (C)
+    [InlineData(8048, "Will Smith", "1989-07-10")]  // Will Smith (P)
+    [InlineData(19755, "Shohei Ohtani")]
+    [InlineData(10155, "Mike Trout")]
+    public async Task TestFindFangraphsPage(int expectedFangraphsId, string playerName, string? dateOfBirth = null)
+    {
+        var manager = new PlayerManager(Context);
+        DateOnly? dob = dateOfBirth != null ? DateOnly.Parse(dateOfBirth) : null;
+        var player = new Player { Name = playerName, DateOfBirth = dob };
+        var fangraphsPage = await manager.FindFangraphsPageForPlayer(player);
+        Assert.NotNull(fangraphsPage);
+        var idString = fangraphsPage.Segments[3].Trim('/');
         var actualFangraphsId = int.Parse(idString);
         Assert.Equal(expectedFangraphsId, actualFangraphsId);
     }

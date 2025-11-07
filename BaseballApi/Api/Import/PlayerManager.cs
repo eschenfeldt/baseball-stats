@@ -62,7 +62,7 @@ public class PlayerManager(BaseballContext context)
         }
     }
 
-    public string FindFangraphsPageForPlayer(Player player)
+    public async Task<Uri> FindFangraphsPageForPlayer(Player player)
     {
         throw new NotImplementedException();
     }
