@@ -51,6 +51,12 @@ public class PlayerTests : BaseballTests
         Assert.Equal(expectedPlayerId, player.Id);
     }
 
+    /// <summary>
+    /// The point of this test is to be sure that if we have two players with the same name 
+    ///  both registered in the db we can identify the correct one even if he's playing on a new team.
+    /// Note that if we have only one of the players registered we're not going to know to disambiguate, 
+    ///  so there will still be manual cleanup initially. TBD if that can be integrated on the web or if it will remain a DB process.
+    /// </summary>
     [Theory]
     [InlineData(19197, "LAD", 2022)] // Will Smith (C)
     [InlineData(19197, "LAD", 2025)]

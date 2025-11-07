@@ -101,7 +101,7 @@ public class PlayerManager(BaseballContext context)
         }
     }
 
-    private Uri FangraphsPlayerUri(FangraphsPlayer player)
+    private static Uri FangraphsPlayerUri(FangraphsPlayer player)
     {
         return new Uri($"https://www.fangraphs.com{player.Url}");
     }
