@@ -127,6 +127,22 @@ services:
     secrets:
       - retrosheet_password
 
+  retrosheet-updater:
+    build:
+      context: RetrosheetUpdater
+    profiles:
+      - test
+      - prod
+    depends_on:
+      - retrosheet
+    environment:
+      - DATABASE_URL: postgres://retrosheet@retrosheet_db:5432/retrosheet
+      - DATABASE: retrosheet
+      - PASSWORD_FILE: /run/secrets/retrosheet_password
+    secrets:
+      - retrosheet_password
+    restart: "no"
+
 volumes:
   certbot-etc:
   certbot-var:
