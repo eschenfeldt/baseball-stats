@@ -5,6 +5,7 @@ using BaseballApi;
 using BaseballApi.Contracts;
 using BaseballApi.Controllers;
 using BaseballApi.Import;
+using BaseballApi.Integrations;
 using BaseballApi.Models;
 
 namespace BaseballApiTests;
@@ -90,6 +91,21 @@ public class PlayerTests : BaseballTests
         var idString = fangraphsPage.Segments[3].Trim('/');
         var actualFangraphsId = int.Parse(idString);
         Assert.Equal(expectedFangraphsId, actualFangraphsId);
+    }
+
+    [Fact]
+    public async Task TestGetMLBAMPeople()
+    {
+        var manager = new MLBAMConnector();
+        var response = await manager.GetPeopleAsync(new DateOnly(2024, 1, 1));
+        Assert.NotEmpty(response.People);
+
+        var willSmiths = response.People.Where(p => p.FullName == "Will Smith").ToList();
+        Assert.True(willSmiths.Count >= 2);
+        var catcherWillSmith = willSmiths.FirstOrDefault(p => p.Id == 669257);
+        var pitcherWillSmith = willSmiths.FirstOrDefault(p => p.Id == 519293);
+        Assert.Equal("1995-03-28", catcherWillSmith.BirthDate);
+        Assert.Equal("1989-07-10", pitcherWillSmith.BirthDate);
     }
 
     static readonly string Batter1Name = "Test Batter 1";
