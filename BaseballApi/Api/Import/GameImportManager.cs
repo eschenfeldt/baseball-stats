@@ -113,17 +113,17 @@ public class GameImportManager(GameImportData data, BaseballContext context)
     {
         foreach (var batter in this.GetBatters(boxScore, home))
         {
-            batter.Player = this.GetOrAddPlayer(batter.Player, boxScore.TeamId);
+            batter.Player = this.GetOrAddPlayer(batter.Player, boxScore.TeamId, batter.Number);
             boxScore.Batters.Add(batter);
         }
         foreach (var pitcher in this.GetPitchers(boxScore, home))
         {
-            pitcher.Player = this.GetOrAddPlayer(pitcher.Player, boxScore.TeamId);
+            pitcher.Player = this.GetOrAddPlayer(pitcher.Player, boxScore.TeamId, pitcher.Number);
             boxScore.Pitchers.Add(pitcher);
         }
         foreach (var fielder in this.GetFielders(boxScore, home))
         {
-            fielder.Player = this.GetOrAddPlayer(fielder.Player, boxScore.TeamId);
+            fielder.Player = this.GetOrAddPlayer(fielder.Player, boxScore.TeamId, fielder.Number);
             boxScore.Fielders.Add(fielder);
         }
     }
@@ -149,9 +149,9 @@ public class GameImportManager(GameImportData data, BaseballContext context)
         return stats.GetFielders(boxScore);
     }
 
-    private Player GetOrAddPlayer(Player player, long teamId)
+    private Player GetOrAddPlayer(Player player, long teamId, int number)
     {
-        return this.PlayerManager.GetOrCreatePlayer(player.Name, teamId, GameDate.Year);
+        return this.PlayerManager.GetOrCreatePlayer(player.Name, teamId, number, GameDate.Year);
     }
 
     private CsvLoader GetOrLoadFile(ImportFileType fileType)

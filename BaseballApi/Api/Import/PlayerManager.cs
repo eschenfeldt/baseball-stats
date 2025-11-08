@@ -10,7 +10,7 @@ public class PlayerManager(BaseballContext context)
     private BaseballContext Context { get; } = context;
     private Dictionary<string, Player> NewPlayers { get; } = [];
 
-    public Player GetOrCreatePlayer(string name, long teamId, int year)
+    public Player GetOrCreatePlayer(string name, long teamId, int number, int? year)
     {
         var matches = Context.Players
             .Where(p => p.Name == name).ToList();

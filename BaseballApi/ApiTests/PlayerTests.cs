@@ -38,42 +38,64 @@ public class PlayerTests : BaseballTests
         Assert.Equal(name, player.Name);
     }
 
+    /// <summary>
+    /// Simulated history of three players with the same name:
+    /// - in 2022, BN4 wears #15 on Team 2 in a game scored in the DB
+    /// - in 2022, BN5 wears #15 on Team 1 in a game scored in the DB
+    /// - in <current year>, BN4 wears #26 on Team 2 with no game scored for that team yet
+    /// - in <current year>, BN5 is retired and does not appear
+    /// - in <current year>, a new player not in the db yet wears #15 on Team 1
+    /// In the current year we use reference data to identify the player, which is the more common case.
+    /// The scenarios where we pass the year are validating the setup of the test data.
+    /// </summary>
     [Theory]
-    [InlineData(4, 2, 2022)]
-    [InlineData(4, 2, null)]
-    [InlineData(5, 1, 2022)]
-    [InlineData(5, 1, null)]
-    public void TestIdentifyAmbiguousPlayer(int expectedBatterNumber, long teamId, int? year)
+    [InlineData(4, 2, 15, 2022)]
+    [InlineData(4, 2, 26, null)]
+    [InlineData(5, 1, 15, 2022)]
+    [InlineData(null, 1, 15, null)] // new player on the same team as 5 with same name
+    public void TestIdentifyAmbiguousPlayer(int? expectedBatterNumber, long teamId, int number, int? year)
     {
         string playerName = "Ambiguous Player";
         var manager = new PlayerManager(Context);
-        var player = manager.GetOrCreatePlayer(playerName, teamId, year ?? 2025);
-        var expectedPlayerId = GameManager.GetPlayerId(expectedBatterNumber);
-        Assert.Equal(expectedPlayerId, player.Id);
+        var player = manager.GetOrCreatePlayer(playerName, teamId, number, year);
+        if (expectedBatterNumber == null)
+        {
+            // new player should have been created
+            Assert.Equal(default, player.Id);
+        }
+        else
+        {
+            var expectedPlayerId = GameManager.GetPlayerId(expectedBatterNumber);
+            Assert.Equal(expectedPlayerId, player.Id);
+        }
     }
 
     /// <summary>
-    /// The point of this test is to be sure that if we have two players with the same name 
-    ///  both registered in the db we can identify the correct one even if he's playing on a new team.
-    /// Note that if we have only one of the players registered we're not going to know to disambiguate, 
-    ///  so there will still be manual cleanup initially. TBD if that can be integrated on the web or if it will remain a DB process.
+    /// Make sure we can still identify a player by name only if they're unambiguous in the DB.
     /// </summary>
-    [Theory(Skip = "Connection to external source of teams and years has not been implemented yet.")]
-    [InlineData(19197, "LAD", 2022)] // Will Smith (C)
-    [InlineData(19197, "LAD", 2025)]
-    [InlineData(8048, "ATL", 2021)]  // Will Smith (P)
-    [InlineData(8048, "ATL", 2022)]  // played for two teams in 2022
-    [InlineData(8048, "TEX", 2023)]
-    public void TestIdentifyWillSmith(int expectedFangraphsId, string teamAbbreviation, int year)
+    [Theory]
+    [InlineData("Test Batter 1", 1)]
+    [InlineData("Test Batter 2", 2)]
+    [InlineData("Test Batter 3", 3)]
+    [InlineData("New Player", null)]
+
+    public void TestIdentifyUnambiguousPlayer(string playerName, int? expectedBatterNumber)
     {
-        string playerName = "Will Smith";
-        long teamId = Context.Teams.Single(t => t.Abbreviation == teamAbbreviation).Id;
         var manager = new PlayerManager(Context);
-        var player = manager.GetOrCreatePlayer(playerName, teamId, year);
-        var idString = player.FangraphsPage?.Segments[3].Trim('/');
-        Assert.NotNull(idString);
-        var actualFangraphsId = int.Parse(idString);
-        Assert.Equal(expectedFangraphsId, actualFangraphsId);
+        // pick an arbitrary team and number to validate fallback logic when reference data is missing
+        long teamId = Context.Teams.First().Id;
+        int number = 999;
+        var player = manager.GetOrCreatePlayer(playerName, teamId, number, null);
+        if (expectedBatterNumber == null)
+        {
+            // new player should have been created
+            Assert.Equal(default, player.Id);
+        }
+        else
+        {
+            var expectedPlayerId = GameManager.GetPlayerId(expectedBatterNumber);
+            Assert.Equal(expectedPlayerId, player.Id);
+        }
     }
 
     [Theory]
