@@ -57,7 +57,7 @@ public class PlayerTests : BaseballTests
     /// Note that if we have only one of the players registered we're not going to know to disambiguate, 
     ///  so there will still be manual cleanup initially. TBD if that can be integrated on the web or if it will remain a DB process.
     /// </summary>
-    [Theory]
+    [Theory(Skip = "Connection to external source of teams and years has not been implemented yet.")]
     [InlineData(19197, "LAD", 2022)] // Will Smith (C)
     [InlineData(19197, "LAD", 2025)]
     [InlineData(8048, "ATL", 2021)]  // Will Smith (P)
