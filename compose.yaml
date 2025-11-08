@@ -104,10 +104,34 @@ services:
     secrets:
       - baseball_password
 
+  retrosheet:
+    image: postgres:16
+    profiles:
+      - test
+      - prod
+    restart: always
+    container_name: retrosheet_db
+    environment:
+      POSTGRES_USER: retrosheet
+      POSTGRES_DB: retrosheet
+      POSTGRES_PASSWORD_FILE: /run/secrets/retrosheet_password
+    volumes:
+      - retrosheet_db_data:/var/lib/postgresql/data
+    ports:
+      - 5434:5432
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U baseball"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    secrets:
+      - retrosheet_password
+
 volumes:
   certbot-etc:
   certbot-var:
   web-root:
+  retrosheet_db_data:
 
 
 secrets:
@@ -115,3 +139,5 @@ secrets:
     file: ./appsettings.Test.json
   baseball_password:
     file: ./baseball_password.txt
+  retrosheet_password:
+    file: ./retrosheet_password.txt
