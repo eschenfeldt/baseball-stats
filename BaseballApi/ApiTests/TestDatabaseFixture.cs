@@ -28,6 +28,7 @@ public class TestDatabaseFixture
                     AddConstants(context);
                     context.SaveChanges();
                     AddReferencePlayers(context);
+                    context.SaveChanges();
                     var testGameManager = new TestGameManager(context);
                     testGameManager.AddAllGames(context);
                 }
@@ -81,6 +82,8 @@ public class TestDatabaseFixture
         var team1 = context.Teams.First(t => t.City == "Test City");
         var batter4 = context.Players.First(p => p.Name == "Ambiguous Player" && p.DateOfBirth == new DateOnly(1995, 5, 15));
         context.AddRange(
+            // Batter Number 1 without the reference link set correctly
+            new ReferencePlayer { Name = "Test Batter 1", DateOfBirth = new DateOnly(1994, 6, 20) },
             // Batter Number 4
             new ReferencePlayer { Name = "Ambiguous Player", DateOfBirth = new DateOnly(1995, 5, 15), Player = batter4, CurrentTeam = team1, CurrentNumber = 26 },
             // Intentionally not adding Batter Number 5 to reference data
