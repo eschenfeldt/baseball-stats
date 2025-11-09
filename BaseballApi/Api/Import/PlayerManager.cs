@@ -12,24 +12,48 @@ public class PlayerManager(BaseballContext context)
 
     public Player GetOrCreatePlayer(string name, long teamId, int number, int? year)
     {
+        List<ReferencePlayer> referenceMatches = [];
+        if (year == null)
+        {
+            // use reference data for the current year
+            // Scope by just name first
+            referenceMatches = Context.ReferencePlayers
+                .Where(rp => rp.Name == name)
+                .ToList();
+            if (referenceMatches.Count == 1)
+            {
+                // single match, should be good to use
+                var referencePlayer = referenceMatches.First();
+                return GetPlayerFromReference(name, referencePlayer);
+            }
+            else if (referenceMatches.Count > 1)
+            {
+                // multiple matches - try to disambiguate by team and number
+                foreach (var referencePlayer in referenceMatches)
+                {
+                    if (referencePlayer.CurrentTeam != null && referencePlayer.CurrentTeam.Id == teamId
+                        && referencePlayer.CurrentNumber.HasValue && referencePlayer.CurrentNumber.Value == number)
+                    {
+                        return GetPlayerFromReference(name, referencePlayer);
+                    }
+                }
+                // still ambiguous - try by team only
+                foreach (var referencePlayer in referenceMatches)
+                {
+                    if (referencePlayer.CurrentTeam != null && referencePlayer.CurrentTeam.Id == teamId)
+                    {
+                        return GetPlayerFromReference(name, referencePlayer);
+                    }
+                }
+                // still ambiguous - fall back to db-based approaches
+            }
+        }
         var matches = Context.Players
             .Where(p => p.Name == name).ToList();
 
         if (matches.Count == 0)
         {
-            if (NewPlayers.TryGetValue(name, out var existingNewPlayer))
-            {
-                return existingNewPlayer;
-            }
-            else
-            {
-                var newPlayer = new Player
-                {
-                    Name = name
-                };
-                this.NewPlayers[name] = newPlayer;
-                return newPlayer;
-            }
+            return CreatePlayer(name);
         }
         else if (matches.Count == 1)
         {
@@ -58,10 +82,47 @@ public class PlayerManager(BaseballContext context)
                     return player;
                 }
             }
-            // still ambiguous - just return first match
-            // TODO: search Fangraphs stats to match team outside of known games
-            return matches.First();
+            // still ambiguous - if looking at current year go by first reference matches if available, otherwise first db match
+            // Eventually we may have retrosheet data to check prior years in reference data
+            if (year == null && referenceMatches.Count > 0)
+            {
+                return GetPlayerFromReference(name, referenceMatches.First());
+            }
+            else
+            {
+                return matches.First();
+            }
         }
+    }
+
+    private Player GetPlayerFromReference(string name, ReferencePlayer referencePlayer)
+    {
+        if (referencePlayer.Player != null)
+        {
+            return referencePlayer.Player;
+        }
+        else
+        {
+            return CreatePlayer(name, referencePlayer);
+        }
+    }
+
+    private Player CreatePlayer(string name, ReferencePlayer? referencePlayer = null)
+    {
+        if (!NewPlayers.TryGetValue(name, out var newPlayer))
+        {
+            newPlayer = new Player
+            {
+                Name = name
+            };
+            this.NewPlayers[name] = newPlayer;
+        }
+
+        if (referencePlayer != null)
+        {
+            referencePlayer.Player = newPlayer;
+        }
+        return newPlayer;
     }
 
     public async Task<Uri?> FindFangraphsPageForPlayer(Player player)

@@ -42,7 +42,7 @@ public class PlayerTests : BaseballTests
     /// Simulated history of three players with the same name:
     /// - in 2022, BN4 wears #15 on Team 2 in a game scored in the DB
     /// - in 2022, BN5 wears #15 on Team 1 in a game scored in the DB
-    /// - in <current year>, BN4 wears #26 on Team 2 with no game scored for that team yet
+    /// - in <current year>, BN4 wears #26 on Team 1 with no game scored for that team yet
     /// - in <current year>, BN5 is retired and does not appear
     /// - in <current year>, a new player not in the db yet wears #15 on Team 1
     /// In the current year we use reference data to identify the player, which is the more common case.
@@ -50,7 +50,7 @@ public class PlayerTests : BaseballTests
     /// </summary>
     [Theory]
     [InlineData(4, 2, 15, 2022)]
-    [InlineData(4, 2, 26, null)]
+    [InlineData(4, 1, 26, null)]
     [InlineData(5, 1, 15, 2022)]
     [InlineData(null, 1, 15, null)] // new player on the same team as 5 with same name
     public void TestIdentifyAmbiguousPlayer(int? expectedBatterNumber, long teamId, int number, int? year)

@@ -37,6 +37,7 @@ public class BaseballContext : DbContext
     public DbSet<Scorecard> Scorecards { get; set; }
 
     public DbSet<FangraphsConstants> Constants { get; set; }
+    public DbSet<ReferencePlayer> ReferencePlayers { get; set; }
 
     public DbSet<MediaImportTask> MediaImportTasks { get; set; }
 

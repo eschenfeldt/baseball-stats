@@ -10,4 +10,5 @@ public class Team
     public string? ColorHex { get; set; }
     public Park? HomePark { get; set; }
     public ICollection<AlternateTeamName> AlternateTeamNames { get; } = [];
+    public string? MLBAMId { get; set; }
 }

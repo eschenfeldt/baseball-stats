@@ -27,6 +27,7 @@ public class TestDatabaseFixture
                     AddLocations(context);
                     AddConstants(context);
                     context.SaveChanges();
+                    AddReferencePlayers(context);
                     var testGameManager = new TestGameManager(context);
                     testGameManager.AddAllGames(context);
                 }
@@ -53,7 +54,8 @@ public class TestDatabaseFixture
             // A few relevant teams for Will Smith tests
             new Team { City = "Los Angeles", Name = "Dodgers", Abbreviation = "LAD" },
             new Team { City = "Atlanta", Name = "Braves", Abbreviation = "ATL" },
-            new Team { City = "Texas", Name = "Rangers", Abbreviation = "TEX" }
+            new Team { City = "Texas", Name = "Rangers", Abbreviation = "TEX" },
+            new Team { City = "Boston", Name = "Red Sox", Abbreviation = "BOS" }
         );
     }
 
@@ -66,11 +68,24 @@ public class TestDatabaseFixture
             new Player { Name = "Test Batter 2" },
             new Player { Name = "Test Batter 3" },
             new Player { Name = "Test Bench Player" },
-            new Player { Name = "Ambiguous Player" },
-            new Player { Name = "Ambiguous Player" },
+            new Player { Name = "Ambiguous Player", DateOfBirth = new DateOnly(1995, 5, 15) },
+            new Player { Name = "Ambiguous Player", DateOfBirth = new DateOnly(1994, 6, 20) },
             // Dodgers Will Smith (C) and Atlanta Will Smith (P)
             new Player { Name = "Will Smith", FangraphsPage = new Uri("https://www.fangraphs.com/players/will-smith/19197/stats?position=C") },
             new Player { Name = "Will Smith", FangraphsPage = new Uri("https://www.fangraphs.com/players/will-smith/8048/stats?position=P") }
+        );
+    }
+
+    static void AddReferencePlayers(BaseballContext context)
+    {
+        var team1 = context.Teams.First(t => t.City == "Test City");
+        var batter4 = context.Players.First(p => p.Name == "Ambiguous Player" && p.DateOfBirth == new DateOnly(1995, 5, 15));
+        context.AddRange(
+            // Batter Number 4
+            new ReferencePlayer { Name = "Ambiguous Player", DateOfBirth = new DateOnly(1995, 5, 15), Player = batter4, CurrentTeam = team1, CurrentNumber = 26 },
+            // Intentionally not adding Batter Number 5 to reference data
+            // New batter not yet in DB
+            new ReferencePlayer { Name = "Ambiguous Player", DateOfBirth = new DateOnly(2000, 1, 1), CurrentTeam = team1, CurrentNumber = 15 }
         );
     }
 
