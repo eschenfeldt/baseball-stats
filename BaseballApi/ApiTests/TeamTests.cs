@@ -53,4 +53,21 @@ public class TeamTests : BaseballTests
         var cubs = teams.Teams.FirstOrDefault(t => t.TeamName == "Cubs" && t.LocationName == "Chicago");
         Assert.Equal("CHC", cubs.Abbreviation);
     }
+
+    [Fact]
+    public async void TestUpdateTeamReferences()
+    {
+        var connector = new MLBAMConnector();
+        var referenceManager = new ReferenceManager(Context, connector);
+        var updatedCount = await referenceManager.UpdateTeamReferences(CancellationToken.None);
+        var rangers = Context.Teams.First(t => t.Abbreviation == "TEX");
+        Assert.Equal(140, rangers.MLBAMId);
+        var dodgers = Context.Teams.First(t => t.Abbreviation == "LAD");
+        Assert.Equal(119, dodgers.MLBAMId);
+        var atlanta = Context.Teams.First(t => t.Abbreviation == "ATL");
+        Assert.Equal(144, atlanta.MLBAMId);
+        var redSox = Context.Teams.First(t => t.Abbreviation == "BOS");
+        Assert.Equal(111, redSox.MLBAMId);
+        Assert.Equal(4, updatedCount); // 4 real mlb teams in our test db
+    }
 }

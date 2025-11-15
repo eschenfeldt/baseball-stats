@@ -11,10 +11,10 @@ namespace BaseballApi.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<string>(
+            migrationBuilder.AddColumn<int>(
                 name: "MLBAMId",
                 table: "Teams",
-                type: "text",
+                type: "integer",
                 nullable: true);
 
             migrationBuilder.CreateTable(

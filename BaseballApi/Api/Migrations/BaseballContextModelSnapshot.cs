@@ -810,8 +810,8 @@ namespace BaseballApi.Migrations
                     b.Property<long?>("HomeParkId")
                         .HasColumnType("bigint");
 
-                    b.Property<string>("MLBAMId")
-                        .HasColumnType("text");
+                    b.Property<int?>("MLBAMId")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Name")
                         .IsRequired()

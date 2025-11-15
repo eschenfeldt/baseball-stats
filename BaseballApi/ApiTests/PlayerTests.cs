@@ -130,6 +130,9 @@ public class PlayerTests : BaseballTests
         Assert.Equal("1989-07-10", pitcherWillSmith.BirthDate);
     }
 
+    public async Task TestMLBAMReferencePlayerMatch()
+    { }
+
     static readonly string Batter1Name = "Test Batter 1";
     static readonly string Batter2Name = "Test Batter 2";
     static readonly string Batter3Name = "Test Batter 3";

@@ -1,8 +1,8 @@
 namespace BaseballApi.Integrations;
 
-public class MLBAMConnector
+public class MLBAMConnector : IMLBAMConnector
 {
-    public const string BaseUrl = "https://statsapi.mlb.com/api/v1/";
+    private const string BaseUrl = "https://statsapi.mlb.com/api/v1/";
 
     public async Task<MLBAMPeopleResponse> GetPeopleAsync(DateOnly updatedSince, CancellationToken cancellationToken = default)
     {
