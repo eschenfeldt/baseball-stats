@@ -1,5 +1,6 @@
 using BaseballApi.Contracts;
 using BaseballApi.Controllers;
+using BaseballApi.Integrations;
 
 namespace BaseballApiTests;
 
@@ -41,5 +42,15 @@ public class TeamTests : BaseballTests
         Assert.Equal(parks, team.Parks);
         var lastGame = DateOnly.Parse(lastGameDate);
         Assert.Equal(lastGame, team.LastGameDate);
+    }
+
+    [Fact]
+    public async void TestGetMLBAMTeams()
+    {
+        var connector = new MLBAMConnector();
+        var teams = await connector.GetTeamsAsync();
+        Assert.True(teams.Teams.Count >= 30);
+        var cubs = teams.Teams.FirstOrDefault(t => t.TeamName == "Cubs" && t.LocationName == "Chicago");
+        Assert.Equal("CHC", cubs.Abbreviation);
     }
 }

@@ -1,4 +1,3 @@
-using System;
 using System.Text.Json;
 using BaseballApi.Contracts;
 using BaseballApi.Models;
