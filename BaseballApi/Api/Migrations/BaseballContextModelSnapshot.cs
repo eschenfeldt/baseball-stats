@@ -695,8 +695,8 @@ namespace BaseballApi.Migrations
                     b.Property<string>("FangraphsId")
                         .HasColumnType("text");
 
-                    b.Property<string>("MLBAMId")
-                        .HasColumnType("text");
+                    b.Property<int?>("MLBAMId")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Name")
                         .IsRequired()

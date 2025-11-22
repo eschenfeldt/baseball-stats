@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BaseballApi.Migrations
 {
     [DbContext(typeof(BaseballContext))]
-    [Migration("20251115060643_ReferencePlayer")]
+    [Migration("20251115063527_ReferencePlayer")]
     partial class ReferencePlayer
     {
         /// <inheritdoc />
@@ -698,8 +698,8 @@ namespace BaseballApi.Migrations
                     b.Property<string>("FangraphsId")
                         .HasColumnType("text");
 
-                    b.Property<string>("MLBAMId")
-                        .HasColumnType("text");
+                    b.Property<int?>("MLBAMId")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Name")
                         .IsRequired()

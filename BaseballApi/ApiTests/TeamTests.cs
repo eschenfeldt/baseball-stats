@@ -68,6 +68,8 @@ public class TeamTests : BaseballTests
         Assert.Equal(144, atlanta.MLBAMId);
         var redSox = Context.Teams.First(t => t.Abbreviation == "BOS");
         Assert.Equal(111, redSox.MLBAMId);
-        Assert.Equal(4, updatedCount); // 4 real mlb teams in our test db
+        var cubs = Context.Teams.First(t => t.Abbreviation == "CHC");
+        Assert.Equal(112, cubs.MLBAMId);
+        Assert.Equal(5, updatedCount); // Only 5 real mlb teams in our test db
     }
 }

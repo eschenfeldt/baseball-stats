@@ -7,6 +7,7 @@ using BaseballApi.Controllers;
 using BaseballApi.Import;
 using BaseballApi.Integrations;
 using BaseballApi.Models;
+using BaseballApiTests.Mocks;
 
 namespace BaseballApiTests;
 
@@ -130,8 +131,54 @@ public class PlayerTests : BaseballTests
         Assert.Equal("1989-07-10", pitcherWillSmith.BirthDate);
     }
 
-    public async Task TestMLBAMReferencePlayerMatch()
-    { }
+    [Fact]
+    public async Task TestMLBAMReferencePlayerUpdate()
+    {
+        // update teams so the MLBAM IDs are present
+        var realConnector = new MLBAMConnector();
+        var realReferenceManager = new ReferenceManager(Context, realConnector);
+        var teamsUpdated = await realReferenceManager.UpdateTeamReferences(CancellationToken.None);
+        Assert.Equal(5, teamsUpdated);
+
+        var connector = new MockMLBAMConnector();
+        var referenceManager = new ReferenceManager(Context, connector);
+        var result = await referenceManager.UpdatePlayerReferences(CancellationToken.None);
+        Assert.Equal(1, result.CreatedCount);
+        Assert.Equal(2, result.UpdatedCount);
+
+        var dodgers = Context.Teams.First(t => t.Abbreviation == "LAD");
+
+        var willSmithReference = Context.ReferencePlayers.First(rp => rp.Name == "Will Smith");
+        // fetch will smith from db by fangraphs page because that's what we set in the test db setup
+        var willSmithPlayer = Context.Players.First(p => p.Name == "Will Smith" && p.FangraphsPage == new Uri("https://www.fangraphs.com/players/will-smith/19197/stats?position=C"));
+        Assert.Equal(669257, willSmithReference.MLBAMId);
+        Assert.Equal(willSmithPlayer.Id, willSmithReference.PlayerId);
+        Assert.Equal(dodgers.Id, willSmithReference.CurrentTeamId);
+        Assert.Equal(16, willSmithReference.CurrentNumber);
+        Assert.Equal(new DateOnly(1995, 3, 28), willSmithPlayer.DateOfBirth);
+
+        var ohtaniReference = Context.ReferencePlayers.First(rp => rp.Name == "Shohei Ohtani");
+        Assert.Equal(660271, ohtaniReference.MLBAMId);
+        Assert.Null(ohtaniReference.PlayerId); // Ohtani is not in the test db as a scored player
+        Assert.Equal(dodgers.Id, ohtaniReference.CurrentTeamId);
+        Assert.Equal(17, ohtaniReference.CurrentNumber);
+        Assert.Equal(new DateOnly(1994, 7, 5), ohtaniReference.DateOfBirth);
+
+        var cubs = Context.Teams.First(t => t.Abbreviation == "CHC");
+
+        var shotaReference = Context.ReferencePlayers.First(rp => rp.Name == "Shota Imanaga");
+        Assert.Equal(684007, shotaReference.MLBAMId);
+        var shotaPlayer = Context.Players.First(p => p.Name == "Shōta Imanaga");
+        Assert.Equal(shotaPlayer.Id, shotaReference.PlayerId);
+        Assert.Equal(cubs.Id, shotaReference.CurrentTeamId);
+        Assert.Equal(18, shotaReference.CurrentNumber);
+        Assert.Equal(new DateOnly(1993, 9, 1), shotaReference.DateOfBirth);
+        Assert.Equal("shota imanaga", shotaPlayer.NameNormalized);
+
+        var secondUpdateResults = await referenceManager.UpdatePlayerReferences(CancellationToken.None);
+        Assert.Equal(0, secondUpdateResults.CreatedCount);
+        Assert.Equal(0, secondUpdateResults.UpdatedCount);
+    }
 
     static readonly string Batter1Name = "Test Batter 1";
     static readonly string Batter2Name = "Test Batter 2";
