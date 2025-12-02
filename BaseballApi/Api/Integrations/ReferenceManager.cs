@@ -4,16 +4,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BaseballApi.Integrations;
 
-public class ReferenceManager(BaseballContext context, IMLBAMConnector mlbamConnector)
+public class ReferenceManager(BaseballContext context, IMLBAMConnector mlbamConnector) : IDisposable
 {
     private IMLBAMConnector MLBAMConnector { get; } = mlbamConnector;
     private BaseballContext Context { get; } = context;
 
     public async Task<int> UpdateTeamReferences(CancellationToken cancellation)
     {
-        // get teams from MLBAM,
-        // set MLBAMId on teams in our database
-        // Return number of teams updated
         var mlbamTeamsResponse = await MLBAMConnector.GetTeamsAsync(cancellation);
         var updatedCount = 0;
         foreach (var mlbamTeam in mlbamTeamsResponse.Teams)
