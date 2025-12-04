@@ -86,6 +86,7 @@ public class RemoteLogManager : IRemoteLogManager
 
                 Logger.LogInformation("Uploaded log file {logFile} to remote storage.", logFile);
                 File.Delete(logFile);
+                Logger.LogInformation("Deleted local log file {logFile} after upload.", logFile);
             }
             catch (Exception ex)
             {
