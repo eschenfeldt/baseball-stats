@@ -11,6 +11,7 @@ public class RemoteLogManager : IRemoteLogManager
     private string BucketName { get; }
     private string? KeyPrefix { get; }
     private AmazonS3Client Client { get; }
+    private int RetainDays { get; }
 
     private string GetKey(string fileName)
     {
@@ -27,6 +28,7 @@ public class RemoteLogManager : IRemoteLogManager
         Logger = logger;
         KeyPrefix = keyPrefix;
         LogDirectory = configuration["Logging:File:Directory"] ?? "logs";
+        RetainDays = int.Parse(configuration["Logging:File:RetainDays"] ?? "30");
         var accessKey = configuration["Spaces:AccessKey"];
         var secretKey = configuration["Spaces:SecretKey"];
 
@@ -43,12 +45,16 @@ public class RemoteLogManager : IRemoteLogManager
         this.BucketName = configuration["Spaces:Bucket"] ?? "eschenfeldt-baseball-logs";
     }
 
-    public async Task UploadPendingLogs(CancellationToken cancellationToken)
+    public async Task UploadPendingLogs(CancellationToken cancellationToken, bool allowInProgress = false)
     {
         var logFiles = Directory.GetFiles(LogDirectory, "*.log");
-        var completedFiles = logFiles.Where(f => !Path.GetFileName(f).StartsWith(DateTime.UtcNow.ToString("yyyyMMdd")));
-        Logger.LogInformation("Uploading {count} completed log files.", completedFiles.Count());
-        foreach (var logFile in completedFiles)
+        IEnumerable<string> toUpload = logFiles;
+        if (!allowInProgress)
+        {
+            toUpload = logFiles.Where(f => !Path.GetFileName(f).StartsWith(DateTime.UtcNow.ToString("yyyy_MM_dd")));
+        }
+        Logger.LogInformation("Uploading {count} completed log files.", toUpload.Count());
+        foreach (var logFile in toUpload)
         {
             if (cancellationToken.IsCancellationRequested)
             {
@@ -79,7 +85,7 @@ public class RemoteLogManager : IRemoteLogManager
         }
     }
 
-    public async Task CleanupOldLogs(CancellationToken cancellationToken)
+    public async Task CleanupOldLogs(CancellationToken cancellationToken, int? retainDays = null)
     {
         try
         {
@@ -93,8 +99,9 @@ public class RemoteLogManager : IRemoteLogManager
             do
             {
                 listResponse = await Client.ListObjectsV2Async(listRequest, cancellationToken);
+                var cutoffDays = retainDays ?? RetainDays;
                 var oldObjects = listResponse.S3Objects
-                    .Where(o => o.LastModified < DateTime.UtcNow.AddDays(-60))
+                    .Where(o => o.LastModified < DateTime.UtcNow.AddDays(-1 * cutoffDays))
                     .ToList();
 
                 if (oldObjects.Count > 0)
@@ -115,5 +122,26 @@ public class RemoteLogManager : IRemoteLogManager
         {
             Logger.LogError(ex, "Error cleaning up old log files.");
         }
+    }
+
+    public async Task<List<string>> GetUploadedLogFiles()
+    {
+        var uploadedFiles = new List<string>();
+        var listRequest = new ListObjectsV2Request
+        {
+            BucketName = BucketName,
+            Prefix = GetKey("")
+        };
+
+        ListObjectsV2Response listResponse;
+        do
+        {
+            listResponse = await Client.ListObjectsV2Async(listRequest);
+            uploadedFiles.AddRange(listResponse.S3Objects.Select(o => o.Key));
+
+            listRequest.ContinuationToken = listResponse.NextContinuationToken;
+        } while (listResponse.IsTruncated);
+
+        return uploadedFiles;
     }
 }

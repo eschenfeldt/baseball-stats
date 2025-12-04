@@ -27,7 +27,7 @@ public class FileLogger(string directory, string category, object sharedLock) : 
         Exception? exception,
         Func<TState, Exception?, string> formatter)
     {
-        var filename = Path.Combine(LogDirectory, $"{DateTime.UtcNow:yyyyMMdd}.log");
+        var filename = Path.Combine(LogDirectory, $"{DateTime.UtcNow:yyyy_MM_dd}.log");
         var message = $"{DateTime.UtcNow:o} [{logLevel}] {Category}: {formatter(state, exception)}{Environment.NewLine}";
 
         lock (Lock)
