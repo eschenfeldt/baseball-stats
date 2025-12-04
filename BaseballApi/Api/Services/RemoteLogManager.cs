@@ -26,7 +26,7 @@ public class RemoteLogManager : IRemoteLogManager
     public RemoteLogManager(ILogger<RemoteLogManager> logger, IConfiguration configuration, string? keyPrefix = null)
     {
         Logger = logger;
-        KeyPrefix = keyPrefix;
+        KeyPrefix = keyPrefix ?? configuration["Logging:File:RemoteKeyPrefix"];
         LogDirectory = configuration["Logging:File:Directory"] ?? "logs";
         RetainDays = int.Parse(configuration["Logging:File:RetainDays"] ?? "30");
         var accessKey = configuration["Spaces:AccessKey"];
@@ -48,12 +48,21 @@ public class RemoteLogManager : IRemoteLogManager
     public async Task UploadPendingLogs(CancellationToken cancellationToken, bool allowInProgress = false)
     {
         var logFiles = Directory.GetFiles(LogDirectory, "*.log");
-        IEnumerable<string> toUpload = logFiles;
-        if (!allowInProgress)
+        List<string> toUpload;
+        if (allowInProgress)
         {
-            toUpload = logFiles.Where(f => !Path.GetFileName(f).StartsWith(DateTime.UtcNow.ToString("yyyy_MM_dd")));
+            toUpload = [.. logFiles];
         }
-        Logger.LogInformation("Uploading {count} completed log files.", toUpload.Count());
+        else
+        {
+            toUpload = [.. logFiles.Where(f => !Path.GetFileName(f).StartsWith(DateTime.UtcNow.ToString("yyyy_MM_dd")))];
+        }
+        if (toUpload.Count == 0)
+        {
+            Logger.LogInformation("No completed log files to upload.");
+            return;
+        }
+        Logger.LogInformation("Uploading {count} completed log files.", toUpload.Count);
         foreach (var logFile in toUpload)
         {
             if (cancellationToken.IsCancellationRequested)

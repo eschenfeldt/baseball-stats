@@ -3,7 +3,7 @@ namespace BaseballApi.Services;
 public class RemoteLogService(ILogger<RemoteLogService> logger, IServiceProvider serviceProvider) : BackgroundService
 {
     private ILogger<RemoteLogService> Logger { get; } = logger;
-    private IRemoteLogManager RemoteLogManager { get; } = serviceProvider.GetRequiredService<IRemoteLogManager>();
+    private IServiceProvider ServiceProvider { get; } = serviceProvider;
     private CancellationToken CancellationToken { get; set; }
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
@@ -29,7 +29,10 @@ public class RemoteLogService(ILogger<RemoteLogService> logger, IServiceProvider
     {
         try
         {
-            await RemoteLogManager.UploadPendingLogs(CancellationToken);
+            // Create a scope to resolve services
+            using var scope = ServiceProvider.CreateScope();
+            var remoteLogManager = scope.ServiceProvider.GetRequiredService<IRemoteLogManager>();
+            await remoteLogManager.UploadPendingLogs(CancellationToken);
         }
         catch (Exception ex)
         {
@@ -41,7 +44,10 @@ public class RemoteLogService(ILogger<RemoteLogService> logger, IServiceProvider
     {
         try
         {
-            await RemoteLogManager.CleanupOldLogs(CancellationToken);
+            // Create a scope to resolve services
+            using var scope = ServiceProvider.CreateScope();
+            var remoteLogManager = scope.ServiceProvider.GetRequiredService<IRemoteLogManager>();
+            await remoteLogManager.CleanupOldLogs(CancellationToken);
         }
         catch (Exception ex)
         {

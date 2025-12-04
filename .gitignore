@@ -21,6 +21,7 @@ media-importer/exported
 BaseballApi/appsettings.Production.json
 appsettings.Test.json
 baseball_password.txt
+**/Logs/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
