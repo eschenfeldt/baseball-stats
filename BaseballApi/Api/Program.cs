@@ -38,8 +38,13 @@ builder.Services.AddDbContext<AppIdentityDbContext>(opt => opt.UseNpgsql(identit
 builder.Services.AddIdentityApiEndpoints<IdentityUser>()
     .AddEntityFrameworkStores<AppIdentityDbContext>();
 
+var logDir = builder.Configuration["Logging:File:LogDirectory"] ?? Path.Combine(builder.Environment.ContentRootPath, "Logs");
+builder.Logging.AddProvider(new FileLoggerProvider(logDir));
+
 builder.Services.AddScoped<IRemoteFileManager, RemoteFileManager>();
+builder.Services.AddScoped<IRemoteLogManager, RemoteLogManager>();
 builder.Services.AddSingleton<IMediaImportQueue, MediaImportQueue>();
+builder.Services.AddHostedService<RemoteLogService>();
 builder.Services.AddHostedService<MediaImportBackgroundService>();
 if (!builder.Environment.IsDevelopment())
 {
