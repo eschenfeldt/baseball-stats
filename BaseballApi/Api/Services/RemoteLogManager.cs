@@ -15,7 +15,7 @@ public class RemoteLogManager : IRemoteLogManager
 
     private string GetKey(string fileName)
     {
-        var key = "Logs/" + fileName;
+        var key = fileName;
         if (!string.IsNullOrWhiteSpace(this.KeyPrefix))
         {
             key = this.KeyPrefix + "/" + key;
@@ -37,12 +37,12 @@ public class RemoteLogManager : IRemoteLogManager
             ServiceURL = "https://nyc3.digitaloceanspaces.com"
         };
 
-        this.Client = new AmazonS3Client(
+        Client = new AmazonS3Client(
             accessKey,
             secretKey,
             config
         );
-        this.BucketName = configuration["Spaces:Bucket"] ?? "eschenfeldt-baseball-logs";
+        BucketName = configuration["Spaces:LogsBucket"] ?? "eschenfeldt-baseball-logs";
     }
 
     public async Task UploadPendingLogs(CancellationToken cancellationToken, bool allowInProgress = false)
