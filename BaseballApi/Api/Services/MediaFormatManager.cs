@@ -233,7 +233,7 @@ public class MediaFormatManager(
     private async Task CreateAlternateVideo(MediaResource mediaResource, IRemoteFileManager remoteFileManager)
     {
         var originalFileModel = mediaResource.Files.FirstOrDefault(f => f.Purpose == RemoteFilePurpose.Original && f.ContentType != null
-                                                                    && f.ContentType.StartsWith("video/") || f.ContentType == "application/octet-stream");
+                                                                    && f.ContentType.StartsWith("video/"));
         if (originalFileModel == null)
         {
             Logger.LogWarning("No original video file found for resource {ResourceId}", mediaResource.AssetIdentifier);
