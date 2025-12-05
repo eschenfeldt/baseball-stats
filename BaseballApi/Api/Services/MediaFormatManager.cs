@@ -238,13 +238,13 @@ public class MediaFormatManager(
                                                                     && f.ContentType.StartsWith("video/") || f.ContentType == "application/octet-stream");
         if (originalFileModel == null)
         {
-            Logger.LogWarning("No original video file found for resource {ResourceId}", mediaResource.Id);
+            Logger.LogWarning("No original video file found for resource {ResourceId}", mediaResource.AssetIdentifier);
             return;
         }
         var alternateVideo = mediaResource.Files.FirstOrDefault(f => f.Purpose == RemoteFilePurpose.AlternateFormat && f.ContentType != null && f.ContentType.StartsWith("video/"));
         if (alternateVideo != null)
         {
-            Logger.LogInformation("Alternate photo already exists for resource {ResourceId}", mediaResource.AssetIdentifier);
+            Logger.LogInformation("Alternate video already exists for resource {ResourceId}", mediaResource.AssetIdentifier);
             return;
         }
 
