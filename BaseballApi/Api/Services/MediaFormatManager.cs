@@ -66,13 +66,11 @@ public class MediaFormatManager(
             Logger.LogInformation("Content types set for {Count} resources.", filesToSet.Count);
 
             // Now find files that have the wrong content type in the bucket
+            // Even though binary/octet-stream works for photos and some videos, we will now never set it
+            //   so it's going to be better to just clean up all of the old ones
             var filesToUpdate = resources
-                // if the resource doesn't need an alternate format, the content type is okay
-                .Where(m => m.AlternateFormatOverride == false
-                            || m.Files.Count(f => f.Purpose == RemoteFilePurpose.AlternateFormat) == m.Files.Count(f => f.Purpose == RemoteFilePurpose.Original))
                 .SelectMany(m => m.Files)
-                .Where(f => (f.Extension == ".mov" || f.Extension == ".MOV")
-                            && f.ContentType == "binary/octet-stream") // Firefox doesn't like this (fake) content type for hevc MOV files
+                .Where(f => f.ContentType == "binary/octet-stream")
                 .Include(f => f.Resource)
                 .ToList();
 
@@ -235,16 +233,16 @@ public class MediaFormatManager(
     private async Task CreateAlternateVideo(MediaResource mediaResource, IRemoteFileManager remoteFileManager)
     {
         var originalFileModel = mediaResource.Files.FirstOrDefault(f => f.Purpose == RemoteFilePurpose.Original && f.ContentType != null
-                                                                    && f.ContentType.StartsWith("video/") || f.ContentType == "application/octet-stream");
+                                                                    && f.ContentType.StartsWith("video/"));
         if (originalFileModel == null)
         {
-            Logger.LogWarning("No original video file found for resource {ResourceId}", mediaResource.Id);
+            Logger.LogWarning("No original video file found for resource {ResourceId}", mediaResource.AssetIdentifier);
             return;
         }
         var alternateVideo = mediaResource.Files.FirstOrDefault(f => f.Purpose == RemoteFilePurpose.AlternateFormat && f.ContentType != null && f.ContentType.StartsWith("video/"));
         if (alternateVideo != null)
         {
-            Logger.LogInformation("Alternate photo already exists for resource {ResourceId}", mediaResource.AssetIdentifier);
+            Logger.LogInformation("Alternate video already exists for resource {ResourceId}", mediaResource.AssetIdentifier);
             return;
         }
 
@@ -330,7 +328,7 @@ public class MediaFormatManager(
         {
             ".jpg" => "image/jpeg",
             ".jpeg" => "image/jpeg",
-            ".heic" => "image/heic",
+            ".heic" => "application/octet-stream", // new uploads are getting this default and working fine, so keep using it
             ".png" => "image/png",
             ".mp4" => "video/mp4",
             ".mov" => "video/quicktime",
