@@ -23,7 +23,7 @@ public class MediaImportManager(List<MediaImportInfo> resources, IRemoteFileMana
 
     public async IAsyncEnumerable<MediaUploadResult> GetUploadedResources()
     {
-        foreach (var resource in Resources)
+        foreach (var resource in Resources.OrderBy(r => r.ResourceType))
         {
             if (!await ResourceExists(resource))
             {
