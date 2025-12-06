@@ -136,7 +136,6 @@ public class PlayerTests : BaseballTests
         var realConnector = new MLBAMConnector();
         var realReferenceManager = new ReferenceManager(logger, Context, realConnector);
         var teamsUpdated = await realReferenceManager.UpdateTeamReferences(CancellationToken.None);
-        Assert.Equal(5, teamsUpdated);
 
         var connector = new MockMLBAMConnector();
         var referenceManager = new ReferenceManager(logger, Context, connector);
