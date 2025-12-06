@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using BaseballApi.Import;
 using BaseballApi.Services;
 using Microsoft.AspNetCore.Http.Features;
+using BaseballApi.Integrations;
 
 var corsLocal = "_corsLocalPolicy";
 
@@ -43,9 +44,12 @@ builder.Logging.AddProvider(new FileLoggerProvider(logDir));
 
 builder.Services.AddScoped<IRemoteFileManager, RemoteFileManager>();
 builder.Services.AddScoped<IRemoteLogManager, RemoteLogManager>();
+builder.Services.AddScoped<IMLBAMConnector, MLBAMConnector>();
+builder.Services.AddScoped<ReferenceManager, ReferenceManager>();
 builder.Services.AddSingleton<IMediaImportQueue, MediaImportQueue>();
 builder.Services.AddHostedService<RemoteLogService>();
 builder.Services.AddHostedService<MediaImportBackgroundService>();
+builder.Services.AddHostedService<ReferenceUpdateService>();
 if (!builder.Environment.IsDevelopment())
 {
     // Local dev won't see the prod files but will see the prod import task so don't try to process/clean up

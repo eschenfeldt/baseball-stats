@@ -1,4 +1,3 @@
-using System;
 using BaseballApi.Integrations;
 
 namespace BaseballApi.Services;
@@ -18,9 +17,9 @@ public class ReferenceUpdateService(
         var playerTimer = new Timer(UpdatePlayerReferences, null, TimeSpan.FromMinutes(30), TimeSpan.FromHours(24));
         CancellationToken = cancellationToken;
         // Wait for the timers to trigger
-        while (!cancellationToken.IsCancellationRequested)
+        while (!CancellationToken.IsCancellationRequested)
         {
-            await Task.Delay(Timeout.Infinite, cancellationToken);
+            await Task.Delay(Timeout.Infinite, CancellationToken);
         }
         teamsTimer.Dispose();
         playerTimer.Dispose();
@@ -29,11 +28,32 @@ public class ReferenceUpdateService(
 
     private async void UpdateTeamReferences(object? stateInfo)
     {
-        throw new NotImplementedException();
+        using var scope = ServiceProvider.CreateScope();
+        var referenceManager = scope.ServiceProvider.GetRequiredService<ReferenceManager>();
+        try
+        {
+            var updatedCount = await referenceManager.UpdateTeamReferences(CancellationToken);
+            Logger.LogInformation("Team reference update completed. {updatedCount} teams updated.", updatedCount);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error occurred while updating team references.");
+        }
     }
 
     private async void UpdatePlayerReferences(object? stateInfo)
     {
-        throw new NotImplementedException();
+        using var scope = ServiceProvider.CreateScope();
+        var referenceManager = scope.ServiceProvider.GetRequiredService<ReferenceManager>();
+        try
+        {
+            var result = await referenceManager.UpdatePlayerReferences(CancellationToken);
+            Logger.LogInformation("Player reference update completed. {createdCount} players created, {updatedCount} players updated.",
+                result.CreatedCount, result.UpdatedCount);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error occurred while updating player references.");
+        }
     }
 }
