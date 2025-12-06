@@ -1,4 +1,4 @@
-using System;
+using BaseballApi.Import;
 using BaseballApi.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -136,6 +136,100 @@ public class ReferenceManager(ILogger<ReferenceManager> logger, BaseballContext 
         };
     }
 
+    /// <summary>
+    /// Limit number of players to process in each batch to avoid overwhelming Fangraphs
+    /// </summary>
+    private static readonly int FangraphsBatchSize = 100;
+
+    public async Task<FangraphsLinkUpdateResult> UpdateFangraphsLinks(CancellationToken cancellation)
+    {
+        var players = Context.Players
+            .Where(p => p.FangraphsPage == null)
+            .OrderBy(p => p.Id)
+            .Take(FangraphsBatchSize)
+            .ToList();
+        int playerUpdateCount = 0;
+        int referencePlayerUpdateCount = 0;
+        var playerManager = new PlayerManager(Context);
+        foreach (var player in players)
+        {
+            var fangraphsUrl = await playerManager.FindFangraphsPageForPlayer(player, cancellation);
+            if (fangraphsUrl != null)
+            {
+                player.FangraphsPage = fangraphsUrl;
+                playerUpdateCount++;
+                Logger.LogInformation("Updated Fangraphs page for Player {player} to {fangraphsUrl}.",
+                    player.Name, fangraphsUrl);
+                var referencePlayer = Context.ReferencePlayers
+                    .FirstOrDefault(rp => rp.PlayerId == player.Id);
+                if (referencePlayer != null)
+                {
+                    var fangraphsId = FangraphsIdFromUri(fangraphsUrl);
+                    if (referencePlayer.FangraphsId != null && referencePlayer.FangraphsId != fangraphsId)
+                    {
+                        Logger.LogWarning("ReferencePlayer {referencePlayer} already has FangraphsId {fangraphsId}; overwriting with {newFangraphsId}.",
+                            referencePlayer.Name, referencePlayer.FangraphsId,
+                            fangraphsId);
+                    }
+                    referencePlayer.FangraphsId = fangraphsId;
+                    referencePlayerUpdateCount++;
+                    Logger.LogInformation("Updated FangraphsId for ReferencePlayer {referencePlayer} to {fangraphsId}.",
+                        referencePlayer.Name, fangraphsId);
+                }
+            }
+        }
+        await Context.SaveChangesAsync(cancellation);
+        if (players.Count < FangraphsBatchSize)
+        {
+            Logger.LogInformation("Only {count} Players without Fangraphs links found to update, checking for reference players without ID set.", players.Count);
+            var referencePlayersWithoutIds = Context.ReferencePlayers
+                .Where(rp => rp.FangraphsId == null && rp.PlayerId != null);
+
+            if (referencePlayersWithoutIds.Any())
+            {
+                var toUpdate = referencePlayersWithoutIds
+                    .OrderBy(rp => rp.Id)
+                    .Take(FangraphsBatchSize).ToList();
+                Logger.LogInformation("Found {count} ReferencePlayers without FangraphsIds linked to Players; attempting to update Fangraphs IDs.",
+                    toUpdate.Count);
+                foreach (var referencePlayer in toUpdate)
+                {
+                    if (referencePlayer.Player == null)
+                    {
+                        Logger.LogWarning("ReferencePlayer {referencePlayer} has no linked Player; skipping fangraphs ID update.",
+                            referencePlayer.Name);
+                        continue;
+                    }
+                    var fangraphsUrl = await playerManager.FindFangraphsPageForPlayer(referencePlayer.Player, cancellation);
+                    if (fangraphsUrl != null)
+                    {
+                        var fangraphsId = FangraphsIdFromUri(fangraphsUrl);
+                        if (referencePlayer.FangraphsId != null && referencePlayer.FangraphsId != fangraphsId)
+                        {
+                            Logger.LogWarning("ReferencePlayer {referencePlayer} already has FangraphsId {fangraphsId}; overwriting with {newFangraphsId}.",
+                                referencePlayer.Name, referencePlayer.FangraphsId,
+                                fangraphsId);
+                        }
+                        Logger.LogInformation("Updating FangraphsId for ReferencePlayer {referencePlayer} to {fangraphsId}.",
+                            referencePlayer.Name, fangraphsId);
+                        referencePlayer.FangraphsId = fangraphsId;
+                        referencePlayerUpdateCount++;
+                    }
+                }
+                Logger.LogInformation("Updated {updatedCount} ReferencePlayers with new Fangraphs IDs.", referencePlayerUpdateCount);
+            }
+        }
+        else
+        {
+            Logger.LogInformation("Saved {updatedCount} Players with new Fangraphs links.", playerUpdateCount);
+        }
+        return new FangraphsLinkUpdateResult
+        {
+            PlayersUpdated = playerUpdateCount,
+            ReferencePlayersUpdated = referencePlayerUpdateCount
+        };
+    }
+
     private Player? MatchPlayerByMLBAMPlayer(ReferencePlayer referencePlayer, MLBAMPlayer mlbamPlayer)
     {
         // First match by name and date of birth
@@ -162,6 +256,16 @@ public class ReferenceManager(ILogger<ReferenceManager> logger, BaseballContext 
         }
 
         return null;
+    }
+
+    private static string FangraphsIdFromUri(Uri uri)
+    {
+        var segments = uri.Segments;
+        if (segments.Length < 2)
+        {
+            throw new ArgumentException("Invalid Fangraphs player URI: " + uri.ToString());
+        }
+        return segments[^2].TrimEnd('/');
     }
 
     public void Dispose()

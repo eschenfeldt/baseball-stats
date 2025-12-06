@@ -130,9 +130,9 @@ public class PlayerManager(BaseballContext context)
         return newPlayer;
     }
 
-    public async Task<Uri?> FindFangraphsPageForPlayer(Player player)
+    public async Task<Uri?> FindFangraphsPageForPlayer(Player player, CancellationToken cancellation)
     {
-        var searchResult = await SearchFangraphsPlayerByName(player.Name);
+        var searchResult = await SearchFangraphsPlayerByName(player.Name, cancellation);
         if (searchResult.Hits.Count == 0)
         {
             return null;
@@ -192,16 +192,16 @@ public class PlayerManager(BaseballContext context)
 
     private static readonly Uri FangraphsPlayerSearchUri = new("https://www.fangraphs.com/api/search/players/");
 
-    private async Task<FangraphsPlayerSearchResult> SearchFangraphsPlayerByName(string name)
+    private static async Task<FangraphsPlayerSearchResult> SearchFangraphsPlayerByName(string name, CancellationToken cancellation)
     {
         var client = new HttpClient();
         var requestUri = new UriBuilder(FangraphsPlayerSearchUri)
         {
             Query = $"search={Uri.EscapeDataString(name)}"
         };
-        var response = await client.GetAsync(requestUri.Uri);
+        var response = await client.GetAsync(requestUri.Uri, cancellation);
         response.EnsureSuccessStatusCode();
-        var content = await response.Content.ReadAsStringAsync();
+        var content = await response.Content.ReadAsStringAsync(cancellation);
         return JsonSerializer.Deserialize<FangraphsPlayerSearchResult>(content);
     }
 }

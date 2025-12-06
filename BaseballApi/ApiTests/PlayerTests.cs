@@ -106,7 +106,7 @@ public class PlayerTests : BaseballTests
         var manager = new PlayerManager(Context);
         DateOnly? dob = dateOfBirth != null ? DateOnly.Parse(dateOfBirth) : null;
         var player = new Player { Name = playerName, DateOfBirth = dob };
-        var fangraphsPage = await manager.FindFangraphsPageForPlayer(player);
+        var fangraphsPage = await manager.FindFangraphsPageForPlayer(player, CancellationToken.None);
         Assert.NotNull(fangraphsPage);
         var idString = fangraphsPage.Segments[3].Trim('/');
         var actualFangraphsId = int.Parse(idString);
@@ -176,6 +176,45 @@ public class PlayerTests : BaseballTests
         var secondUpdateResults = await referenceManager.UpdatePlayerReferences(CancellationToken.None);
         Assert.Equal(0, secondUpdateResults.CreatedCount);
         Assert.Equal(0, secondUpdateResults.UpdatedCount);
+    }
+
+    [Fact]
+    public async Task TestFangraphsLinkUpdater()
+    {
+        // first make sure MLBAM references are up to date
+        var logger = FileLoggerFactory.CreateLogger<ReferenceManager>();
+        var realConnector = new MLBAMConnector();
+        var realReferenceManager = new ReferenceManager(logger, Context, realConnector);
+        var teamsUpdated = await realReferenceManager.UpdateTeamReferences(CancellationToken.None);
+        Assert.Equal(5, teamsUpdated);
+
+        var connector = new MockMLBAMConnector();
+        var referenceManager = new ReferenceManager(logger, Context, connector);
+        var result = await referenceManager.UpdatePlayerReferences(CancellationToken.None);
+        Assert.Equal(1, result.CreatedCount);
+        Assert.Equal(2, result.UpdatedCount);
+
+        var dodgers = Context.Teams.First(t => t.Abbreviation == "LAD");
+
+        // now fill in missing fangraphs links and IDs
+        var playerManager = new PlayerManager(Context);
+        var updateResult = await referenceManager.UpdateFangraphsLinks(CancellationToken.None);
+        Assert.Equal(1, updateResult.PlayersUpdated); // only Shōta Imanaga is missing a link in the test data
+        Assert.Equal(2, updateResult.ReferencePlayersUpdated); // Will Smith and Shota Imanaga reference players are missing IDs
+
+        var shotaPlayer = Context.Players.First(p => p.Name == "Shōta Imanaga");
+        Assert.Equal(new Uri("https://www.fangraphs.com/players/shota-imanaga/33829/stats?position=P"), shotaPlayer.FangraphsPage);
+        var shotaReference = Context.ReferencePlayers.First(rp => rp.Name == "Shota Imanaga");
+        Assert.Equal("33829", shotaReference.FangraphsId);
+        var willSmithPlayer = Context.Players.FirstOrDefault(p => p.Name == "Will Smith" && p.FangraphsPage == new Uri("https://www.fangraphs.com/players/will-smith/19197/stats?position=C"));
+        Assert.NotNull(willSmithPlayer);
+        var willSmithReference = Context.ReferencePlayers.First(rp => rp.Name == "Will Smith");
+        Assert.Equal("19197", willSmithReference.FangraphsId);
+
+        // running again should find no updates
+        var secondUpdateResult = await referenceManager.UpdateFangraphsLinks(CancellationToken.None);
+        Assert.Equal(0, secondUpdateResult.PlayersUpdated);
+        Assert.Equal(0, secondUpdateResult.ReferencePlayersUpdated);
     }
 
     static readonly string Batter1Name = "Test Batter 1";

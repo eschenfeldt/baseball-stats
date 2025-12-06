@@ -15,6 +15,7 @@ public class ReferenceUpdateService(
         Logger.LogInformation("Reference data update service started.");
         var teamsTimer = new Timer(UpdateTeamReferences, null, TimeSpan.Zero, TimeSpan.FromHours(12));
         var playerTimer = new Timer(UpdatePlayerReferences, null, TimeSpan.FromMinutes(30), TimeSpan.FromHours(24));
+        var fangraphsTimer = new Timer(UpdateFangraphsLinks, null, TimeSpan.FromMinutes(60), TimeSpan.FromHours(6));
         CancellationToken = cancellationToken;
         // Wait for the timers to trigger
         while (!CancellationToken.IsCancellationRequested)
@@ -23,6 +24,7 @@ public class ReferenceUpdateService(
         }
         teamsTimer.Dispose();
         playerTimer.Dispose();
+        fangraphsTimer.Dispose();
         Logger.LogInformation("Reference data update service stopped.");
     }
 
@@ -54,6 +56,22 @@ public class ReferenceUpdateService(
         catch (Exception ex)
         {
             Logger.LogError(ex, "Error occurred while updating player references.");
+        }
+    }
+
+    private async void UpdateFangraphsLinks(object? stateInfo)
+    {
+        using var scope = ServiceProvider.CreateScope();
+        var referenceManager = scope.ServiceProvider.GetRequiredService<ReferenceManager>();
+        try
+        {
+            var result = await referenceManager.UpdateFangraphsLinks(CancellationToken);
+            Logger.LogInformation("Fangraphs link update completed. {playerUpdateCount} players updated, {referencePlayerUpdateCount} reference players updated.",
+                result.PlayersUpdated, result.ReferencePlayersUpdated);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error occurred while updating Fangraphs links.");
         }
     }
 }
