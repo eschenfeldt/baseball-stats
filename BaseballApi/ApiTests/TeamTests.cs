@@ -1,6 +1,6 @@
-using BaseballApi.Contracts;
 using BaseballApi.Controllers;
 using BaseballApi.Integrations;
+using Microsoft.Extensions.Logging;
 
 namespace BaseballApiTests;
 
@@ -9,7 +9,7 @@ public class TeamTests : BaseballTests
     private TeamsController Controller { get; }
     public TeamTests(TestDatabaseFixture fixture) : base(fixture)
     {
-        this.Controller = new TeamsController(Context);
+        Controller = new TeamsController(Context);
     }
 
     [Theory]
@@ -57,8 +57,9 @@ public class TeamTests : BaseballTests
     [Fact]
     public async void TestUpdateTeamReferences()
     {
+        var logger = FileLoggerFactory.CreateLogger<ReferenceManager>();
         var connector = new MLBAMConnector();
-        var referenceManager = new ReferenceManager(Context, connector);
+        var referenceManager = new ReferenceManager(logger, Context, connector);
         var updatedCount = await referenceManager.UpdateTeamReferences(CancellationToken.None);
         var rangers = Context.Teams.First(t => t.Abbreviation == "TEX");
         Assert.Equal(140, rangers.MLBAMId);

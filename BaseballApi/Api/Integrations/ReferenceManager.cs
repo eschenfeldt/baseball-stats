@@ -4,14 +4,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BaseballApi.Integrations;
 
-public class ReferenceManager(BaseballContext context, IMLBAMConnector mlbamConnector) : IDisposable
+public class ReferenceManager(ILogger<ReferenceManager> logger, BaseballContext context, IMLBAMConnector mlbamConnector) : IDisposable
 {
+    private ILogger<ReferenceManager> Logger { get; } = logger;
     private IMLBAMConnector MLBAMConnector { get; } = mlbamConnector;
     private BaseballContext Context { get; } = context;
 
     public async Task<int> UpdateTeamReferences(CancellationToken cancellation)
     {
         var mlbamTeamsResponse = await MLBAMConnector.GetTeamsAsync(cancellation);
+        Logger.LogInformation("Fetched {count} teams from MLBAM.", mlbamTeamsResponse.Teams.Count);
         var updatedCount = 0;
         foreach (var mlbamTeam in mlbamTeamsResponse.Teams)
         {
@@ -22,11 +24,13 @@ public class ReferenceManager(BaseballContext context, IMLBAMConnector mlbamConn
                 if (team != null)
                 {
                     team.MLBAMId = mlbamTeam.Id;
+                    Logger.LogInformation("Updated MLBAMId for team {team} to {mlbamId}.", team.Name, mlbamTeam.Id);
                     updatedCount++;
                 }
             }
         }
         await Context.SaveChangesAsync(cancellation);
+        Logger.LogInformation("Updated {updatedCount} team references from MLBAM.", updatedCount);
         return updatedCount;
     }
 
@@ -131,5 +135,11 @@ public class ReferenceManager(BaseballContext context, IMLBAMConnector mlbamConn
         }
 
         return null;
+    }
+
+    public void Dispose()
+    {
+        Context.Dispose();
+        GC.SuppressFinalize(this);
     }
 }

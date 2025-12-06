@@ -1,13 +1,10 @@
-using System.ComponentModel;
-using System.Linq.Expressions;
-using System.Threading.Tasks;
-using BaseballApi;
 using BaseballApi.Contracts;
 using BaseballApi.Controllers;
 using BaseballApi.Import;
 using BaseballApi.Integrations;
 using BaseballApi.Models;
 using BaseballApiTests.Mocks;
+using Microsoft.Extensions.Logging;
 
 namespace BaseballApiTests;
 
@@ -134,14 +131,15 @@ public class PlayerTests : BaseballTests
     [Fact]
     public async Task TestMLBAMReferencePlayerUpdate()
     {
+        var logger = LoggerFactory.Create(builder => builder.AddConsole()).CreateLogger<ReferenceManager>();
         // update teams so the MLBAM IDs are present
         var realConnector = new MLBAMConnector();
-        var realReferenceManager = new ReferenceManager(Context, realConnector);
+        var realReferenceManager = new ReferenceManager(logger, Context, realConnector);
         var teamsUpdated = await realReferenceManager.UpdateTeamReferences(CancellationToken.None);
         Assert.Equal(5, teamsUpdated);
 
         var connector = new MockMLBAMConnector();
-        var referenceManager = new ReferenceManager(Context, connector);
+        var referenceManager = new ReferenceManager(logger, Context, connector);
         var result = await referenceManager.UpdatePlayerReferences(CancellationToken.None);
         Assert.Equal(1, result.CreatedCount);
         Assert.Equal(2, result.UpdatedCount);
