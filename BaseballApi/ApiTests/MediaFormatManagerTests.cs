@@ -127,6 +127,12 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
     [InlineData("other/h264.MOV", false)]
     [InlineData("video/hevc.mov", true, ".MOV")]
     [InlineData("other/h264.MOV", false, ".mov")]
+    [InlineData("photos/IMG_4721.HEIC", true)]
+    [InlineData("photos/IMG_4721.HEIC", true, ".heic")]
+    [InlineData("other/IMG_1278.JPG", false)]
+    [InlineData("other/IMG_1278.JPG", false, ".jpg")]
+    [InlineData("other/IMG_1278.JPG", false, ".JPEG")]
+    [InlineData("other/IMG_1278.JPG", false, ".jpeg")]
     public async void TestContentTypeCorrected(string fileToUpload, bool generatesAltFormat, string? swapExtension = null)
     {
         // Upload a file then manipulate the content type in the bucket and make sure it gets corrected
@@ -154,8 +160,7 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
         var contentTypeResults = await Manager.SetContentTypes(fileName);
         Assert.Null(contentTypeResults.ErrorMessage);
         Assert.Equal(0, contentTypeResults.SetCount);
-        // h264 video with MOV extension works in Firefox as binary/octet-stream, so it won't be updated
-        Assert.Equal(generatesAltFormat ? 1 : 0, contentTypeResults.UpdateCount);
+        Assert.Equal(1, contentTypeResults.UpdateCount);
 
         foreach (var file in toUpdate)
         {
@@ -163,10 +168,6 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
             Assert.NotNull(file.ContentType);
             var metadata = await RemoteFileManager.GetFileMetadata(new RemoteFileDetail(file));
             var expectedContentType = expectedContentTypes[file.Id];
-            if (!generatesAltFormat && expectedContentType == "video/quicktime")
-            {
-                expectedContentType = "binary/octet-stream"; // This is the only case where we expect the content type to not be updated
-            }
             Assert.Equal(expectedContentType, file.ContentType);
             Assert.Equal(expectedContentType, metadata.Headers.ContentType);
         }
@@ -311,6 +312,138 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
         await RemoteFileManager.DeleteFile(new RemoteFileDetail(newVideoFile));
         resource.AlternateFormatOverride = null; // simulate a legacy file
         await Context.SaveChangesAsync();
+
+        altFormatResults = await Manager.CreateAlternateFormats(fileName);
+        Assert.Null(altFormatResults.ErrorMessage);
+        Assert.Equal(1, altFormatResults.Count);
+        resource = await LoadResource();
+        newPhotoFile = resource.Files.FirstOrDefault(f => f.Purpose == RemoteFilePurpose.AlternateFormat && f.Extension == ".jpeg");
+        Assert.NotNull(newPhotoFile);
+        Assert.NotEqual(photoFile.Id, newPhotoFile.Id);
+        await RemoteValidator.ValidateFileExists(new RemoteFileDetail(newPhotoFile), "image/jpeg");
+        newVideoFile = resource.Files.FirstOrDefault(f => f.Purpose == RemoteFilePurpose.AlternateFormat && f.Extension == ".mp4");
+        Assert.NotNull(newVideoFile);
+        Assert.NotEqual(videoFile.Id, newVideoFile.Id);
+        await RemoteValidator.ValidateFileExists(new RemoteFileDetail(newVideoFile), "video/mp4");
+    }
+
+    [Fact]
+    [Trait(TestCategory.Category, TestCategory.Media)]
+    public async void TestAlternateFormatLivePhotoIncorrectContentType()
+    {
+        // upload a live photo, set the content type for all files to binary/octet-stream,
+        // then delete one alternate file, check it recreates, then repeat for the other file and both files at once
+        List<IFormFile> files = [];
+        Dictionary<string, MediaResourceType> resourceTypes = [];
+        string baseFileName = "IMG_4762";
+        string newBaseFileName = baseFileName + Guid.NewGuid();
+        var fileName = $"{newBaseFileName}.HEIC";
+        var newPhotoPath = Path.Combine(Path.GetTempPath(), fileName);
+        var newVideoPath = Path.Combine(Path.GetTempPath(), $"{newBaseFileName}.mov");
+        File.Copy(Path.Combine("data", "media", "live photos", $"{baseFileName}.HEIC"), newPhotoPath);
+        File.Copy(Path.Combine("data", "media", "live photos", $"{baseFileName}.mov"), newVideoPath);
+        TestMediaImporter.PrepareIndividualFormFiles(MediaResourceType.LivePhoto, files, resourceTypes, newPhotoPath, newVideoPath);
+        await Importer.ImportMedia(files, GameId, resourceTypes);
+        File.Delete(newPhotoPath);
+        File.Delete(newVideoPath);
+
+        async Task<MediaResource> LoadResource()
+        {
+            var resource = await Context.MediaResources
+                .Include(r => r.Files)
+                .FirstOrDefaultAsync(r => r.OriginalFileName == fileName);
+            Assert.NotNull(resource);
+            return resource;
+        }
+
+        // Validate that the live photo was imported correctly
+        var resource = await LoadResource();
+        Assert.Equal(7, resource.Files.Count);
+
+        async Task SetAllContentTypesToBinary()
+        {
+            // Set all content types to binary/octet-stream
+            foreach (var file in resource.Files)
+            {
+                Context.Entry(file).Reload();
+                file.ContentType = "binary/octet-stream";
+                var result = await RemoteFileManager.UpdateFileContentType(new RemoteFileDetail(file), "binary/octet-stream");
+                Assert.Equal(HttpStatusCode.OK, result.HttpStatusCode);
+            }
+            resource.AlternateFormatOverride = null; // simulate a legacy file
+            await Context.SaveChangesAsync();
+
+            // Validate that the content types were updated
+            foreach (var file in resource.Files)
+            {
+                Context.Entry(file).Reload();
+                Assert.Equal("binary/octet-stream", file.ContentType);
+                var metadata = await RemoteFileManager.GetFileMetadata(new RemoteFileDetail(file));
+                Assert.Equal("binary/octet-stream", metadata.Headers.ContentType);
+            }
+        }
+        await SetAllContentTypesToBinary();
+
+        // First delete the photo alternate format
+        var photoFile = resource.Files.FirstOrDefault(f => f.Purpose == RemoteFilePurpose.AlternateFormat && f.Extension == ".jpeg");
+        Assert.NotNull(photoFile);
+        resource.Files.Remove(photoFile);
+        await RemoteFileManager.DeleteFile(new RemoteFileDetail(photoFile));
+        resource.AlternateFormatOverride = null; // simulate a legacy file
+        await Context.SaveChangesAsync();
+
+        var setContentResults = await Manager.SetContentTypes(fileName);
+        Assert.Null(setContentResults.ErrorMessage);
+        Assert.Equal(0, setContentResults.SetCount);
+        Assert.Equal(6, setContentResults.UpdateCount); // all of the existing files should be updated
+
+        var altFormatResults = await Manager.CreateAlternateFormats(fileName);
+        Assert.Null(altFormatResults.ErrorMessage);
+        Assert.Equal(1, altFormatResults.Count);
+        resource = await LoadResource();
+        var newPhotoFile = resource.Files.FirstOrDefault(f => f.Purpose == RemoteFilePurpose.AlternateFormat && f.Extension == ".jpeg");
+        Assert.NotNull(newPhotoFile);
+        Assert.NotEqual(photoFile.Id, newPhotoFile.Id);
+        await RemoteValidator.ValidateFileExists(new RemoteFileDetail(newPhotoFile), "image/jpeg");
+
+        await SetAllContentTypesToBinary();
+
+        // Now delete the video alternate format
+        var videoFile = resource.Files.FirstOrDefault(f => f.Purpose == RemoteFilePurpose.AlternateFormat && f.Extension == ".mp4");
+        Assert.NotNull(videoFile);
+        resource.Files.Remove(videoFile);
+        await RemoteFileManager.DeleteFile(new RemoteFileDetail(videoFile));
+        resource.AlternateFormatOverride = null; // simulate a legacy file
+        await Context.SaveChangesAsync();
+
+        setContentResults = await Manager.SetContentTypes(fileName);
+        Assert.Null(setContentResults.ErrorMessage);
+        Assert.Equal(0, setContentResults.SetCount);
+        Assert.Equal(6, setContentResults.UpdateCount); // all of the existing files should be updated
+
+        altFormatResults = await Manager.CreateAlternateFormats(fileName);
+        Assert.Null(altFormatResults.ErrorMessage);
+        Assert.Equal(1, altFormatResults.Count);
+        resource = await LoadResource();
+        var newVideoFile = resource.Files.FirstOrDefault(f => f.Purpose == RemoteFilePurpose.AlternateFormat && f.Extension == ".mp4");
+        Assert.NotNull(newVideoFile);
+        Assert.NotEqual(videoFile.Id, newVideoFile.Id);
+        await RemoteValidator.ValidateFileExists(new RemoteFileDetail(newVideoFile), "video/mp4");
+
+        await SetAllContentTypesToBinary();
+
+        // Finally delete both alternate formats and make sure they get recreated
+        resource.Files.Remove(newPhotoFile);
+        await RemoteFileManager.DeleteFile(new RemoteFileDetail(newPhotoFile));
+        resource.Files.Remove(newVideoFile);
+        await RemoteFileManager.DeleteFile(new RemoteFileDetail(newVideoFile));
+        resource.AlternateFormatOverride = null; // simulate a legacy file
+        await Context.SaveChangesAsync();
+
+        setContentResults = await Manager.SetContentTypes(fileName);
+        Assert.Null(setContentResults.ErrorMessage);
+        Assert.Equal(0, setContentResults.SetCount);
+        Assert.Equal(5, setContentResults.UpdateCount); // all of the existing files should be updated
 
         altFormatResults = await Manager.CreateAlternateFormats(fileName);
         Assert.Null(altFormatResults.ErrorMessage);
