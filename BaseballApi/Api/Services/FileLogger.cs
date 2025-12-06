@@ -27,13 +27,46 @@ public class FileLogger(string directory, string category, object sharedLock) : 
         Exception? exception,
         Func<TState, Exception?, string> formatter)
     {
+        ArgumentNullException.ThrowIfNull(formatter);
+
+        var timestamp = DateTime.UtcNow.ToString("o");
+        var message = formatter(state, exception);
+
+        // Append exception details if present
+        if (exception != null)
+        {
+            message += Environment.NewLine + FormatException(exception);
+        }
         var filename = Path.Combine(LogDirectory, $"{DateTime.UtcNow:yyyy_MM_dd}.log");
-        var message = $"{DateTime.UtcNow:o} [{logLevel}] {Category}: {formatter(state, exception)}{Environment.NewLine}";
 
         lock (Lock)
         {
-            File.AppendAllText(filename, message);
+            File.AppendAllText(filename, $"{timestamp} [{logLevel}] {Category}: {message}{Environment.NewLine}");
         }
+    }
+
+    private static string FormatException(Exception ex)
+    {
+        // Recursively format inner exceptions
+        var sb = new System.Text.StringBuilder();
+        int depth = 0;
+
+        while (ex != null)
+        {
+            sb.AppendLine($"Exception Level {depth}: {ex.GetType().FullName}: {ex.Message}");
+            sb.AppendLine(ex.StackTrace ?? "(no stack trace)");
+            if (ex.InnerException == null)
+            {
+                break;
+            }
+            else
+            {
+                ex = ex.InnerException;
+                depth++;
+            }
+        }
+
+        return sb.ToString();
     }
 }
 
