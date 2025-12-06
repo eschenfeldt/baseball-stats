@@ -7,7 +7,7 @@ public class ParkTests : BaseballTests
     private ParkController Controller { get; }
     private TestGameManager TestGameManager { get; }
 
-    public ParkTests(TestDatabaseFixture fixture) : base(fixture)
+    public ParkTests(TestDatabaseFixture fixture, TestFileLoggerFixture fileLoggerFixture) : base(fixture, fileLoggerFixture)
     {
         Controller = new ParkController(Context);
         TestGameManager = new TestGameManager(Context);

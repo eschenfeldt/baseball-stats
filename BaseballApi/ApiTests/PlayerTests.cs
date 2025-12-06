@@ -14,7 +14,7 @@ public class PlayerTests : BaseballTests
     private LeaderboardController LeaderController { get; }
     private TestGameManager GameManager { get; }
 
-    public PlayerTests(TestDatabaseFixture fixture) : base(fixture)
+    public PlayerTests(TestDatabaseFixture fixture, TestFileLoggerFixture fileLoggerFixture) : base(fixture, fileLoggerFixture)
     {
         Controller = new PlayerController(Context);
         LeaderController = new LeaderboardController(Context);
@@ -131,7 +131,7 @@ public class PlayerTests : BaseballTests
     [Fact]
     public async Task TestMLBAMReferencePlayerUpdate()
     {
-        var logger = LoggerFactory.Create(builder => builder.AddConsole()).CreateLogger<ReferenceManager>();
+        var logger = FileLoggerFactory.CreateLogger<ReferenceManager>();
         // update teams so the MLBAM IDs are present
         var realConnector = new MLBAMConnector();
         var realReferenceManager = new ReferenceManager(logger, Context, realConnector);

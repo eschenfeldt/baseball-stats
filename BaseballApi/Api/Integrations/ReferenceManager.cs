@@ -42,6 +42,7 @@ public class ReferenceManager(ILogger<ReferenceManager> logger, BaseballContext 
         var mlbamCurrentPlayers = await MLBAMConnector.GetPlayersAsync(cancellation);
         int createdCount = 0;
         int updatedCount = 0;
+        Logger.LogInformation("Fetched {count} current players from MLBAM.", mlbamCurrentPlayers.People.Count);
         foreach (var mlbamPlayer in mlbamCurrentPlayers.People)
         {
             var referencePlayer = Context.ReferencePlayers
@@ -62,6 +63,7 @@ public class ReferenceManager(ILogger<ReferenceManager> logger, BaseballContext 
                     };
                     Context.ReferencePlayers.Add(referencePlayer);
                     createdCount++;
+                    Logger.LogInformation("Created ReferencePlayer for {player} with MLBAMId {mlbamId}.", mlbamPlayer.FullName, mlbamPlayer.Id);
                 }
             }
             if (referencePlayer != null)
@@ -69,6 +71,16 @@ public class ReferenceManager(ILogger<ReferenceManager> logger, BaseballContext 
                 var updated = false;
                 if (referencePlayer.MLBAMId != mlbamPlayer.Id)
                 {
+                    if (referencePlayer.MLBAMId.HasValue)
+                    {
+                        Logger.LogWarning("ReferencePlayer {player} has mismatched MLBAMId: existing '{oldId}', new '{mlbamId}'.",
+                            referencePlayer.Name, referencePlayer.MLBAMId, mlbamPlayer.Id);
+                    }
+                    else
+                    {
+                        Logger.LogInformation("Setting MLBAMId for ReferencePlayer {player} to '{mlbamId}'.",
+                            referencePlayer.Name, mlbamPlayer.Id);
+                    }
                     referencePlayer.MLBAMId = mlbamPlayer.Id;
                     updated = true;
                 }
@@ -76,18 +88,25 @@ public class ReferenceManager(ILogger<ReferenceManager> logger, BaseballContext 
                         && int.TryParse(mlbamPlayer.PrimaryNumber, out var number)
                         && referencePlayer.CurrentNumber != number)
                 {
+                    Logger.LogInformation("Updating current number for ReferencePlayer {player} from '{oldNumber}' to '{number}'.",
+                        referencePlayer.Name, referencePlayer.CurrentNumber, number);
                     referencePlayer.CurrentNumber = number;
                     updated = true;
                 }
                 var team = Context.Teams.FirstOrDefault(t => t.MLBAMId == mlbamPlayer.CurrentTeam.Id);
                 if (team != null && referencePlayer.CurrentTeamId != team.Id)
                 {
+                    Logger.LogInformation("Updating current team for ReferencePlayer {player} to '{team}': previously {oldTeam}.",
+                        referencePlayer.Name, team.Name, referencePlayer.CurrentTeam?.Name ?? "none");
                     referencePlayer.CurrentTeamId = team.Id;
                     updated = true;
                 }
                 var player = MatchPlayerByMLBAMPlayer(referencePlayer, mlbamPlayer);
                 if (player != null && referencePlayer.PlayerId != player.Id)
                 {
+                    Logger.LogInformation("Linking ReferencePlayer {referencePlayer} to Player {player} (id {playerId}): previously {oldPlayer} (id {oldPlayerId}).",
+                        referencePlayer.Name, player.Name, player.Id,
+                        referencePlayer.Player?.Name ?? "none", referencePlayer.PlayerId);
                     referencePlayer.Player = player;
                     updated = true;
                 }
@@ -99,9 +118,13 @@ public class ReferenceManager(ILogger<ReferenceManager> logger, BaseballContext 
             if (createdCount + updatedCount % 100 == 0)
             {
                 await Context.SaveChangesAsync(cancellation);
+                Logger.LogInformation("Saved progress: {createdCount} players created, {updatedCount} players updated so far.",
+                    createdCount, updatedCount);
             }
         }
         await Context.SaveChangesAsync(cancellation);
+        Logger.LogInformation("Completed player reference update: {createdCount} players created, {updatedCount} players updated.",
+            createdCount, updatedCount);
 
         // when we have more integrations they can also be handled here
         // unless they require too many api calls
@@ -119,19 +142,23 @@ public class ReferenceManager(ILogger<ReferenceManager> logger, BaseballContext 
         var player = Context.Players.FirstOrDefault(p => EF.Functions.Unaccent(p.Name) == EF.Functions.Unaccent(mlbamPlayer.FullName) && p.DateOfBirth == referencePlayer.DateOfBirth);
         if (player != null)
         {
+            Logger.LogInformation("Matched MLBAM player {mlbamPlayer} to Player {player} by name and date of birth.",
+                mlbamPlayer.FullName, player.Name);
             return player;
         }
         // Next look for a unique match by name only
         var playersByName = Context.Players.Where(p => EF.Functions.Unaccent(p.Name) == EF.Functions.Unaccent(mlbamPlayer.FullName)).ToList();
         if (playersByName.Count == 1)
         {
+            Logger.LogInformation("Matched MLBAM player {mlbamPlayer} to Player {player} by name only.",
+                mlbamPlayer.FullName, playersByName.First().Name);
             return playersByName.First();
         }
         else if (playersByName.Count > 1)
         {
             // if there are multiple name matches, just warn for now;
             // probably we should be setting the dob on the player to disambiguate
-            Console.WriteLine($"Warning: multiple players found with name {mlbamPlayer.FullName}; cannot match by MLBAMId {mlbamPlayer.Id}");
+            Logger.LogWarning("Warning: multiple players found with name {mlbamPlayerFullName}; cannot match by MLBAMId {mlbamPlayerId}", mlbamPlayer.FullName, mlbamPlayer.Id);
         }
 
         return null;

@@ -9,7 +9,7 @@ public class GameTests : BaseballTests
 {
     private GamesController Controller { get; }
     private TestGameManager TestGameManager { get; }
-    public GameTests(TestDatabaseFixture fixture) : base(fixture)
+    public GameTests(TestDatabaseFixture fixture, TestFileLoggerFixture fileLoggerFixture) : base(fixture, fileLoggerFixture)
     {
         var builder = new ConfigurationBuilder().AddUserSecrets<TestDatabaseFixture>();
         IConfiguration configuration = builder.Build();

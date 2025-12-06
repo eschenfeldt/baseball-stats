@@ -9,7 +9,7 @@ public class SearchTests : BaseballTests
 {
     private SearchController Controller { get; }
 
-    public SearchTests(TestDatabaseFixture fixture) : base(fixture)
+    public SearchTests(TestDatabaseFixture fixture, TestFileLoggerFixture fileLoggerFixture) : base(fixture, fileLoggerFixture)
     {
         Controller = new SearchController(Context);
     }

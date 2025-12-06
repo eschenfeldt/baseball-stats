@@ -7,7 +7,7 @@ namespace BaseballApiTests;
 public class TeamTests : BaseballTests
 {
     private TeamsController Controller { get; }
-    public TeamTests(TestDatabaseFixture fixture) : base(fixture)
+    public TeamTests(TestDatabaseFixture fixture, TestFileLoggerFixture fileLoggerFixture) : base(fixture, fileLoggerFixture)
     {
         Controller = new TeamsController(Context);
     }

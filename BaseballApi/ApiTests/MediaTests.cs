@@ -24,7 +24,7 @@ public class MediaTests : BaseballTests, IAsyncLifetime
     TempFileCleaner TempFileCleaner { get; }
     TestMediaImporter TestMediaImporter { get; }
 
-    public MediaTests(TestDatabaseFixture fixture) : base(fixture)
+    public MediaTests(TestDatabaseFixture fixture, TestFileLoggerFixture fileLoggerFixture) : base(fixture, fileLoggerFixture)
     {
         var builder = new ConfigurationBuilder()
             .AddJsonFile("/run/secrets/app_settings", optional: true)
@@ -32,8 +32,7 @@ public class MediaTests : BaseballTests, IAsyncLifetime
         IConfiguration configuration = builder.Build();
         RemoteFileManager = new(configuration, nameof(MediaTests));
         RemoteValidator = new(RemoteFileManager);
-        using ILoggerFactory loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
-        var logger = loggerFactory.CreateLogger<MediaImportQueue>();
+        var logger = FileLoggerFactory.CreateLogger<MediaImportQueue>();
         MediaImportQueue mediaImportQueue = new(logger);
         Controller = new MediaController(Context, RemoteFileManager, mediaImportQueue);
         TestGameManager = new TestGameManager(Context);
@@ -44,7 +43,7 @@ public class MediaTests : BaseballTests, IAsyncLifetime
         services.AddDbContext<BaseballContext>(opt =>
             opt.UseNpgsql(Context.Database.GetConnectionString()));
         var serviceProvider = services.BuildServiceProvider();
-        var backgroundLogger = loggerFactory.CreateLogger<MediaImportBackgroundService>();
+        var backgroundLogger = FileLoggerFactory.CreateLogger<MediaImportBackgroundService>();
         MediaImportBackgroundService = new MediaImportBackgroundService(mediaImportQueue, serviceProvider, backgroundLogger);
         MediaImportTaskRestarter = new MediaImportTaskRestarter(mediaImportQueue, serviceProvider, backgroundLogger);
         TempFileCleaner = new TempFileCleaner(serviceProvider, backgroundLogger);
