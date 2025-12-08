@@ -16,6 +16,14 @@ public class RemoteFileValidator(IRemoteFileManager fileManager)
         Assert.Equal(expectedContentType, metadata.Headers.ContentType);
     }
 
+    public async Task ValidateFilePublicAccess(RemoteFileDetail fileDetail)
+    {
+        var url = Manager.GetPublicUrl(fileDetail);
+        using var httpClient = new HttpClient();
+        var response = await httpClient.GetAsync(url);
+        Assert.True(response.IsSuccessStatusCode, "Public access to file failed");
+    }
+
     public async Task ValidateFileDeleted(RemoteFileDetail fileDetail)
     {
         try

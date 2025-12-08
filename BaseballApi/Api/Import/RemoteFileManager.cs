@@ -144,8 +144,15 @@ public class RemoteFileManager : IRemoteFileManager
             DestinationBucket = this.BucketName,
             DestinationKey = key,
             ContentType = contentType,
-            MetadataDirective = S3MetadataDirective.REPLACE
+            MetadataDirective = S3MetadataDirective.REPLACE,
+            CannedACL = S3CannedACL.PublicRead
         };
         return await this.Client.CopyObjectAsync(request);
+    }
+
+    public string GetPublicUrl(RemoteFileDetail fileDetail)
+    {
+        var key = this.GetKey(fileDetail);
+        return $"https://{this.BucketName}.nyc3.digitaloceanspaces.com/{key}";
     }
 }

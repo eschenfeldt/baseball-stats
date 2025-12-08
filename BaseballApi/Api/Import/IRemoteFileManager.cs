@@ -12,4 +12,5 @@ public interface IRemoteFileManager
     public Task<GetObjectResponse> GetFile(RemoteFileDetail fileDetail);
     public Task<GetObjectMetadataResponse> GetFileMetadata(RemoteFileDetail fileDetail);
     public Task<CopyObjectResponse> UpdateFileContentType(RemoteFileDetail fileDetail, string contentType);
+    public string GetPublicUrl(RemoteFileDetail fileDetail);
 }

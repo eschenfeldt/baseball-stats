@@ -170,6 +170,8 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
             var expectedContentType = expectedContentTypes[file.Id];
             Assert.Equal(expectedContentType, file.ContentType);
             Assert.Equal(expectedContentType, metadata.Headers.ContentType);
+            // Validate that the file is still publicly accessible
+            await RemoteValidator.ValidateFilePublicAccess(new RemoteFileDetail(file));
         }
     }
 
