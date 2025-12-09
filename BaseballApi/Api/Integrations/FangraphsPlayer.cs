@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace BaseballApi.Contracts;
+namespace BaseballApi.Integrations;
 
 public readonly record struct FangraphsPlayer(
     [property: JsonPropertyName("id")] string Id,

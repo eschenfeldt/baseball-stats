@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace BaseballApi.Contracts;
+namespace BaseballApi.Integrations;
 
 public record struct FangraphsPlayerSearchResult(
     [property: JsonPropertyName("hits")] IReadOnlyList<FangraphsPlayer> Hits,
