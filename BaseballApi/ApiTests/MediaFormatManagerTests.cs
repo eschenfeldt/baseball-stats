@@ -463,6 +463,70 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
 
     [Fact]
     [Trait(TestCategory.Category, TestCategory.Media)]
+    public async void TestAlternateFormatLivePhotoDuplicateOriginals()
+    {
+        // upload a live photo, create duplicate entries for the original video and photo in the db
+        // This will cause it to be flagged for alternate format creation, which will delete the duplicates instead
+        List<IFormFile> files = [];
+        Dictionary<string, MediaResourceType> resourceTypes = [];
+        string baseFileName = "IMG_4762";
+        string newBaseFileName = baseFileName + Guid.NewGuid();
+        var fileName = $"{newBaseFileName}.HEIC";
+        var newPhotoPath = Path.Combine(Path.GetTempPath(), fileName);
+        var newVideoPath = Path.Combine(Path.GetTempPath(), $"{newBaseFileName}.mov");
+        File.Copy(Path.Combine("data", "media", "live photos", $"{baseFileName}.HEIC"), newPhotoPath);
+        File.Copy(Path.Combine("data", "media", "live photos", $"{baseFileName}.mov"), newVideoPath);
+        TestMediaImporter.PrepareIndividualFormFiles(MediaResourceType.LivePhoto, files, resourceTypes, newPhotoPath, newVideoPath);
+        await Importer.ImportMedia(files, GameId, resourceTypes);
+        File.Delete(newPhotoPath);
+        File.Delete(newVideoPath);
+
+        async Task<MediaResource> LoadResource()
+        {
+            var resource = await Context.MediaResources
+                .Include(r => r.Files)
+                .FirstOrDefaultAsync(r => r.OriginalFileName == fileName);
+            Assert.NotNull(resource);
+            return resource;
+        }
+
+        // Validate that the live photo was imported correctly
+        var resource = await LoadResource();
+        Assert.Equal(7, resource.Files.Count);
+
+        // insert duplicate records
+        async Task InsertClone(RemoteFile original)
+        {
+            var newFile = new RemoteFile
+            {
+                Resource = resource,
+                Purpose = RemoteFilePurpose.Original,
+                Extension = original.Extension,
+                NameModifier = original.NameModifier,
+                ContentType = original.ContentType
+            };
+            resource.Files.Add(newFile);
+        }
+        var originalPhoto = resource.Files.FirstOrDefault(f => f.Extension == ".HEIC" && f.Purpose == RemoteFilePurpose.Original);
+        Assert.NotNull(originalPhoto);
+        await InsertClone(originalPhoto);
+        var originalVideo = resource.Files.FirstOrDefault(f => f.Extension == ".mov" && f.Purpose == RemoteFilePurpose.Original);
+        Assert.NotNull(originalVideo);
+        await InsertClone(originalVideo);
+        await Context.SaveChangesAsync();
+
+        resource = await LoadResource();
+        Assert.Equal(9, resource.Files.Count);
+
+        var altFormatResults = await Manager.CreateAlternateFormats(fileName);
+        Assert.Null(altFormatResults.ErrorMessage);
+        Assert.Equal(1, altFormatResults.Count);
+        resource = await LoadResource();
+        Assert.Equal(7, resource.Files.Count);
+    }
+
+    [Fact]
+    [Trait(TestCategory.Category, TestCategory.Media)]
     public async void TestAlternateFormatOverrideSet()
     {
         // Upload an h264 MOV file, then unset the alternate format override and make sure it gets reset
