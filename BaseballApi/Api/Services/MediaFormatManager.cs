@@ -191,6 +191,9 @@ public class MediaFormatManager(
         if (alternatePhoto != null)
         {
             Logger.LogInformation("Alternate photo already exists for resource {ResourceId}", mediaResource.AssetIdentifier);
+            var allOriginals = mediaResource.Files.Where(f => f.Purpose == RemoteFilePurpose.Original && f.ContentType != null
+                && (f.ContentType.StartsWith("image/") || f.ContentType == "application/octet-stream")).ToList();
+            DeleteDuplicateOriginals(mediaResource, allOriginals);
             return;
         }
 
@@ -243,6 +246,9 @@ public class MediaFormatManager(
         if (alternateVideo != null)
         {
             Logger.LogInformation("Alternate video already exists for resource {ResourceId}", mediaResource.AssetIdentifier);
+            var allOriginals = mediaResource.Files.Where(f => f.Purpose == RemoteFilePurpose.Original && f.ContentType != null
+                                                                    && f.ContentType.StartsWith("video/")).ToList();
+            DeleteDuplicateOriginals(mediaResource, allOriginals);
             return;
         }
 
@@ -315,6 +321,21 @@ public class MediaFormatManager(
             await response.ResponseStream.CopyToAsync(fileStream);
         }
         return tempFilePath;
+    }
+
+    private void DeleteDuplicateOriginals(MediaResource resource, List<RemoteFile> originals)
+    {
+        // We only delete records that are exact duplicates as far as defining where the file is stored
+        var duplicates = originals.GroupBy(f => new { f.Purpose, f.NameModifier, f.Extension }).Where(g => g.Count() > 1);
+        foreach (var duplicateGroup in duplicates)
+        {
+            var toRemove = duplicateGroup.OrderByDescending(f => f.Id).Skip(1).ToList();
+            foreach (var fileToRemove in toRemove)
+            {
+                Logger.LogWarning("Removing duplicate original file from db: {key}", new RemoteFileDetail(fileToRemove).Key);
+                resource.Files.Remove(fileToRemove);
+            }
+        }
     }
 
     private static string GetCorrectContentType(RemoteFileDetail fileDetail)
