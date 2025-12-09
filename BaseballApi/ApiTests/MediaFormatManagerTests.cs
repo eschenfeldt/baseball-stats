@@ -481,8 +481,9 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
         File.Delete(newPhotoPath);
         File.Delete(newVideoPath);
 
-        async Task<MediaResource> LoadResource()
+        async Task<MediaResource> ReloadResource()
         {
+            Context.ChangeTracker.Clear();
             var resource = await Context.MediaResources
                 .Include(r => r.Files)
                 .FirstOrDefaultAsync(r => r.OriginalFileName == fileName);
@@ -491,7 +492,7 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
         }
 
         // Validate that the live photo was imported correctly
-        var resource = await LoadResource();
+        var resource = await ReloadResource();
         Assert.Equal(7, resource.Files.Count);
 
         // insert duplicate records
@@ -515,13 +516,13 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
         await InsertClone(originalVideo);
         await Context.SaveChangesAsync();
 
-        resource = await LoadResource();
+        resource = await ReloadResource();
         Assert.Equal(9, resource.Files.Count);
 
         var altFormatResults = await Manager.CreateAlternateFormats(fileName);
         Assert.Null(altFormatResults.ErrorMessage);
         Assert.Equal(1, altFormatResults.Count);
-        resource = await LoadResource();
+        resource = await ReloadResource();
         Assert.Equal(7, resource.Files.Count);
     }
 
@@ -532,8 +533,9 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
         // Upload an h264 MOV file, then unset the alternate format override and make sure it gets reset
         // This is to simulate pre-existing files that don't have the override set
         string fileName = await UploadFile("other/h264.MOV");
-        async Task<MediaResource> LoadResource()
+        async Task<MediaResource> ReloadResource()
         {
+            Context.ChangeTracker.Clear();
             var resource = await Context.MediaResources
                 .Include(r => r.Files)
                 .FirstOrDefaultAsync(r => r.OriginalFileName == fileName);
@@ -541,7 +543,7 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
             return resource;
         }
 
-        var resource = await LoadResource();
+        var resource = await ReloadResource();
         Assert.Equal(FileCount(false), resource.Files.Count);
         Assert.True(resource.AlternateFormatOverride);
 
@@ -552,8 +554,7 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
         Assert.Null(altFormatResults.ErrorMessage);
         // This will count as processing the file but won't actually create a new file
         Assert.Equal(1, altFormatResults.Count);
-        resource = await LoadResource();
-        Context.Entry(resource).Reload();
+        resource = await ReloadResource();
         Assert.Equal(FileCount(false), resource.Files.Count);
         Assert.True(resource.AlternateFormatOverride);
     }
