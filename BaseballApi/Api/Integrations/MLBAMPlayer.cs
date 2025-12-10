@@ -46,9 +46,3 @@ public readonly record struct MLBAMPlayer(
     [property: JsonPropertyName("strikeZoneTop")] double? StrikeZoneTop,
     [property: JsonPropertyName("strikeZoneBottom")] double? StrikeZoneBottom
 );
-
-
-
-
-
-
