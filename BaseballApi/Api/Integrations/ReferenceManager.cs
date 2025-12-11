@@ -36,9 +36,6 @@ public class ReferenceManager(ILogger<ReferenceManager> logger, BaseballContext 
 
     public async Task<PlayerReferenceUpdateResult> UpdatePlayerReferences(CancellationToken cancellation)
     {
-        // get players from MLBAM who are on a current roster
-        // update or create ReferencePlayer entries as needed
-        // Return number of players updated/created
         var mlbamCurrentPlayers = await MLBAMConnector.GetPlayersAsync(cancellation);
         int createdCount = 0;
         int updatedCount = 0;

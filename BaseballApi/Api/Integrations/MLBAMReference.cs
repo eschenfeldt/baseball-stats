@@ -7,4 +7,3 @@ public readonly record struct MLBAMReference(
     [property: JsonPropertyName("name")] string Name,
     [property: JsonPropertyName("link")] string Link
 );
-
