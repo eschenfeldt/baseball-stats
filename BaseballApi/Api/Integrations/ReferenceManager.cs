@@ -230,7 +230,8 @@ public class ReferenceManager(ILogger<ReferenceManager> logger, BaseballContext 
     private Player? MatchPlayerByMLBAMPlayer(ReferencePlayer referencePlayer, MLBAMPlayer mlbamPlayer)
     {
         // First match by name and date of birth
-        var player = Context.Players.FirstOrDefault(p => EF.Functions.Unaccent(p.Name) == EF.Functions.Unaccent(mlbamPlayer.FullName) && p.DateOfBirth == referencePlayer.DateOfBirth);
+        var referenceName = mlbamPlayer.FullName.ToLowerInvariant();
+        var player = Context.Players.FirstOrDefault(p => p.NameNormalized == referenceName && p.DateOfBirth == referencePlayer.DateOfBirth);
         if (player != null)
         {
             Logger.LogInformation("Matched MLBAM player {mlbamPlayer} to Player {player} by name and date of birth.",
@@ -238,7 +239,7 @@ public class ReferenceManager(ILogger<ReferenceManager> logger, BaseballContext 
             return player;
         }
         // Next look for a unique match by name only
-        var playersByName = Context.Players.Where(p => EF.Functions.Unaccent(p.Name) == EF.Functions.Unaccent(mlbamPlayer.FullName)).ToList();
+        var playersByName = Context.Players.Where(p => p.NameNormalized == referenceName).ToList();
         if (playersByName.Count == 1)
         {
             Logger.LogInformation("Matched MLBAM player {mlbamPlayer} to Player {player} by name only.",
