@@ -13,20 +13,6 @@ public class BaseballContext : DbContext
     public DbSet<Player> Players { get; set; }
 
     public DbSet<BoxScore> BoxScores { get; set; }
-    public IQueryable<BoxScorePlayer> BoxScorePlayers => this.BoxScores
-            .SelectMany(bs => bs.Batters.Select(b => new BoxScorePlayer
-            {
-                BoxScore = bs,
-                Player = b.Player,
-            }).Concat(bs.Pitchers.Select(b => new BoxScorePlayer
-            {
-                BoxScore = bs,
-                Player = b.Player,
-            }).Concat(bs.Fielders.Select(b => new BoxScorePlayer
-            {
-                BoxScore = bs,
-                Player = b.Player,
-            }))).Distinct());
     public DbSet<Batter> Batters { get; set; }
     public DbSet<Fielder> Fielders { get; set; }
     public DbSet<Pitcher> Pitchers { get; set; }
