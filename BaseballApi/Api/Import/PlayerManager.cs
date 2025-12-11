@@ -144,9 +144,11 @@ public class PlayerManager(BaseballContext context)
         }
         else
         {
+            // Use normalized name but fall back to name in case player hasn't been saved
+            var playerName = player.NameNormalized ?? player.Name;
             // multiple matches - first check for single exact name match
             var exactNameMatches = searchResult.Hits
-                .Where(fgPlayer => fgPlayer.Name.Equals(player.Name, StringComparison.OrdinalIgnoreCase))
+                .Where(fgPlayer => fgPlayer.Name.Equals(playerName, StringComparison.OrdinalIgnoreCase))
                 .ToList();
             if (exactNameMatches.Count == 1)
             {

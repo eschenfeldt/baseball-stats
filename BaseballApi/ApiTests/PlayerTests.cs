@@ -101,16 +101,36 @@ public class PlayerTests : BaseballTests
     [InlineData(8048, "Will Smith", "1989-07-10")]  // Will Smith (P)
     [InlineData(19755, "Shohei Ohtani")]
     [InlineData(10155, "Mike Trout")]
-    public async Task TestFindFangraphsPage(int expectedFangraphsId, string playerName, string? dateOfBirth = null)
+    [InlineData(10155, "Mike Trout", null, false)]
+    [InlineData(33829, "Shōta Imanaga")]
+    public async Task TestFindFangraphsPage(int expectedFangraphsId, string playerName, string? dateOfBirth = null, bool savePlayer = true)
     {
         var manager = new PlayerManager(Context);
         DateOnly? dob = dateOfBirth != null ? DateOnly.Parse(dateOfBirth) : null;
         var player = new Player { Name = playerName, DateOfBirth = dob };
-        var fangraphsPage = await manager.FindFangraphsPageForPlayer(player, CancellationToken.None);
-        Assert.NotNull(fangraphsPage);
-        var idString = fangraphsPage.Segments[3].Trim('/');
-        var actualFangraphsId = int.Parse(idString);
-        Assert.Equal(expectedFangraphsId, actualFangraphsId);
+        if (savePlayer)
+        {
+            // save player and reload to populate NameNormalized computed colum
+            Context.Players.Add(player);
+            await Context.SaveChangesAsync();
+            Context.Entry(player).Reload();
+        }
+        try
+        {
+            var fangraphsPage = await manager.FindFangraphsPageForPlayer(player, CancellationToken.None);
+            Assert.NotNull(fangraphsPage);
+            var idString = fangraphsPage.Segments[3].Trim('/');
+            var actualFangraphsId = int.Parse(idString);
+            Assert.Equal(expectedFangraphsId, actualFangraphsId);
+        }
+        finally
+        {
+            if (savePlayer)
+            {
+                Context.Players.Remove(player);
+                await Context.SaveChangesAsync();
+            }
+        }
     }
 
     [Fact]
