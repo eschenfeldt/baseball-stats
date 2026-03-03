@@ -13,7 +13,8 @@ public class PlayerManager(BaseballContext context)
         List<ReferencePlayer> referenceMatches = [];
         var dbMatches = Context.Players
             .Where(p => p.Name == name).ToList();
-        if (year == null)
+        var useReferenceData = year == null || year == DateTime.Now.Year;
+        if (useReferenceData)
         {
             // use reference data for the current year
             // Scope by just name first
@@ -82,7 +83,7 @@ public class PlayerManager(BaseballContext context)
             }
             // still ambiguous - if looking at current year go by first reference matches if available, otherwise first db match
             // Eventually we may have retrosheet data to check prior years in reference data
-            if (year == null && referenceMatches.Count > 0)
+            if (useReferenceData && referenceMatches.Count > 0)
             {
                 return GetPlayerFromReference(name, referenceMatches.First(), dbMatches);
             }
