@@ -110,7 +110,7 @@ public class PlayerTests : BaseballTests
         var player = new Player { Name = playerName, DateOfBirth = dob };
         if (savePlayer)
         {
-            // save player and reload to populate NameNormalized computed colum
+            // save player and reload to populate NameNormalized computed column
             Context.Players.Add(player);
             await Context.SaveChangesAsync();
             Context.Entry(player).Reload();
