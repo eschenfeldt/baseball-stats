@@ -42,6 +42,7 @@ public class ReferenceManager(ILogger<ReferenceManager> logger, BaseballContext 
         Logger.LogInformation("Fetched {count} current players from MLBAM.", mlbamCurrentPlayers.People.Count);
         foreach (var mlbamPlayer in mlbamCurrentPlayers.People)
         {
+            var isNewlyCreated = false;
             var referencePlayer = Context.ReferencePlayers
                 .FirstOrDefault(rp => rp.MLBAMId == mlbamPlayer.Id);
             if (referencePlayer == null && !string.IsNullOrEmpty(mlbamPlayer.BirthDate))
@@ -59,6 +60,7 @@ public class ReferenceManager(ILogger<ReferenceManager> logger, BaseballContext 
                         MLBAMId = mlbamPlayer.Id
                     };
                     Context.ReferencePlayers.Add(referencePlayer);
+                    isNewlyCreated = true;
                     createdCount++;
                     Logger.LogInformation("Created ReferencePlayer for {player} with MLBAMId {mlbamId}.", mlbamPlayer.FullName, mlbamPlayer.Id);
                 }
@@ -107,12 +109,13 @@ public class ReferenceManager(ILogger<ReferenceManager> logger, BaseballContext 
                     referencePlayer.Player = player;
                     updated = true;
                 }
-                if (updated)
+                if (updated && !isNewlyCreated)
                 {
                     updatedCount++;
                 }
             }
-            if (createdCount + updatedCount % 100 == 0)
+            var totalProcessed = createdCount + updatedCount;
+            if (totalProcessed > 0 && totalProcessed % 100 == 0)
             {
                 await Context.SaveChangesAsync(cancellation);
                 Logger.LogInformation("Saved progress: {createdCount} players created, {updatedCount} players updated so far.",
@@ -129,7 +132,7 @@ public class ReferenceManager(ILogger<ReferenceManager> logger, BaseballContext 
         return new PlayerReferenceUpdateResult
         {
             CreatedCount = createdCount,
-            UpdatedCount = updatedCount - createdCount
+            UpdatedCount = updatedCount
         };
     }
 
