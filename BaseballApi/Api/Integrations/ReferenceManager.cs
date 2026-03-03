@@ -188,6 +188,7 @@ public class ReferenceManager(ILogger<ReferenceManager> logger, BaseballContext 
             if (referencePlayersWithoutIds.Any())
             {
                 var toUpdate = referencePlayersWithoutIds
+                    .Include(rp => rp.Player)
                     .OrderBy(rp => rp.Id)
                     .Take(FangraphsBatchSize).ToList();
                 Logger.LogInformation("Found {count} ReferencePlayers without FangraphsIds linked to Players; attempting to update Fangraphs IDs.",
