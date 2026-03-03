@@ -29,7 +29,8 @@ public class FileLogger(string directory, string category, object sharedLock) : 
     {
         ArgumentNullException.ThrowIfNull(formatter);
 
-        var timestamp = DateTime.UtcNow.ToString("o");
+        var now = DateTime.UtcNow;
+        var timestamp = now.ToString("o");
         var message = formatter(state, exception);
 
         // Append exception details if present
@@ -37,7 +38,7 @@ public class FileLogger(string directory, string category, object sharedLock) : 
         {
             message += Environment.NewLine + FormatException(exception);
         }
-        var filename = Path.Combine(LogDirectory, $"{DateTime.UtcNow:yyyy_MM_dd}.log");
+        var filename = Path.Combine(LogDirectory, $"{now:yyyy_MM_dd}.log");
 
         lock (Lock)
         {

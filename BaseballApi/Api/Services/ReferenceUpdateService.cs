@@ -13,19 +13,21 @@ public class ReferenceUpdateService(
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
         Logger.LogInformation("Reference data update service started.");
+        CancellationToken = cancellationToken;
         var teamsTimer = new Timer(UpdateTeamReferences, null, TimeSpan.Zero, TimeSpan.FromHours(12));
         var playerTimer = new Timer(UpdatePlayerReferences, null, TimeSpan.FromMinutes(30), TimeSpan.FromHours(24));
         var fangraphsTimer = new Timer(UpdateFangraphsLinks, null, TimeSpan.FromMinutes(60), TimeSpan.FromHours(6));
-        CancellationToken = cancellationToken;
-        // Wait for the timers to trigger
-        while (!CancellationToken.IsCancellationRequested)
+        try
         {
             await Task.Delay(Timeout.Infinite, CancellationToken);
         }
-        teamsTimer.Dispose();
-        playerTimer.Dispose();
-        fangraphsTimer.Dispose();
-        Logger.LogInformation("Reference data update service stopped.");
+        finally
+        {
+            teamsTimer.Dispose();
+            playerTimer.Dispose();
+            fangraphsTimer.Dispose();
+            Logger.LogInformation("Reference data update service stopped.");
+        }
     }
 
     private async void UpdateTeamReferences(object? stateInfo)

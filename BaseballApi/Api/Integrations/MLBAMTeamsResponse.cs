@@ -1,5 +1,4 @@
 using System.Text.Json.Serialization;
-using BaseballApi.Models;
 
 namespace BaseballApi.Integrations;
 

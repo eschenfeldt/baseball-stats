@@ -1,5 +1,4 @@
 using System;
-using System.Runtime.InteropServices;
 using BaseballApi.Contracts;
 using MyApp.Namespace;
 
