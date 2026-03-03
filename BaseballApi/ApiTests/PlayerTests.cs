@@ -219,7 +219,7 @@ public class PlayerTests : BaseballTests
         Assert.Equal(2, updateResult.ReferencePlayersUpdated); // Will Smith and Shota Imanaga reference players are missing IDs
 
         var shotaPlayer = Context.Players.First(p => p.Name == "Shōta Imanaga");
-        Assert.Equal(new Uri("https://www.fangraphs.com/players/shota-imanaga/33829/stats?position=P"), shotaPlayer.FangraphsPage);
+        Assert.Equal(new Uri("https://www.fangraphs.com/players/shota-imanaga/33829/stats/pitching"), shotaPlayer.FangraphsPage);
         var shotaReference = Context.ReferencePlayers.First(rp => rp.Name == "Shota Imanaga");
         Assert.Equal("33829", shotaReference.FangraphsId);
         var willSmithPlayer = Context.Players.FirstOrDefault(p => p.Name == "Will Smith" && p.FangraphsPage == new Uri("https://www.fangraphs.com/players/will-smith/19197/stats?position=C"));

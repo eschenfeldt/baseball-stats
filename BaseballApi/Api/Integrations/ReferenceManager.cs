@@ -259,11 +259,11 @@ public class ReferenceManager(ILogger<ReferenceManager> logger, BaseballContext 
     private static string FangraphsIdFromUri(Uri uri)
     {
         var segments = uri.Segments;
-        if (segments.Length < 2)
+        if (segments.Length < 4)
         {
             throw new ArgumentException("Invalid Fangraphs player URI: " + uri.ToString());
         }
-        return segments[^2].TrimEnd('/');
+        return segments[3].TrimEnd('/');
     }
 
     public void Dispose()
