@@ -44,7 +44,10 @@ builder.Logging.AddProvider(new FileLoggerProvider(logDir));
 
 builder.Services.AddScoped<IRemoteFileManager, RemoteFileManager>();
 builder.Services.AddScoped<IRemoteLogManager, RemoteLogManager>();
-builder.Services.AddScoped<IMLBAMConnector, MLBAMConnector>();
+builder.Services.AddHttpClient<IMLBAMConnector, MLBAMConnector>(client =>
+{
+    client.BaseAddress = new Uri("https://statsapi.mlb.com/api/v1/");
+});
 builder.Services.AddScoped<ReferenceManager, ReferenceManager>();
 builder.Services.AddSingleton<IMediaImportQueue, MediaImportQueue>();
 builder.Services.AddHostedService<RemoteLogService>();
