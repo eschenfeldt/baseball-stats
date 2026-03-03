@@ -58,6 +58,11 @@ public class FangraphsConnector(HttpClient httpClient)
         var response = await httpClient.GetAsync(requestUri.Uri, cancellation);
         response.EnsureSuccessStatusCode();
         var content = await response.Content.ReadAsStringAsync(cancellation);
-        return JsonSerializer.Deserialize<FangraphsPlayerSearchResult>(content);
+        var result = JsonSerializer.Deserialize<FangraphsPlayerSearchResult>(content);
+        if (result.Hits == null)
+        {
+            throw new JsonException($"Failed to deserialize Fangraphs search response for player '{name}': {content}");
+        }
+        return result;
     }
 }
