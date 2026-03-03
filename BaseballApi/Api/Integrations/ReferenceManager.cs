@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BaseballApi.Integrations;
 
-public class ReferenceManager(ILogger<ReferenceManager> logger, BaseballContext context, IMLBAMConnector mlbamConnector) : IDisposable
+public class ReferenceManager(ILogger<ReferenceManager> logger, BaseballContext context, IMLBAMConnector mlbamConnector)
 {
     private ILogger<ReferenceManager> Logger { get; } = logger;
     private IMLBAMConnector MLBAMConnector { get; } = mlbamConnector;
@@ -264,11 +264,5 @@ public class ReferenceManager(ILogger<ReferenceManager> logger, BaseballContext 
             throw new ArgumentException("Invalid Fangraphs player URI: " + uri.ToString());
         }
         return segments[3].TrimEnd('/');
-    }
-
-    public void Dispose()
-    {
-        Context.Dispose();
-        GC.SuppressFinalize(this);
     }
 }
