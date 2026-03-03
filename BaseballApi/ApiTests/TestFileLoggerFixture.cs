@@ -24,7 +24,7 @@ public class TestFileLoggerFixture : IDisposable
 
     private static string ProjectRoot()
     {
-        var dir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
+        string? dir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
         while (dir != null && Directory.GetFiles(dir, "*.csproj").Length == 0)
         {
