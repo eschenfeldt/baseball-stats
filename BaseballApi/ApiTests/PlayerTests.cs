@@ -105,7 +105,7 @@ public class PlayerTests : BaseballTests
     [InlineData(33829, "Shōta Imanaga")]
     public async Task TestFindFangraphsPage(int expectedFangraphsId, string playerName, string? dateOfBirth = null, bool savePlayer = true)
     {
-        var manager = new PlayerManager(Context);
+        var connector = CreateFangraphsConnector();
         DateOnly? dob = dateOfBirth != null ? DateOnly.Parse(dateOfBirth) : null;
         var player = new Player { Name = playerName, DateOfBirth = dob };
         if (savePlayer)
@@ -117,7 +117,7 @@ public class PlayerTests : BaseballTests
         }
         try
         {
-            var fangraphsPage = await manager.FindFangraphsPageForPlayer(player, CancellationToken.None);
+            var fangraphsPage = await connector.FindFangraphsPageForPlayer(player, CancellationToken.None);
             Assert.NotNull(fangraphsPage);
             var idString = fangraphsPage.Segments[3].Trim('/');
             var actualFangraphsId = int.Parse(idString);
@@ -136,8 +136,8 @@ public class PlayerTests : BaseballTests
     [Fact]
     public async Task TestGetMLBAMPeople()
     {
-        var manager = new MLBAMConnector();
-        var response = await manager.GetPeopleAsync(new DateOnly(2024, 1, 1));
+        var connector = new MLBAMConnector(CreateMLBAMHttpClient());
+        var response = await connector.GetPeopleAsync(new DateOnly(2024, 1, 1));
         Assert.NotEmpty(response.People);
 
         var willSmiths = response.People.Where(p => p.FullName == "Will Smith").ToList();
@@ -152,13 +152,14 @@ public class PlayerTests : BaseballTests
     public async Task TestMLBAMReferencePlayerUpdate()
     {
         var logger = FileLoggerFactory.CreateLogger<ReferenceManager>();
+        var fangraphsConnector = CreateFangraphsConnector();
         // update teams so the MLBAM IDs are present
-        var realConnector = new MLBAMConnector();
-        var realReferenceManager = new ReferenceManager(logger, Context, realConnector);
+        var realConnector = new MLBAMConnector(CreateMLBAMHttpClient());
+        var realReferenceManager = new ReferenceManager(logger, Context, realConnector, fangraphsConnector);
         var teamsUpdated = await realReferenceManager.UpdateTeamReferences(CancellationToken.None);
 
         var connector = new MockMLBAMConnector();
-        var referenceManager = new ReferenceManager(logger, Context, connector);
+        var referenceManager = new ReferenceManager(logger, Context, connector, fangraphsConnector);
         var result = await referenceManager.UpdatePlayerReferences(CancellationToken.None);
         Assert.Equal(1, result.CreatedCount);
         Assert.Equal(2, result.UpdatedCount);
@@ -202,18 +203,18 @@ public class PlayerTests : BaseballTests
     {
         // first make sure MLBAM references are up to date
         var logger = FileLoggerFactory.CreateLogger<ReferenceManager>();
-        var realConnector = new MLBAMConnector();
-        var realReferenceManager = new ReferenceManager(logger, Context, realConnector);
+        var fangraphsConnector = CreateFangraphsConnector();
+        var realConnector = new MLBAMConnector(CreateMLBAMHttpClient());
+        var realReferenceManager = new ReferenceManager(logger, Context, realConnector, fangraphsConnector);
         var teamsUpdated = await realReferenceManager.UpdateTeamReferences(CancellationToken.None);
 
         var connector = new MockMLBAMConnector();
-        var referenceManager = new ReferenceManager(logger, Context, connector);
+        var referenceManager = new ReferenceManager(logger, Context, connector, fangraphsConnector);
         var result = await referenceManager.UpdatePlayerReferences(CancellationToken.None);
 
         var dodgers = Context.Teams.First(t => t.Abbreviation == "LAD");
 
         // now fill in missing fangraphs links and IDs
-        var playerManager = new PlayerManager(Context);
         var updateResult = await referenceManager.UpdateFangraphsLinks(CancellationToken.None);
         Assert.Equal(1, updateResult.PlayersUpdated); // only Shōta Imanaga is missing a link in the test data
         Assert.Equal(2, updateResult.ReferencePlayersUpdated); // Will Smith and Shota Imanaga reference players are missing IDs

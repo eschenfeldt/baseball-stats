@@ -47,7 +47,7 @@ public class TeamTests : BaseballTests
     [Fact]
     public async void TestGetMLBAMTeams()
     {
-        var connector = new MLBAMConnector();
+        var connector = new MLBAMConnector(CreateMLBAMHttpClient());
         var teams = await connector.GetTeamsAsync();
         Assert.True(teams.Teams.Count >= 30);
         var cubs = teams.Teams.FirstOrDefault(t => t.TeamName == "Cubs" && t.LocationName == "Chicago");
@@ -58,8 +58,8 @@ public class TeamTests : BaseballTests
     public async void TestUpdateTeamReferences()
     {
         var logger = FileLoggerFactory.CreateLogger<ReferenceManager>();
-        var connector = new MLBAMConnector();
-        var referenceManager = new ReferenceManager(logger, Context, connector);
+        var connector = new MLBAMConnector(CreateMLBAMHttpClient());
+        var referenceManager = new ReferenceManager(logger, Context, connector, CreateFangraphsConnector());
         var updatedCount = await referenceManager.UpdateTeamReferences(CancellationToken.None);
         var rangers = Context.Teams.First(t => t.Abbreviation == "TEX");
         Assert.Equal(140, rangers.MLBAMId);

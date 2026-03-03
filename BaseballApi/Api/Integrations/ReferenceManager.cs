@@ -1,14 +1,14 @@
-using BaseballApi.Import;
 using BaseballApi.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace BaseballApi.Integrations;
 
-public class ReferenceManager(ILogger<ReferenceManager> logger, BaseballContext context, IMLBAMConnector mlbamConnector)
+public class ReferenceManager(ILogger<ReferenceManager> logger, BaseballContext context, IMLBAMConnector mlbamConnector, FangraphsConnector fangraphsConnector)
 {
     private ILogger<ReferenceManager> Logger { get; } = logger;
     private IMLBAMConnector MLBAMConnector { get; } = mlbamConnector;
     private BaseballContext Context { get; } = context;
+    private FangraphsConnector FangraphsConnector { get; } = fangraphsConnector;
 
     public async Task<int> UpdateTeamReferences(CancellationToken cancellation)
     {
@@ -150,10 +150,9 @@ public class ReferenceManager(ILogger<ReferenceManager> logger, BaseballContext 
             .ToList();
         int playerUpdateCount = 0;
         int referencePlayerUpdateCount = 0;
-        var playerManager = new PlayerManager(Context);
         foreach (var player in players)
         {
-            var fangraphsUrl = await playerManager.FindFangraphsPageForPlayer(player, cancellation);
+            var fangraphsUrl = await FangraphsConnector.FindFangraphsPageForPlayer(player, cancellation);
             if (fangraphsUrl != null)
             {
                 player.FangraphsPage = fangraphsUrl;
@@ -201,7 +200,7 @@ public class ReferenceManager(ILogger<ReferenceManager> logger, BaseballContext 
                             referencePlayer.Name);
                         continue;
                     }
-                    var fangraphsUrl = await playerManager.FindFangraphsPageForPlayer(referencePlayer.Player, cancellation);
+                    var fangraphsUrl = await FangraphsConnector.FindFangraphsPageForPlayer(referencePlayer.Player, cancellation);
                     if (fangraphsUrl != null)
                     {
                         var fangraphsId = FangraphsIdFromUri(fangraphsUrl);

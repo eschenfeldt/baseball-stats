@@ -1,4 +1,5 @@
 using System.Reflection;
+using BaseballApi.Integrations;
 using BaseballApi.Models;
 using BaseballApi.Services;
 using Microsoft.Extensions.Logging;
@@ -17,6 +18,19 @@ public abstract class BaseballTests : IClassFixture<TestDatabaseFixture>, IClass
         Context = TestDatabaseFixture.CreateContext();
         // Context.Database.BeginTransaction(); // allow changes without persisting to the db
     }
+
+    protected static HttpClient CreateMLBAMHttpClient() => new()
+    {
+        BaseAddress = new Uri("https://statsapi.mlb.com/api/v1/")
+    };
+
+    protected static HttpClient CreateFangraphsHttpClient() => new()
+    {
+        BaseAddress = new Uri("https://www.fangraphs.com/api/search/players/")
+    };
+
+    protected static FangraphsConnector CreateFangraphsConnector() =>
+        new(CreateFangraphsHttpClient());
 
     public void Dispose()
     {

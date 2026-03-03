@@ -48,6 +48,10 @@ builder.Services.AddHttpClient<IMLBAMConnector, MLBAMConnector>(client =>
 {
     client.BaseAddress = new Uri("https://statsapi.mlb.com/api/v1/");
 });
+builder.Services.AddHttpClient<FangraphsConnector>(client =>
+{
+    client.BaseAddress = new Uri("https://www.fangraphs.com/api/search/players/");
+});
 builder.Services.AddScoped<ReferenceManager, ReferenceManager>();
 builder.Services.AddSingleton<IMediaImportQueue, MediaImportQueue>();
 builder.Services.AddHostedService<RemoteLogService>();

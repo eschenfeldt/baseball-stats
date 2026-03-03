@@ -1,6 +1,4 @@
-using System.Text.Json;
 using BaseballApi.Contracts;
-using BaseballApi.Integrations;
 using BaseballApi.Models;
 
 namespace BaseballApi.Import;
@@ -131,50 +129,6 @@ public class PlayerManager(BaseballContext context)
         return newPlayer;
     }
 
-    public async Task<Uri?> FindFangraphsPageForPlayer(Player player, CancellationToken cancellation)
-    {
-        var searchResult = await SearchFangraphsPlayerByName(player.Name, cancellation);
-        if (searchResult.Hits.Count == 0)
-        {
-            return null;
-        }
-        else if (searchResult.Hits.Count == 1)
-        {
-            return FangraphsPlayerUri(searchResult.Hits[0]);
-        }
-        else
-        {
-            // Use normalized name but fall back to name in case player hasn't been saved
-            var playerName = player.NameNormalized ?? player.Name;
-            // multiple matches - first check for single exact name match
-            var exactNameMatches = searchResult.Hits
-                .Where(fgPlayer => fgPlayer.Name.Equals(playerName, StringComparison.OrdinalIgnoreCase))
-                .ToList();
-            if (exactNameMatches.Count == 1)
-            {
-                return FangraphsPlayerUri(exactNameMatches[0]);
-            }
-            // next check date of birth if available
-            if (player.DateOfBirth.HasValue)
-            {
-                foreach (var fgPlayer in searchResult.Hits)
-                {
-                    if (fgPlayer.BirthDate.HasValue && DateOnly.FromDateTime(fgPlayer.BirthDate.Value) == player.DateOfBirth.Value)
-                    {
-                        return FangraphsPlayerUri(fgPlayer);
-                    }
-                }
-            }
-            // still ambiguous - return null
-            return null;
-        }
-    }
-
-    private static Uri FangraphsPlayerUri(FangraphsPlayer player)
-    {
-        return new Uri($"https://www.fangraphs.com{player.Url}");
-    }
-
     public static IQueryable<Game> ConstructPlayerGamesQuery(long playerId, IQueryable<Game> baseGames, long? teamId = null)
     {
         return baseGames
@@ -191,20 +145,5 @@ public class PlayerManager(BaseballContext context)
                 || g.HomeBoxScore.Pitchers.Any(p => p.PlayerId == playerId)
                 || g.HomeBoxScore.Fielders.Any(f => f.PlayerId == playerId)
             )));
-    }
-
-    private static readonly Uri FangraphsPlayerSearchUri = new("https://www.fangraphs.com/api/search/players/");
-
-    private static async Task<FangraphsPlayerSearchResult> SearchFangraphsPlayerByName(string name, CancellationToken cancellation)
-    {
-        var client = new HttpClient();
-        var requestUri = new UriBuilder(FangraphsPlayerSearchUri)
-        {
-            Query = $"search={Uri.EscapeDataString(name)}"
-        };
-        var response = await client.GetAsync(requestUri.Uri, cancellation);
-        response.EnsureSuccessStatusCode();
-        var content = await response.Content.ReadAsStringAsync(cancellation);
-        return JsonSerializer.Deserialize<FangraphsPlayerSearchResult>(content);
     }
 }
