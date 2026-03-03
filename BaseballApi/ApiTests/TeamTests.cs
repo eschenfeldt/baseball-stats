@@ -1,14 +1,15 @@
-using BaseballApi.Contracts;
 using BaseballApi.Controllers;
+using BaseballApi.Integrations;
+using Microsoft.Extensions.Logging;
 
 namespace BaseballApiTests;
 
 public class TeamTests : BaseballTests
 {
     private TeamsController Controller { get; }
-    public TeamTests(TestDatabaseFixture fixture) : base(fixture)
+    public TeamTests(TestDatabaseFixture fixture, TestFileLoggerFixture fileLoggerFixture) : base(fixture, fileLoggerFixture)
     {
-        this.Controller = new TeamsController(Context);
+        Controller = new TeamsController(Context);
     }
 
     [Theory]
@@ -41,5 +42,35 @@ public class TeamTests : BaseballTests
         Assert.Equal(parks, team.Parks);
         var lastGame = DateOnly.Parse(lastGameDate);
         Assert.Equal(lastGame, team.LastGameDate);
+    }
+
+    [Fact]
+    public async void TestGetMLBAMTeams()
+    {
+        var connector = new MLBAMConnector(CreateMLBAMHttpClient());
+        var teams = await connector.GetTeamsAsync();
+        Assert.True(teams.Teams.Count >= 30);
+        var cubs = teams.Teams.FirstOrDefault(t => t.TeamName == "Cubs" && t.LocationName == "Chicago");
+        Assert.Equal("CHC", cubs.Abbreviation);
+    }
+
+    [Fact]
+    public async void TestUpdateTeamReferences()
+    {
+        var logger = FileLoggerFactory.CreateLogger<ReferenceManager>();
+        var connector = new MLBAMConnector(CreateMLBAMHttpClient());
+        var referenceManager = new ReferenceManager(logger, Context, connector, CreateFangraphsConnector());
+        var updatedCount = await referenceManager.UpdateTeamReferences(CancellationToken.None);
+        var rangers = Context.Teams.First(t => t.Abbreviation == "TEX");
+        Assert.Equal(140, rangers.MLBAMId);
+        var dodgers = Context.Teams.First(t => t.Abbreviation == "LAD");
+        Assert.Equal(119, dodgers.MLBAMId);
+        var atlanta = Context.Teams.First(t => t.Abbreviation == "ATL");
+        Assert.Equal(144, atlanta.MLBAMId);
+        var redSox = Context.Teams.First(t => t.Abbreviation == "BOS");
+        Assert.Equal(111, redSox.MLBAMId);
+        var cubs = Context.Teams.First(t => t.Abbreviation == "CHC");
+        Assert.Equal(112, cubs.MLBAMId);
+        Assert.Equal(5, updatedCount); // Only 5 real mlb teams in our test db
     }
 }

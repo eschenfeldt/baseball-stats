@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace BaseballApi.Models;
 
@@ -23,6 +24,7 @@ public class BaseballContext : DbContext
     public DbSet<Scorecard> Scorecards { get; set; }
 
     public DbSet<FangraphsConstants> Constants { get; set; }
+    public DbSet<ReferencePlayer> ReferencePlayers { get; set; }
 
     public DbSet<MediaImportTask> MediaImportTasks { get; set; }
 
@@ -33,5 +35,11 @@ public class BaseballContext : DbContext
             .HasIndex(g => g.ExternalId)
             .IsUnique()
             .HasFilter("\"ExternalId\" != '00000000-0000-0000-0000-000000000000'"); // allow multiple games with default external id
+
+        modelBuilder.Entity<Player>()
+            .Property(p => p.NameNormalized)
+            .HasColumnName("name_normalized")
+            .ValueGeneratedOnAddOrUpdate()
+            .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
     }
 }

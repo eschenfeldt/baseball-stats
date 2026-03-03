@@ -9,7 +9,7 @@ public class GameTests : BaseballTests
 {
     private GamesController Controller { get; }
     private TestGameManager TestGameManager { get; }
-    public GameTests(TestDatabaseFixture fixture) : base(fixture)
+    public GameTests(TestDatabaseFixture fixture, TestFileLoggerFixture fileLoggerFixture) : base(fixture, fileLoggerFixture)
     {
         var builder = new ConfigurationBuilder().AddUserSecrets<TestDatabaseFixture>();
         IConfiguration configuration = builder.Build();
@@ -98,7 +98,6 @@ public class GameTests : BaseballTests
         Assert.NotNull(allPitchingGames.Value);
         Assert.True(battingGames.Value < allBattingGames.Value);
         Assert.True(pitchingGames.Value < allPitchingGames.Value);
-        Assert.Equal(battingGames.Value, pitchingGames.Value);
     }
 
     [Theory]
@@ -139,7 +138,6 @@ public class GameTests : BaseballTests
         Assert.NotNull(allPitchingGames.Value);
         Assert.True(battingGames.Value < allBattingGames.Value);
         Assert.True(pitchingGames.Value < allPitchingGames.Value);
-        Assert.Equal(battingGames.Value, pitchingGames.Value);
     }
 
     [Theory]

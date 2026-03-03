@@ -12,5 +12,7 @@ public class Player
     public string? Suffix { get; set; }
     public Uri? FangraphsPage { get; set; }
 
+    public string? NameNormalized { get; private set; }
+
     public ICollection<MediaResource> Media { get; set; } = [];
 }

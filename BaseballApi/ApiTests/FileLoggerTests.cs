@@ -65,6 +65,28 @@ public sealed class FileLoggerTests : IDisposable
     }
 
     [Fact]
+    public void ExceptionsAreLogged()
+    {
+        var uniqueContent = Guid.NewGuid().ToString();
+        try
+        {
+            throw new InvalidOperationException(uniqueContent);
+        }
+        catch (Exception ex)
+        {
+            LogTester.TestLogException(ex);
+        }
+
+        var logFiles = Directory.GetFiles(LogDirectory, "*.log");
+        Assert.Single(logFiles);
+
+        var logContents = File.ReadAllText(logFiles[0]);
+        Assert.Contains(uniqueContent, logContents);
+        Assert.Contains("An exception occurred", logContents);
+        Assert.Contains("InvalidOperationException", logContents);
+    }
+
+    [Fact]
     public async Task LogsCanBeUploaded()
     {
         LogTester.TestLog("Upload test log message");
@@ -130,6 +152,11 @@ class LogTester(ILogger<LogTester> logger)
     public void TestLog(string message)
     {
         logger.LogInformation("Log Tester 1 {message}", message);
+    }
+
+    public void TestLogException(Exception ex)
+    {
+        logger.LogError(ex, "An exception occurred in Log Tester 1");
     }
 }
 

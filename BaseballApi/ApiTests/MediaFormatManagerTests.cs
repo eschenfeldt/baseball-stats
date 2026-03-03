@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging;
 
 namespace BaseballApiTests;
 
-public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixture>, IAsyncLifetime
+public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixture>, IClassFixture<TestFileLoggerFixture>, IAsyncLifetime
 {
     BaseballContext Context { get; }
     TestMediaImportDatabaseFixture Fixture { get; }
@@ -20,9 +20,10 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
     RemoteFileValidator RemoteValidator { get; }
     MediaFormatManager Manager { get; }
     TestMediaImporter Importer { get; }
+    private ILoggerFactory LoggerFactory { get; }
     long GameId { get { return Fixture.GameId; } }
 
-    public MediaFormatManagerTests(TestMediaImportDatabaseFixture fixture)
+    public MediaFormatManagerTests(TestMediaImportDatabaseFixture fixture, TestFileLoggerFixture fileLoggerFixture)
     {
         Fixture = fixture;
         Context = Fixture.CreateContext();
@@ -33,8 +34,8 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
         IConfiguration configuration = builder.Build();
         RemoteFileManager = new(configuration, nameof(MediaFormatManagerTests));
         RemoteValidator = new(RemoteFileManager);
-        using ILoggerFactory loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
-        var logger = loggerFactory.CreateLogger<MediaImportQueue>();
+        LoggerFactory = fileLoggerFixture.FileLoggerFactory;
+        var logger = LoggerFactory.CreateLogger<MediaImportQueue>();
         MediaImportQueue mediaImportQueue = new(logger);
 
         IServiceCollection services = new ServiceCollection();
@@ -42,7 +43,7 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
         services.AddDbContext<BaseballContext>(opt =>
             opt.UseNpgsql(Context.Database.GetConnectionString()));
         var serviceProvider = services.BuildServiceProvider();
-        var backgroundLogger = loggerFactory.CreateLogger<MediaImportBackgroundService>();
+        var backgroundLogger = LoggerFactory.CreateLogger<MediaImportBackgroundService>();
         var backgroundService = new MediaImportBackgroundService(mediaImportQueue, serviceProvider, backgroundLogger);
         Manager = new(mediaImportQueue, serviceProvider, logger, CancellationToken.None);
 

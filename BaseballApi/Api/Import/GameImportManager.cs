@@ -3,35 +3,37 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BaseballApi.Import;
 
-public class GameImportManager
+public class GameImportManager(GameImportData data, BaseballContext context)
 {
-    BaseballContext Context { get; }
-    GameImportData Data { get; }
+    BaseballContext Context { get; } = context;
+    GameImportData Data { get; } = data;
     GameMetadata Metadata => Data.Metadata;
-    Dictionary<ImportFileType, CsvLoader> Files { get; }
-    Dictionary<string, Player> NewPlayers { get; } = [];
+    Dictionary<ImportFileType, CsvLoader> Files { get; } = [];
+    private PlayerManager PlayerManager { get; } = new PlayerManager(context);
     public string? ScorecardFilePath { get; private set; }
-    public GameImportManager(GameImportData data, BaseballContext context)
+    private DateOnly GameDate
     {
-        this.Context = context;
-        this.Data = data;
-        this.Files = new Dictionary<ImportFileType, CsvLoader>();
+        get
+        {
+            var gameDate = Metadata.ActualStart?.Date ?? Metadata.ScheduledStart?.Date;
+            if (!gameDate.HasValue)
+            {
+                throw new ArgumentException("Must provide either actual or scheduled start time");
+            }
+            return DateOnly.FromDateTime(gameDate.Value);
+        }
     }
 
     public async Task<Game> GetGame()
     {
-        var gameDate = Metadata.ActualStart?.Date ?? Metadata.ScheduledStart?.Date;
-        if (!gameDate.HasValue)
-        {
-            throw new ArgumentException("Must provide either actual or scheduled start time");
-        }
+        var gameDate = GameDate;
         var awayTeamName = $"{Metadata.Away.City} {Metadata.Away.Name}";
         var homeTeamName = $"{Metadata.Home.City} {Metadata.Home.Name}";
         var gameName = $"{gameDate:M/d/yy} {awayTeamName} at {homeTeamName}";
         return new Game
         {
             Name = gameName,
-            Date = DateOnly.FromDateTime(gameDate.Value),
+            Date = gameDate,
             // always store times with zero offset (because that's all Postgres accepts)
             ScheduledTime = Metadata.ScheduledStart?.ToUniversalTime(),
             StartTime = Metadata.ActualStart?.ToUniversalTime(),
@@ -111,17 +113,17 @@ public class GameImportManager
     {
         foreach (var batter in this.GetBatters(boxScore, home))
         {
-            batter.Player = this.GetOrAddPlayer(batter.Player);
+            batter.Player = this.GetOrAddPlayer(batter.Player, boxScore.TeamId, batter.Number);
             boxScore.Batters.Add(batter);
         }
         foreach (var pitcher in this.GetPitchers(boxScore, home))
         {
-            pitcher.Player = this.GetOrAddPlayer(pitcher.Player);
+            pitcher.Player = this.GetOrAddPlayer(pitcher.Player, boxScore.TeamId, pitcher.Number);
             boxScore.Pitchers.Add(pitcher);
         }
         foreach (var fielder in this.GetFielders(boxScore, home))
         {
-            fielder.Player = this.GetOrAddPlayer(fielder.Player);
+            fielder.Player = this.GetOrAddPlayer(fielder.Player, boxScore.TeamId, fielder.Number);
             boxScore.Fielders.Add(fielder);
         }
     }
@@ -147,22 +149,9 @@ public class GameImportManager
         return stats.GetFielders(boxScore);
     }
 
-    private Player GetOrAddPlayer(Player player)
+    private Player GetOrAddPlayer(Player player, long teamId, int number)
     {
-        var existingPlayer = this.Context.Players.FirstOrDefault(p => p.Name == player.Name);
-        if (existingPlayer != null)
-        {
-            return existingPlayer;
-        }
-        else if (this.NewPlayers.TryGetValue(player.Name, out Player? newPlayer))
-        {
-            return newPlayer;
-        }
-        else
-        {
-            this.NewPlayers[player.Name] = player;
-            return player;
-        }
+        return this.PlayerManager.GetOrCreatePlayer(player.Name, teamId, number, GameDate.Year);
     }
 
     private CsvLoader GetOrLoadFile(ImportFileType fileType)

@@ -10,6 +10,7 @@ using BaseballApi.Models;
 using Microsoft.AspNetCore.Authorization;
 using BaseballApi.Contracts;
 using Humanizer;
+using BaseballApi.Import;
 
 namespace BaseballApi.Controllers
 {
@@ -151,7 +152,7 @@ namespace BaseballApi.Controllers
                 games = games.Where(g => g.GameType == gameType);
             }
 
-            var query = ConstructPlayerGamesQuery(playerId, games, teamId)
+            var query = PlayerManager.ConstructPlayerGamesQuery(playerId, games, teamId)
                 .Include(g => g.Home)
                 .Include(g => g.Away)
                 .Include(g => g.AwayBoxScore)
@@ -188,24 +189,6 @@ namespace BaseballApi.Controllers
                 PitchingStats = StatCollection.GamePitchingStats,
                 BattingStats = StatCollection.GameBattingStats
             };
-        }
-
-        public static IQueryable<Game> ConstructPlayerGamesQuery(long playerId, IQueryable<Game> baseGames, long? teamId = null)
-        {
-            return baseGames
-                .Where(g => (
-                    (teamId == null || g.Away.Id == teamId)
-                    && g.AwayBoxScore != null && (
-                    g.AwayBoxScore.Batters.Any(b => b.PlayerId == playerId)
-                    || g.AwayBoxScore.Pitchers.Any(p => p.PlayerId == playerId)
-                    || g.AwayBoxScore.Fielders.Any(f => f.PlayerId == playerId)
-                )) || (
-                    (teamId == null || g.Home.Id == teamId)
-                    && g.HomeBoxScore != null && (
-                    g.HomeBoxScore.Batters.Any(b => b.PlayerId == playerId)
-                    || g.HomeBoxScore.Pitchers.Any(p => p.PlayerId == playerId)
-                    || g.HomeBoxScore.Fielders.Any(f => f.PlayerId == playerId)
-                )));
         }
     }
 }

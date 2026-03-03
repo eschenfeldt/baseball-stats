@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using BaseballApi;
 using BaseballApi.Models;
 using BaseballApi.Contracts;
+using BaseballApi.Import;
 
 namespace BaseballApi.Controllers
 {
@@ -37,7 +38,7 @@ namespace BaseballApi.Controllers
             }
             if (playerId.HasValue)
             {
-                games = PlayerController.ConstructPlayerGamesQuery(playerId.Value, games, teamId);
+                games = PlayerManager.ConstructPlayerGamesQuery(playerId.Value, games, teamId);
             }
             if (gameType.HasValue)
             {

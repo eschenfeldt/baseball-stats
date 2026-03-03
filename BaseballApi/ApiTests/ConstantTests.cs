@@ -10,7 +10,7 @@ public class ConstantTests : BaseballTests
 {
     private ConstantsController Controller { get; }
 
-    public ConstantTests(TestDatabaseFixture fixture) : base(fixture)
+    public ConstantTests(TestDatabaseFixture fixture, TestFileLoggerFixture fileLoggerFixture) : base(fixture, fileLoggerFixture)
     {
         Controller = new ConstantsController(Context);
     }
