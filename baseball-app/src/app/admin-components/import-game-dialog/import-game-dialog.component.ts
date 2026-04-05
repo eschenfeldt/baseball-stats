@@ -48,7 +48,7 @@ export class ImportGameDialogComponent implements OnInit {
         endTime: new FormControl<string | null>(null, Validators.required),
         home: new FormControl<Team | null>(null, Validators.required),
         away: new FormControl<Team | null>(null, Validators.required),
-        gameType: new FormControl<GameType.MajorLeagueRegularSeason | null>(GameType.MajorLeagueRegularSeason, Validators.required)
+        gameType: new FormControl<GameType | null>(GameType.MajorLeagueRegularSeason, Validators.required)
     })
 
     files: File[] = [];
@@ -65,7 +65,7 @@ export class ImportGameDialogComponent implements OnInit {
     }
 
     private get metadataValue(): GameMetadata | null {
-        if (this.metadata.valid && this.metadata.value.home && this.metadata.value.away && this.metadata.value.gameType) {
+        if (this.metadata.valid && this.metadata.value.home && this.metadata.value.away && this.metadata.value.gameType != null) {
             const scheduled = this.metadata.value.scheduledStartDate ? new Date(`${this.metadata.value.scheduledStartDate} ${this.metadata.value.scheduledStartTime}`) : null;
             const actual = this.metadata.value.actualStartDate ? new Date(`${this.metadata.value.actualStartDate} ${this.metadata.value.actualStartTime}`) : null;
             const end = this.metadata.value.endDate ? new Date(`${this.metadata.value.endDate} ${this.metadata.value.endTime}`) : null;
