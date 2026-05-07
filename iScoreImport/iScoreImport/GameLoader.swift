@@ -17,7 +17,7 @@ struct GameLoader {
     let db: SQLDatabase
     static let zeroTime = Date(timeIntervalSince1970: 0)
     
-    func loadGames() async throws -> AsyncThrowingStream<Game, Error> {
+    func loadGames(afterDate: Date?) async throws -> AsyncThrowingStream<Game, Error> {
         // columns from "game"
         var query: SQLSelectBuilder = db.select()
             .column(SQLColumn("guid", table: "game"), as: "ExternalId")
@@ -71,6 +71,10 @@ struct GameLoader {
         
         // where not deleted
         query = query.where(SQLFunction.coalesce(SQLColumn("is_deleted", table: "game"), SQLLiteral.numeric("0")), .equal, SQLLiteral.numeric("0"))
+        
+        if let afterDate {
+            query = query.where(SQLColumn("start_dt", table: "game"), .greaterThan, SQLLiteral.numeric(afterDate.timeIntervalSince1970.description))
+        }
         
         let rows = try await query.all()
         
