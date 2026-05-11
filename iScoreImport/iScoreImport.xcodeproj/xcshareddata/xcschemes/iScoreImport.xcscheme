@@ -65,7 +65,11 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "--source-file /Users/peschen/Programming/Scorecards/data/iScoreDbs/2024-11-11/iScore_baseball.sqlite"
+            argument = "--source-file /Users/peschen/Programming/Scorecards/data/iScoreDbs/2026-05-07/iScore_baseball.sqlite"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--since 2025-08-01"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument

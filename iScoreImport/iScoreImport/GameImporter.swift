@@ -16,6 +16,12 @@ enum GameImportError : Error {
     case unimportedPlayer(externalId: UUID)
 }
 
+enum GameMatchResult {
+    case existingGame(Int)
+    case insertNew
+    case skip
+}
+
 struct GameImporter {
     
     let db: SQLDatabase
@@ -34,7 +40,21 @@ struct GameImporter {
             existingGameId = try await getGameId(externalId: externalId)
         }
         if existingGameId == nil {
-            existingGameId = try await getGameId(name: game.Name)
+            let candidates = try await getGamesByDate(date: game.Date)
+            if candidates.count > 1 {
+                switch promptForGameMatch(game: game, candidates: candidates) {
+                case .existingGame(let id):
+                    existingGameId = id
+                case .insertNew:
+                    break
+                case .skip:
+                    print("Skipping game: \(game.Name)")
+                    return
+                }
+            } else if let match = candidates.first {
+                print("Matched by date to \(describe(candidate: match))")
+                existingGameId = match.id
+            }
         }
         if let existingGameId {
             print("Updating existing")
@@ -339,6 +359,86 @@ struct GameImporter {
             .where("Name", .equal, name)
             .first()
         return try result?.decode(column: "Id", as: Int.self)
+    }
+    
+    private struct GameCandidate {
+        let id: Int
+        let name: String
+        let homeTeamName: String
+        let awayTeamName: String
+        let homeScore: Int?
+        let awayScore: Int?
+    }
+
+    private func getGamesByDate(date: Date) async throws -> [GameCandidate] {
+        let calendar = Calendar.current
+        let startOfDay = calendar.startOfDay(for: date)
+        let startOfNextDay = calendar.date(byAdding: .day, value: 1, to: startOfDay)!
+
+        let rows = try await db.select()
+            .columns("Id", "Name", "HomeTeamName", "AwayTeamName", "HomeScore", "AwayScore")
+            .from("Games")
+            .where("StartTime", .greaterThanOrEqual, startOfDay)
+            .where("StartTime", .lessThan, startOfNextDay)
+            .all()
+
+        return try rows.map { row in
+            GameCandidate(
+                id: try row.decode(column: "Id", as: Int.self),
+                name: try row.decode(column: "Name", as: String.self),
+                homeTeamName: try row.decode(column: "HomeTeamName", as: String.self),
+                awayTeamName: try row.decode(column: "AwayTeamName", as: String.self),
+                homeScore: try? row.decode(column: "HomeScore", as: Int.self),
+                awayScore: try? row.decode(column: "AwayScore", as: Int.self)
+            )
+        }
+    }
+
+    private func promptForGameMatch(game: Game, candidates: [GameCandidate]) -> GameMatchResult {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateStyle = .medium
+        dateFormatter.timeStyle = .none
+
+        print("\nGame: \"\(game.Name)\" (\(dateFormatter.string(from: game.Date)))")
+
+        if candidates.isEmpty {
+            print("No existing games found on this date.")
+            print("Enter 'n' to insert as new, or 's' to skip: ", terminator: "")
+        } else {
+            let noun = candidates.count == 1 ? "game" : "games"
+            print("Found \(candidates.count) existing \(noun) on this date:")
+            for (i, candidate) in candidates.enumerated() {
+                let candidateDescription = describe(candidate: candidate)
+                print("  \(i + 1). \(candidateDescription)")
+            }
+            print("Enter number to update, 'n' for new insert, or 's' to skip: ", terminator: "")
+        }
+
+        while true {
+            guard let input = readLine()?.trimmingCharacters(in: .whitespaces).lowercased() else {
+                return .skip
+            }
+            if input == "s" {
+                return .skip
+            }
+            if input == "n" {
+                return .insertNew
+            }
+            if !candidates.isEmpty, let index = Int(input), index >= 1, index <= candidates.count {
+                return .existingGame(candidates[index - 1].id)
+            }
+            print("Invalid input. Please try again: ", terminator: "")
+        }
+    }
+    
+    private func describe(candidate: GameCandidate) -> String {
+        let scoreStr: String
+        if let home = candidate.homeScore, let away = candidate.awayScore {
+            scoreStr = "\(home)-\(away)"
+        } else {
+            scoreStr = "no score"
+        }
+        return "\"\(candidate.name)\" — \(candidate.homeTeamName) vs \(candidate.awayTeamName) (\(scoreStr))"
     }
     
     private func getBoxScoreId(gameId: Int, teamId: Int) async throws -> Int? {
