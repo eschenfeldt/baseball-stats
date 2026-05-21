@@ -29,6 +29,7 @@ import { FileType } from '../../contracts/file-type';
 export class MediaCarouselComponent implements OnInit {
 
     @ViewChild('videoPlayer') videoPlayer?: ElementRef<HTMLVideoElement>;
+    private pendingVideoLoad?: ReturnType<typeof setTimeout>;
 
     @param<typeof BASEBALL_ROUTES.MEDIA>('assetIdentifier')
     assetIdentifier$!: Observable<string>;
@@ -63,7 +64,10 @@ export class MediaCarouselComponent implements OnInit {
             tap(focusedItem => {
                 // If the focused item is a video, we need to reload the video element to ensure it picks up the new source
                 if (focusedItem.fileType === FileType.video) {
-                    setTimeout(() => this.videoPlayer?.nativeElement.load(), 0);
+                    if (this.pendingVideoLoad) {
+                        clearTimeout(this.pendingVideoLoad);
+                    }
+                    this.pendingVideoLoad = setTimeout(() => this.videoPlayer?.nativeElement.load(), 0);
                 }
             })
         );
