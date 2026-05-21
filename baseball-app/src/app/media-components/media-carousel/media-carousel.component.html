@@ -17,7 +17,7 @@
             <img src="{{altPhotoUrl(focusedItem) || photoUrl(focusedItem)}}" alt="{{altText(focusedItem)}}">
         </picture>
         } @else if (focusedItem.fileType === 'Video') {
-        <video controls>
+        <video #videoPlayer controls>
             <source src="{{videoUrl(focusedItem)}}" type="{{videoType(focusedItem)}}">
             <source src="{{alternateVideoUrl(focusedItem)}}" type="{{altVideoType(focusedItem)}}">
             Your browser does not support the video tag.
