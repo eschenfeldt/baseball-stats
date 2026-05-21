@@ -9,14 +9,14 @@
         <span class="header-text">{{headerText(focusedItem)}}</span>
     </h6>
     <span class="focused-content">
-        @if (focusedItem.fileType === 'Live photo') {
+        @if (focusedItem.fileType === FileType.livePhoto) {
         <app-live-photo [photo]="focusedItem"></app-live-photo>
-        } @else if (focusedItem.fileType === 'Photo') {
+        } @else if (focusedItem.fileType === FileType.photo) {
         <picture>
             <source src="{{photoUrl(focusedItem)}}" type="{{photoType(focusedItem)}}">
             <img src="{{altPhotoUrl(focusedItem) || photoUrl(focusedItem)}}" alt="{{altText(focusedItem)}}">
         </picture>
-        } @else if (focusedItem.fileType === 'Video') {
+        } @else if (focusedItem.fileType === FileType.video) {
         <video #videoPlayer controls>
             <source src="{{videoUrl(focusedItem)}}" type="{{videoType(focusedItem)}}">
             <source src="{{alternateVideoUrl(focusedItem)}}" type="{{altVideoType(focusedItem)}}">

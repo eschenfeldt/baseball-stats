@@ -30,6 +30,7 @@ export class MediaCarouselComponent implements OnInit {
 
     @ViewChild('videoPlayer') videoPlayer?: ElementRef<HTMLVideoElement>;
     private pendingVideoLoad?: ReturnType<typeof setTimeout>;
+    public FileType = FileType; // Expose enum to template
 
     @param<typeof BASEBALL_ROUTES.MEDIA>('assetIdentifier')
     assetIdentifier$!: Observable<string>;
