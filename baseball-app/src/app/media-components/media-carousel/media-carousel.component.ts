@@ -1,8 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild, afterNextRender, AfterRenderRef, Injector, inject } from '@angular/core';
 import { param } from '../../param.decorator';
 import { BASEBALL_ROUTES } from '../../app.routes';
 import { BaseballApiService } from '../../baseball-api.service';
-import { Observable, switchMap } from 'rxjs';
+import { Observable, tap, switchMap } from 'rxjs';
 import { AsyncPipe } from '@angular/common';
 import { LivePhotoComponent } from '../live-photo/live-photo.component';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -11,6 +11,7 @@ import { Utils } from '../../utils';
 import { ThumbnailScrollComponent } from '../thumbnail-scroll/thumbnail-scroll.component';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
+import { FileType } from '../../contracts/file-type';
 
 @Component({
     selector: 'app-media-carousel',
@@ -26,6 +27,11 @@ import { MatIconModule } from '@angular/material/icon';
     styleUrl: './media-carousel.component.scss'
 })
 export class MediaCarouselComponent implements OnInit {
+
+    private injector = inject(Injector);
+    @ViewChild('videoPlayer') videoPlayer?: ElementRef<HTMLVideoElement>;
+    private pendingVideoLoad?: AfterRenderRef;
+    public FileType = FileType; // Expose enum to template
 
     @param<typeof BASEBALL_ROUTES.MEDIA>('assetIdentifier')
     assetIdentifier$!: Observable<string>;
@@ -56,7 +62,21 @@ export class MediaCarouselComponent implements OnInit {
         this.focusedOriginal$ = this.assetIdentifier$.pipe(
             switchMap((assetIdentifier) => {
                 return this.api.makeApiGet<RemoteOriginal>(`media/original/${assetIdentifier}`);
-            }));
+            }),
+            tap(focusedItem => {
+                // If the focused item is a video, we need to reload the video element to ensure it picks up the new source
+                this.pendingVideoLoad?.destroy();
+                if (focusedItem.fileType === FileType.video) {
+                    this.pendingVideoLoad = afterNextRender({
+                        write: () => {
+                            this.videoPlayer?.nativeElement.load();
+                        }
+                    },
+                        { injector: this.injector }
+                    )
+                }
+            })
+        );
 
         this.route.queryParams.subscribe(params => {
             this.gameId = params['gameId'];
