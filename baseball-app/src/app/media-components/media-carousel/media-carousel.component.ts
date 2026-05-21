@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild, afterNextRender, AfterRenderRef, Injector, inject } from '@angular/core';
 import { param } from '../../param.decorator';
 import { BASEBALL_ROUTES } from '../../app.routes';
 import { BaseballApiService } from '../../baseball-api.service';
@@ -28,8 +28,9 @@ import { FileType } from '../../contracts/file-type';
 })
 export class MediaCarouselComponent implements OnInit {
 
+    private injector = inject(Injector);
     @ViewChild('videoPlayer') videoPlayer?: ElementRef<HTMLVideoElement>;
-    private pendingVideoLoad?: ReturnType<typeof setTimeout>;
+    private pendingVideoLoad?: AfterRenderRef;
     public FileType = FileType; // Expose enum to template
 
     @param<typeof BASEBALL_ROUTES.MEDIA>('assetIdentifier')
@@ -64,11 +65,15 @@ export class MediaCarouselComponent implements OnInit {
             }),
             tap(focusedItem => {
                 // If the focused item is a video, we need to reload the video element to ensure it picks up the new source
+                this.pendingVideoLoad?.destroy();
                 if (focusedItem.fileType === FileType.video) {
-                    if (this.pendingVideoLoad) {
-                        clearTimeout(this.pendingVideoLoad);
-                    }
-                    this.pendingVideoLoad = setTimeout(() => this.videoPlayer?.nativeElement.load(), 0);
+                    this.pendingVideoLoad = afterNextRender({
+                        write: () => {
+                            this.videoPlayer?.nativeElement.load();
+                        }
+                    },
+                        { injector: this.injector }
+                    )
                 }
             })
         );
