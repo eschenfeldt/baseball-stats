@@ -1,0 +1,37 @@
+name: Migration gate
+
+# Required status check: confirms every EF migration in the PR has already been
+# applied to the production databases. Runs on every PR into main (no path
+# filter) so the required check always reports a result; when a PR touches no
+# migrations it passes trivially. The runner joins the tailnet and queries the
+# databases directly with scoped read-only logins.
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  migrations-applied:
+    name: Migrations applied to prod
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Connect to tailnet
+        uses: tailscale/github-action@v4
+        with:
+            oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+            audience: ${{ secrets.TS_AUDIENCE }}
+            tags: tag:ci-cd
+
+      - name: Check BaseballContext migrations
+        env:
+          CONN: ${{ secrets.BASEBALL_DB_RO_URL }}
+        run: ./.github/ci/check-migrations-applied.sh BaseballApi/Api/Migrations "$CONN"
+
+      - name: Check AppIdentity migrations
+        env:
+          CONN: ${{ secrets.IDENTITY_DB_RO_URL }}
+        run: ./.github/ci/check-migrations-applied.sh BaseballApi/Api/Migrations/AppIdentityDb "$CONN"
+
+permissions:
+  id-token: write # This is required for the Tailscale action to request a JWT from GitHub
