@@ -24,7 +24,8 @@ public sealed class FileLoggerTests : IDisposable
 
         var builder = new ConfigurationBuilder()
             .AddJsonFile("/run/secrets/app_settings", optional: true)
-            .AddUserSecrets<TestDatabaseFixture>();
+            .AddUserSecrets<TestDatabaseFixture>()
+            .AddEnvironmentVariables();
         IConfiguration configuration = builder.Build();
         configuration.GetSection("Logging:File")["Directory"] = LogDirectory;
         // use a console logger for the remote log manager so we don't log to the files we're uploading

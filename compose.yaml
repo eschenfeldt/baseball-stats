@@ -23,6 +23,10 @@ services:
       - test
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
+      # Forwarded from the host only when set (e.g. CI). Locally these stay
+      # unset so the mounted app_settings secret provides Spaces credentials.
+      - Spaces__AccessKey
+      - Spaces__SecretKey
     cpus: '0.7'
     mem_limit: 2G
     mem_reservation: 128M

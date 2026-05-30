@@ -11,7 +11,9 @@ public class GameTests : BaseballTests
     private TestGameManager TestGameManager { get; }
     public GameTests(TestDatabaseFixture fixture, TestFileLoggerFixture fileLoggerFixture) : base(fixture, fileLoggerFixture)
     {
-        var builder = new ConfigurationBuilder().AddUserSecrets<TestDatabaseFixture>();
+        var builder = new ConfigurationBuilder()
+            .AddUserSecrets<TestDatabaseFixture>()
+            .AddEnvironmentVariables();
         IConfiguration configuration = builder.Build();
         RemoteFileManager remoteFileManager = new(configuration, nameof(GameTests));
         Controller = new GamesController(Context, remoteFileManager);
