@@ -5,8 +5,7 @@ name: Preflight (infra check)
 # access, and read-only DB access for the migration gate.
 on:
   workflow_dispatch:
-  push:
-    branches: [cd]
+  pull_request:
 
 permissions:
   id-token: write # Tailscale OIDC (matches the other workflows)
