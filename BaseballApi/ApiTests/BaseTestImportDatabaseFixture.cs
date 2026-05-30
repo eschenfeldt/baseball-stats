@@ -17,7 +17,8 @@ public class BaseTestImportDatabaseFixture : IDisposable
         var configPath = Path.Join("/", "run", "secrets", "app_settings");
         var builder = new ConfigurationBuilder()
             .AddJsonFile(configPath, optional: true)
-            .AddUserSecrets<BaseTestImportDatabaseFixture>();
+            .AddUserSecrets<BaseTestImportDatabaseFixture>()
+            .AddEnvironmentVariables();
         Configuration = builder.Build();
 
         DbName = $"{dbBaseName}UnitTest{Guid.NewGuid()}";

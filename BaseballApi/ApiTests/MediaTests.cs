@@ -28,7 +28,8 @@ public class MediaTests : BaseballTests, IAsyncLifetime
     {
         var builder = new ConfigurationBuilder()
             .AddJsonFile("/run/secrets/app_settings", optional: true)
-            .AddUserSecrets<TestDatabaseFixture>();
+            .AddUserSecrets<TestDatabaseFixture>()
+            .AddEnvironmentVariables();
         IConfiguration configuration = builder.Build();
         RemoteFileManager = new(configuration, nameof(MediaTests));
         RemoteValidator = new(RemoteFileManager);

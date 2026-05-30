@@ -122,7 +122,8 @@ public class TestDatabaseFixture
         var configPath = Path.Join("/", "run", "secrets", "app_settings");
         var builder = new ConfigurationBuilder()
             .AddJsonFile(configPath, optional: true)
-            .AddUserSecrets<TestDatabaseFixture>();
+            .AddUserSecrets<TestDatabaseFixture>()
+            .AddEnvironmentVariables();
         IConfiguration configuration = builder.Build();
         var ownerConnectionString = configuration["Baseball:OwnerConnectionString"];
         return new BaseballContext(new DbContextOptionsBuilder<BaseballContext>()

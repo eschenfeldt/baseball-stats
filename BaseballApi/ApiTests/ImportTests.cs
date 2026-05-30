@@ -35,7 +35,8 @@ public class ImportTests(TestImportDatabaseFixture fixture) : IClassFixture<Test
         using BaseballContext context = Fixture.CreateContext();
         var builder = new ConfigurationBuilder()
             .AddJsonFile("/run/secrets/app_settings", optional: true)
-            .AddUserSecrets<TestDatabaseFixture>();
+            .AddUserSecrets<TestDatabaseFixture>()
+            .AddEnvironmentVariables();
         IConfiguration configuration = builder.Build();
         RemoteFileManager remoteFileManager = new(configuration, nameof(ImportTests));
         var gamesController = new GamesController(context, remoteFileManager);

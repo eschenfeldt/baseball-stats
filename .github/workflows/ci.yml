@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  pull_request:
+
+jobs:
+  api-tests:
+    name: API Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Stage non-secret test config
+        run: |
+          cp appsettings.Test.ci.json appsettings.Test.json
+          cp baseball_password.ci.txt baseball_password.txt
+
+      - name: Run API tests
+        env:
+          # The only genuinely secret values; everything else is committed in
+          # the .ci files above. compose.yaml forwards these into the container,
+          # where AddEnvironmentVariables() overrides the JSON's Spaces section.
+          Spaces__AccessKey: ${{ secrets.SPACES_ACCESS_KEY }}
+          Spaces__SecretKey: ${{ secrets.SPACES_SECRET_KEY }}
+        run: |
+          docker compose --profile test run --remove-orphans --rm baseball-api-dev \
+            dotnet test /source --filter="Category!=Media"
+
+  frontend-build:
+    name: Frontend Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: baseball-app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: baseball-app/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
