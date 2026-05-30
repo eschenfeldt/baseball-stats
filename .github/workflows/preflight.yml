@@ -1,0 +1,49 @@
+name: Preflight (infra check)
+
+# Manual, read-only validation of the CD infrastructure, run as the real CI
+# node (tag:ci-cd): tailnet join, Tailscale SSH into the server with docker/repo
+# access, and read-only DB access for the migration gate.
+on:
+  workflow_dispatch:
+
+permissions:
+  id-token: write # Tailscale OIDC (matches the other workflows)
+jobs:
+  preflight:
+    name: Preflight
+    runs-on: ubuntu-latest
+    steps:
+      - name: Connect to tailnet
+        uses: tailscale/github-action@v4
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          audience: ${{ secrets.TS_AUDIENCE }}
+          tags: tag:ci-cd
+
+      - name: Tailscale SSH + server state (read-only)
+        env:
+          DEPLOY_HOST: ${{ vars.DEPLOY_SSH_HOST }}
+          DEPLOY_USER: ${{ vars.DEPLOY_SSH_USER }}
+        run: |
+          ssh -o StrictHostKeyChecking=accept-new "$DEPLOY_USER@$DEPLOY_HOST" '
+            set -e
+            echo "Logged in as:  $(whoami)"
+            echo "docker compose: $(docker compose version --short)"
+            cd ~/source/baseball-stats
+            echo "Repo HEAD:     $(git rev-parse --short HEAD) on $(git rev-parse --abbrev-ref HEAD)"
+            git status --short --branch
+            if [ -f BaseballApi/appsettings.Production.json ]; then
+              echo "prod config:   present"
+            else
+              echo "prod config:   MISSING — BaseballApi/appsettings.Production.json (build would fail)"
+              exit 1
+            fi
+          '
+
+      - name: Read-only DB access (migration-gate creds)
+        env:
+          BASEBALL_DB_RO_URL: ${{ secrets.BASEBALL_DB_RO_URL }}
+          IDENTITY_DB_RO_URL: ${{ secrets.IDENTITY_DB_RO_URL }}
+        run: |
+          echo "Baseball: $(psql "$BASEBALL_DB_RO_URL" -At -c 'SELECT count(*) FROM "__EFMigrationsHistory";') applied migrations"
+          echo "Identity: $(psql "$IDENTITY_DB_RO_URL" -At -c 'SELECT count(*) FROM "__EFMigrationsHistory";') applied migrations"

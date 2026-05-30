@@ -21,7 +21,7 @@ jobs:
         with:
             oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
             audience: ${{ secrets.TS_AUDIENCE }}
-            tags: tag:ci
+            tags: tag:ci-cd
 
       - name: Check BaseballContext migrations
         env:
