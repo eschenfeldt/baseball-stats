@@ -14,6 +14,9 @@ concurrency:
   group: deploy-prod
   cancel-in-progress: false
 
+permissions:
+  id-token: write # Tailscale OIDC 
+
 jobs:
   deploy:
     name: Deploy to production
