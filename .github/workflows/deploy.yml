@@ -1,6 +1,6 @@
 name: Deploy
 
-# Option A continuous deployment: on merge to main, run the existing manual
+# Continuous deployment: on merge to main, run the existing manual
 # deploy sequence on the server over SSH (reached via the tailnet). The
 # migration gate guarantees any new migrations are already applied before the
 # merge that triggers this, so the deployed code never races ahead of the schema.
