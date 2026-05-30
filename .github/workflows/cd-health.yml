@@ -1,17 +1,19 @@
-name: Preflight (infra check)
+name: CD Health (infra check)
 
-# Manual, read-only validation of the CD infrastructure, run as the real CI
+# Validation of the CD infrastructure before deployment, run as the real CI
 # node (tag:ci-cd): tailnet join, Tailscale SSH into the server with docker/repo
 # access, and read-only DB access for the migration gate.
 on:
   workflow_dispatch:
   pull_request:
+    branches: [main]
 
 permissions:
-  id-token: write # Tailscale OIDC (matches the other workflows)
+  id-token: write # Tailscale OIDC 
+
 jobs:
-  preflight:
-    name: Preflight
+  cd-health:
+    name: CD Health
     runs-on: ubuntu-latest
     steps:
       - name: Connect to tailnet
