@@ -56,13 +56,16 @@ builder.Services.AddScoped<ReferenceManager, ReferenceManager>();
 builder.Services.AddSingleton<IMediaImportQueue, MediaImportQueue>();
 builder.Services.AddHostedService<RemoteLogService>();
 builder.Services.AddHostedService<MediaImportBackgroundService>();
-builder.Services.AddHostedService<ReferenceUpdateService>();
 if (!builder.Environment.IsDevelopment())
 {
     // Local dev won't see the prod files but will see the prod import task so don't try to process/clean up
     builder.Services.AddHostedService<MediaImportTaskRestarter>();
     builder.Services.AddHostedService<TempFileCleaner>();
     builder.Services.AddHostedService<MediaFormatService>();
+
+    // Reference update service can run safely in dev (updating the prod reference data) 
+    // but it's noisy so only move it out of here if it's specifically being worked on
+    builder.Services.AddHostedService<ReferenceUpdateService>();
 }
 
 builder.Services.AddCors(options =>
