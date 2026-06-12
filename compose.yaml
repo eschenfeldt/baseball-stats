@@ -37,6 +37,8 @@ services:
   baseball-api:
     build:
       context: BaseballApi
+      args:
+        GIT_SHA: ${GIT_SHA:-}
     restart: always
     image: baseball-api
     profiles:

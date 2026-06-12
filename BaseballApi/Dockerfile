@@ -67,6 +67,11 @@ COPY --from=build /app .
 # Create log directory with open permissions; it will be mounted to a Docker volume.
 RUN mkdir -p /app/logs && chmod -R 777 /app/logs
 
+# Stamp the build's git SHA into the telemetry service version (falls back to
+# the assembly version when unset; see Program.cs).
+ARG GIT_SHA=
+ENV OpenTelemetry__ServiceVersion=$GIT_SHA
+
 # Switch to a non-privileged user (defined in the base image) that the app will run under.
 # See https://docs.docker.com/go/dockerfile-user-best-practices/
 # and https://github.com/dotnet/dotnet-docker/discussions/4764

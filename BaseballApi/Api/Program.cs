@@ -48,12 +48,18 @@ builder.Services.AddIdentityApiEndpoints<IdentityUser>()
 var logDir = builder.Configuration["Logging:File:Directory"] ?? Path.Combine(builder.Environment.ContentRootPath, "Logs");
 builder.Logging.AddProvider(new FileLoggerProvider(logDir));
 
-var otelEnabled = builder.Configuration["OpenTelemetry:Enabled"];
-if (!string.IsNullOrWhiteSpace(otelEnabled))
+var otelEndpoint = builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"];
+if (!string.IsNullOrWhiteSpace(otelEndpoint))
 {
+    // Prefer the git SHA stamped in at image build over the (static) assembly version
+    var serviceVersion = builder.Configuration["OpenTelemetry:ServiceVersion"];
+    if (string.IsNullOrWhiteSpace(serviceVersion))
+    {
+        serviceVersion = typeof(Program).Assembly.GetName().Version?.ToString();
+    }
     builder.Services.AddOpenTelemetry()
         .ConfigureResource(resource => resource.AddService("baseball-api",
-            serviceVersion: typeof(Program).Assembly.GetName().Version?.ToString())
+            serviceVersion: serviceVersion)
             .AddAttributes([new("deployment.environment", builder.Environment.EnvironmentName)]))
         .WithTracing(t => t
             .AddAspNetCoreInstrumentation(o =>
