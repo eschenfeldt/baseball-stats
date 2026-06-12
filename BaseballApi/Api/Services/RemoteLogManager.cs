@@ -59,7 +59,7 @@ public class RemoteLogManager : IRemoteLogManager
         }
         if (toUpload.Count == 0)
         {
-            Logger.LogInformation("No completed log files to upload.");
+            Logger.LogDebug("No completed log files to upload.");
             return;
         }
         Logger.LogInformation("Uploading {count} completed log files.", toUpload.Count);
