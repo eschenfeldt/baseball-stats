@@ -6,6 +6,11 @@ using BaseballApi.Import;
 using BaseballApi.Services;
 using Microsoft.AspNetCore.Http.Features;
 using BaseballApi.Integrations;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
+using OpenTelemetry.Metrics;
+using Npgsql;
+using OpenTelemetry.Logs;
 
 var corsLocal = "_corsLocalPolicy";
 
@@ -39,8 +44,47 @@ builder.Services.AddDbContext<AppIdentityDbContext>(opt => opt.UseNpgsql(identit
 builder.Services.AddIdentityApiEndpoints<IdentityUser>()
     .AddEntityFrameworkStores<AppIdentityDbContext>();
 
+// logging / observability
 var logDir = builder.Configuration["Logging:File:Directory"] ?? Path.Combine(builder.Environment.ContentRootPath, "Logs");
 builder.Logging.AddProvider(new FileLoggerProvider(logDir));
+
+var otelEnabled = builder.Configuration["OpenTelemetry:Enabled"];
+if (!string.IsNullOrWhiteSpace(otelEnabled))
+{
+    builder.Services.AddOpenTelemetry()
+        .ConfigureResource(resource => resource.AddService("baseball-api",
+            serviceVersion: typeof(Program).Assembly.GetName().Version?.ToString())
+            .AddAttributes([new("deployment.environment", builder.Environment.EnvironmentName)]))
+        .WithTracing(t => t
+            .AddAspNetCoreInstrumentation(o =>
+            {
+                o.RecordException = true;
+                // CORS preflights and swagger assets aren't worth tracing
+                o.Filter = ctx => ctx.Request.Method != HttpMethods.Options
+                    && !ctx.Request.Path.StartsWithSegments("/swagger");
+            })
+            .AddHttpClientInstrumentation()
+            .AddNpgsql()
+            .AddOtlpExporter())
+        .WithMetrics(m => m
+            .AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation()
+            .AddRuntimeInstrumentation()
+            .AddOtlpExporter());
+
+    builder.Logging.AddOpenTelemetry(options =>
+    {
+        options.IncludeFormattedMessage = true;
+        options.IncludeScopes = true;
+        options.AddOtlpExporter();
+    });
+
+    // The exporters' own HTTP requests are logged at Information, which would
+    // feed every export back into the log pipeline as new events
+    builder.Logging.AddFilter("System.Net.Http.HttpClient.OtlpTraceExporter", LogLevel.Warning);
+    builder.Logging.AddFilter("System.Net.Http.HttpClient.OtlpMetricExporter", LogLevel.Warning);
+    builder.Logging.AddFilter("System.Net.Http.HttpClient.OtlpLogExporter", LogLevel.Warning);
+}
 
 builder.Services.AddScoped<IRemoteFileManager, RemoteFileManager>();
 builder.Services.AddScoped<IRemoteLogManager, RemoteLogManager>();
