@@ -6,6 +6,11 @@ using BaseballApi.Import;
 using BaseballApi.Services;
 using Microsoft.AspNetCore.Http.Features;
 using BaseballApi.Integrations;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
+using OpenTelemetry.Metrics;
+using Npgsql;
+using OpenTelemetry.Logs;
 
 var corsLocal = "_corsLocalPolicy";
 
@@ -39,8 +44,53 @@ builder.Services.AddDbContext<AppIdentityDbContext>(opt => opt.UseNpgsql(identit
 builder.Services.AddIdentityApiEndpoints<IdentityUser>()
     .AddEntityFrameworkStores<AppIdentityDbContext>();
 
+// logging / observability
 var logDir = builder.Configuration["Logging:File:Directory"] ?? Path.Combine(builder.Environment.ContentRootPath, "Logs");
 builder.Logging.AddProvider(new FileLoggerProvider(logDir));
+
+var otelEndpoint = builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"];
+if (!string.IsNullOrWhiteSpace(otelEndpoint))
+{
+    // Prefer the git SHA stamped in at image build over the (static) assembly version
+    var serviceVersion = builder.Configuration["OpenTelemetry:ServiceVersion"];
+    if (string.IsNullOrWhiteSpace(serviceVersion))
+    {
+        serviceVersion = typeof(Program).Assembly.GetName().Version?.ToString();
+    }
+    builder.Services.AddOpenTelemetry()
+        .ConfigureResource(resource => resource.AddService("baseball-api",
+            serviceVersion: serviceVersion)
+            .AddAttributes([new("deployment.environment", builder.Environment.EnvironmentName)]))
+        .WithTracing(t => t
+            .AddAspNetCoreInstrumentation(o =>
+            {
+                o.RecordException = true;
+                // CORS preflights and swagger assets aren't worth tracing
+                o.Filter = ctx => ctx.Request.Method != HttpMethods.Options
+                    && !ctx.Request.Path.StartsWithSegments("/swagger");
+            })
+            .AddHttpClientInstrumentation()
+            .AddNpgsql()
+            .AddOtlpExporter())
+        .WithMetrics(m => m
+            .AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation()
+            .AddRuntimeInstrumentation()
+            .AddOtlpExporter());
+
+    builder.Logging.AddOpenTelemetry(options =>
+    {
+        options.IncludeFormattedMessage = true;
+        options.IncludeScopes = true;
+        options.AddOtlpExporter();
+    });
+
+    // The exporters' own HTTP requests are logged at Information, which would
+    // feed every export back into the log pipeline as new events
+    builder.Logging.AddFilter("System.Net.Http.HttpClient.OtlpTraceExporter", LogLevel.Warning);
+    builder.Logging.AddFilter("System.Net.Http.HttpClient.OtlpMetricExporter", LogLevel.Warning);
+    builder.Logging.AddFilter("System.Net.Http.HttpClient.OtlpLogExporter", LogLevel.Warning);
+}
 
 builder.Services.AddScoped<IRemoteFileManager, RemoteFileManager>();
 builder.Services.AddScoped<IRemoteLogManager, RemoteLogManager>();
@@ -56,13 +106,16 @@ builder.Services.AddScoped<ReferenceManager, ReferenceManager>();
 builder.Services.AddSingleton<IMediaImportQueue, MediaImportQueue>();
 builder.Services.AddHostedService<RemoteLogService>();
 builder.Services.AddHostedService<MediaImportBackgroundService>();
-builder.Services.AddHostedService<ReferenceUpdateService>();
 if (!builder.Environment.IsDevelopment())
 {
     // Local dev won't see the prod files but will see the prod import task so don't try to process/clean up
     builder.Services.AddHostedService<MediaImportTaskRestarter>();
     builder.Services.AddHostedService<TempFileCleaner>();
     builder.Services.AddHostedService<MediaFormatService>();
+
+    // Reference update service can run safely in dev (updating the prod reference data) 
+    // but it's noisy so only move it out of here if it's specifically being worked on
+    builder.Services.AddHostedService<ReferenceUpdateService>();
 }
 
 builder.Services.AddCors(options =>
@@ -87,8 +140,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI(options => options.EnableTryItOutByDefault());
 }
-
-app.UseHttpsRedirection();
+else
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseCors(corsLocal);
 app.UseAuthorization();

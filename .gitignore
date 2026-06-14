@@ -22,6 +22,7 @@ BaseballApi/appsettings.Production.json
 appsettings.Test.json
 baseball_password.txt
 **/Logs/*
+.vscode/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

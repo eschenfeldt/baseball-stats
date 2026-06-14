@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace BaseballApi.Services;
 
 public class FileLogger(string directory, string category, object sharedLock) : ILogger
@@ -40,9 +42,13 @@ public class FileLogger(string directory, string category, object sharedLock) : 
         }
         var filename = Path.Combine(LogDirectory, $"{now:yyyy_MM_dd}.log");
 
+        // Match the trace id exported via OpenTelemetry so file lines can be
+        // cross-referenced with traces
+        var traceId = Activity.Current is { } activity ? $" [{activity.TraceId}]" : "";
+
         lock (Lock)
         {
-            File.AppendAllText(filename, $"{timestamp} [{logLevel}] {Category}: {message}{Environment.NewLine}");
+            File.AppendAllText(filename, $"{timestamp} [{logLevel}] {Category}{traceId}: {message}{Environment.NewLine}");
         }
     }
 
