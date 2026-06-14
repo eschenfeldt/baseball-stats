@@ -140,8 +140,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI(options => options.EnableTryItOutByDefault());
 }
-
-app.UseHttpsRedirection();
+else
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseCors(corsLocal);
 app.UseAuthorization();
