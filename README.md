@@ -34,7 +34,7 @@ read-only DB access) still works before you rely on it at merge time.
 4. Optionally `export GIT_SHA="$(git rev-parse --short HEAD)"` so telemetry
    reports the right `service.version`; without it the build falls back to the
    assembly version.
-5. Run `docker compose --profile prod up -d`, which build the containers. (Omit the `-d` to remain attached and see logs.)
+5. Run `docker compose --profile prod up -d`, which builds the containers. (Omit the `-d` to remain attached and see logs.)
    
 
 #### Telemetry (OpenTelemetry → Grafana Cloud)
