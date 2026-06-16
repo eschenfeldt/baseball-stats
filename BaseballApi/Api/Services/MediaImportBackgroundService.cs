@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using BaseballApi.Import;
 using BaseballApi.Media;
 using BaseballApi.Models;
@@ -52,12 +51,11 @@ public class MediaImportBackgroundService(
                         MediaImportQueue.MarkImportComplete();
                     }
                 }
-                // Cancellation is shutdown, not a job failure, so let it fall through to
-                // the outer handler without marking the span as errored.
-                catch (Exception ex) when (ex is not OperationCanceledException)
+                catch (Exception ex)
                 {
-                    activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
-                    activity?.AddException(ex);
+                    // Records non-cancellation failures on the span; rethrows so the outer
+                    // handler still logs (and a cancellation still breaks the loop).
+                    Telemetry.RecordJobException(activity, ex);
                     throw;
                 }
             }

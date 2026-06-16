@@ -80,6 +80,51 @@ public class TelemetryTests
 
     [Fact]
     [Trait(TestCategory.Category, TestCategory.Observability)]
+    public void RecordJobException_MarksErrorForOrdinaryException()
+    {
+        var recorded = new List<Activity>();
+        using var listener = ListenToBackgroundJobs(recorded);
+
+        using (var activity = Telemetry.BackgroundJobs.StartActivity("job.media-import"))
+        {
+            Telemetry.RecordJobException(activity, new InvalidOperationException("boom"));
+        }
+
+        var span = Assert.Single(recorded);
+        Assert.Equal(ActivityStatusCode.Error, span.Status);
+        Assert.Equal("boom", span.StatusDescription);
+        Assert.Single(span.Events, e => e.Name == "exception");
+    }
+
+    [Fact]
+    [Trait(TestCategory.Category, TestCategory.Observability)]
+    public void RecordJobException_IgnoresCancellation()
+    {
+        // Shutdown cancellation isn't a job failure: the span must stay unset so it
+        // doesn't show up as an error in span-metrics.
+        var recorded = new List<Activity>();
+        using var listener = ListenToBackgroundJobs(recorded);
+
+        using (var activity = Telemetry.BackgroundJobs.StartActivity("job.media-import"))
+        {
+            Telemetry.RecordJobException(activity, new OperationCanceledException());
+        }
+
+        var span = Assert.Single(recorded);
+        Assert.Equal(ActivityStatusCode.Unset, span.Status);
+        Assert.Empty(span.Events);
+    }
+
+    [Fact]
+    [Trait(TestCategory.Category, TestCategory.Observability)]
+    public void RecordJobException_NullActivity_DoesNotThrow()
+    {
+        // No listener => StartActivity returns null; the helper must tolerate it.
+        Telemetry.RecordJobException(null, new InvalidOperationException("boom"));
+    }
+
+    [Fact]
+    [Trait(TestCategory.Category, TestCategory.Observability)]
     public void StartActivity_WithoutListener_ReturnsNull()
     {
         // No listener attached: StartActivity must return null, which is why every call

@@ -1,5 +1,5 @@
-using System;
 using BaseballApi.Models;
+using BaseballApi.Observability;
 using Microsoft.EntityFrameworkCore;
 
 namespace BaseballApi.Services;
@@ -26,6 +26,7 @@ public class TempFileCleaner(IServiceProvider serviceProvider, ILogger<TempFileC
 
     private async void CleanseTempFiles(object? stateInfo)
     {
+        using var activity = Telemetry.BackgroundJobs.StartActivity("job.cleanse-temp-files");
         try
         {
             Logger.LogInformation("Identifying temp files to clean up...");
@@ -100,12 +101,14 @@ public class TempFileCleaner(IServiceProvider serviceProvider, ILogger<TempFileC
         }
         catch (Exception ex)
         {
+            Telemetry.RecordJobException(activity, ex);
             Logger.LogError(ex, "An error occurred while retriggering imports.");
         }
     }
 
     private async void CleanseAbandonedFiles(object? stateInfo)
     {
+        using var activity = Telemetry.BackgroundJobs.StartActivity("job.cleanse-abandoned-files");
         try
         {
             Logger.LogInformation("Identifying abandoned files to clean up...");
@@ -151,6 +154,7 @@ public class TempFileCleaner(IServiceProvider serviceProvider, ILogger<TempFileC
         }
         catch (Exception ex)
         {
+            Telemetry.RecordJobException(activity, ex);
             Logger.LogError(ex, "An error occurred while cleaning up abandoned files.");
         }
     }

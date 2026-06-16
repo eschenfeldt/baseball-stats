@@ -1,4 +1,4 @@
-using System;
+using BaseballApi.Observability;
 
 namespace BaseballApi.Services;
 
@@ -31,26 +31,30 @@ public class MediaFormatService(
 
     private async void SetContentTypes(object? stateInfo)
     {
-        var mediaFormatManager = new MediaFormatManager(MediaImportQueue, ServiceProvider, Logger, CancellationToken);
+        using var activity = Telemetry.BackgroundJobs.StartActivity("job.set-content-types");
         try
         {
+            var mediaFormatManager = new MediaFormatManager(MediaImportQueue, ServiceProvider, Logger, CancellationToken);
             await mediaFormatManager.SetContentTypes();
         }
         catch (Exception ex)
         {
+            Telemetry.RecordJobException(activity, ex);
             Logger.LogError(ex, "Error setting content types.");
         }
     }
 
     private async void CreateAlternateFormats(object? stateInfo)
     {
-        var mediaFormatManager = new MediaFormatManager(MediaImportQueue, ServiceProvider, Logger, CancellationToken);
+        using var activity = Telemetry.BackgroundJobs.StartActivity("job.create-alternate-formats");
         try
         {
+            var mediaFormatManager = new MediaFormatManager(MediaImportQueue, ServiceProvider, Logger, CancellationToken);
             await mediaFormatManager.CreateAlternateFormats();
         }
         catch (Exception ex)
         {
+            Telemetry.RecordJobException(activity, ex);
             Logger.LogError(ex, "Error creating alternate formats.");
         }
     }

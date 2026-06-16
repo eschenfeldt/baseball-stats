@@ -1,4 +1,5 @@
 using BaseballApi.Integrations;
+using BaseballApi.Observability;
 
 namespace BaseballApi.Services;
 
@@ -32,47 +33,53 @@ public class ReferenceUpdateService(
 
     private async void UpdateTeamReferences(object? stateInfo)
     {
-        using var scope = ServiceProvider.CreateScope();
-        var referenceManager = scope.ServiceProvider.GetRequiredService<ReferenceManager>();
+        using var activity = Telemetry.BackgroundJobs.StartActivity("job.update-team-references");
         try
         {
+            using var scope = ServiceProvider.CreateScope();
+            var referenceManager = scope.ServiceProvider.GetRequiredService<ReferenceManager>();
             var updatedCount = await referenceManager.UpdateTeamReferences(CancellationToken);
             Logger.LogInformation("Team reference update completed. {updatedCount} teams updated.", updatedCount);
         }
         catch (Exception ex)
         {
+            Telemetry.RecordJobException(activity, ex);
             Logger.LogError(ex, "Error occurred while updating team references.");
         }
     }
 
     private async void UpdatePlayerReferences(object? stateInfo)
     {
-        using var scope = ServiceProvider.CreateScope();
-        var referenceManager = scope.ServiceProvider.GetRequiredService<ReferenceManager>();
+        using var activity = Telemetry.BackgroundJobs.StartActivity("job.update-player-references");
         try
         {
+            using var scope = ServiceProvider.CreateScope();
+            var referenceManager = scope.ServiceProvider.GetRequiredService<ReferenceManager>();
             var result = await referenceManager.UpdatePlayerReferences(CancellationToken);
             Logger.LogInformation("Player reference update completed. {createdCount} players created, {updatedCount} players updated.",
                 result.CreatedCount, result.UpdatedCount);
         }
         catch (Exception ex)
         {
+            Telemetry.RecordJobException(activity, ex);
             Logger.LogError(ex, "Error occurred while updating player references.");
         }
     }
 
     private async void UpdateFangraphsLinks(object? stateInfo)
     {
-        using var scope = ServiceProvider.CreateScope();
-        var referenceManager = scope.ServiceProvider.GetRequiredService<ReferenceManager>();
+        using var activity = Telemetry.BackgroundJobs.StartActivity("job.update-fangraphs-links");
         try
         {
+            using var scope = ServiceProvider.CreateScope();
+            var referenceManager = scope.ServiceProvider.GetRequiredService<ReferenceManager>();
             var result = await referenceManager.UpdateFangraphsLinks(CancellationToken);
             Logger.LogInformation("Fangraphs link update completed. {playerUpdateCount} players updated, {referencePlayerUpdateCount} reference players updated.",
                 result.PlayersUpdated, result.ReferencePlayersUpdated);
         }
         catch (Exception ex)
         {
+            Telemetry.RecordJobException(activity, ex);
             Logger.LogError(ex, "Error occurred while updating Fangraphs links.");
         }
     }
