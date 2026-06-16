@@ -22,7 +22,12 @@ public class MediaImportBackgroundService(
             {
                 // Wait for an import task to be available
                 var importId = await MediaImportQueue.PopAsync(cancellationToken);
-                Logger.LogInformation("Processing import task with ID: {ImportId}", importId);
+
+                using var logScope = Logger.BeginScope(new Dictionary<string, object>
+                {
+                    ["ImportId"] = importId,
+                });
+                Logger.LogInformation("Processing import task.");
 
                 // Create a scope to resolve services
                 using var scope = ServiceProvider.CreateScope();
@@ -61,14 +66,14 @@ public class MediaImportBackgroundService(
             .SingleOrDefaultAsync(t => t.Id == importId, cancellationToken: cancellationToken);
         if (importTask == null)
         {
-            Logger.LogWarning("Import task with ID {ImportId} not found.", importId);
+            Logger.LogWarning("Import task not found.");
             return;
         }
 
         if (importTask.Status != MediaImportTaskStatus.Queued &&
             importTask.Status != MediaImportTaskStatus.InProgress)
         {
-            Logger.LogWarning("Import task with ID {ImportId} is not in a valid state for processing: {Status}", importId, importTask.Status);
+            Logger.LogWarning("Import task is not in a valid state for processing: {Status}", importTask.Status);
             return;
         }
 
@@ -82,7 +87,7 @@ public class MediaImportBackgroundService(
 
         // Process the media files
         var importManager = new MediaImportManager([.. importTask.MediaToProcess], remoteFileManager, context, importTask.Game);
-        Logger.LogInformation("Starting import for {Count} media resources for import task with ID {ImportId}.", importTask.MediaToProcess.Count, importId);
+        Logger.LogInformation("Starting import for {Count} media resources.", importTask.MediaToProcess.Count);
         int errorCount = 0;
         await foreach (var result in importManager.GetUploadedResources())
         {
@@ -112,7 +117,7 @@ public class MediaImportBackgroundService(
         importTask.CompletedAt = DateTimeOffset.UtcNow;
         await context.SaveChangesAsync(cancellationToken);
 
-        Logger.LogInformation("Media import task with ID {ImportId} completed.", importId);
+        Logger.LogInformation("Media import task completed.");
     }
 
     public override async Task StopAsync(CancellationToken cancellationToken)

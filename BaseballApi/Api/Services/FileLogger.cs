@@ -2,15 +2,16 @@ using System.Diagnostics;
 
 namespace BaseballApi.Services;
 
-public class FileLogger(string directory, string category, object sharedLock) : ILogger
+public class FileLogger(string directory, string category, object sharedLock, Func<IExternalScopeProvider?> scopeProvider) : ILogger
 {
     private string LogDirectory { get; } = directory;
     private string Category { get; } = category;
     private object Lock { get; } = sharedLock;
+    private Func<IExternalScopeProvider?> ScopeProvider { get; } = scopeProvider;
 
     public IDisposable BeginScope<TState>(TState state) where TState : notnull
     {
-        return NullScope.Instance;
+        return ScopeProvider()?.Push(state) ?? NullScope.Instance;
     }
 
     private sealed class NullScope : IDisposable
@@ -46,10 +47,45 @@ public class FileLogger(string directory, string category, object sharedLock) : 
         // cross-referenced with traces
         var traceId = Activity.Current is { } activity ? $" [{activity.TraceId}]" : "";
 
+        // Render active scopes (e.g. ImportId) so file lines keep parity with the
+        // attributes exported to OTLP
+        var scopeText = FormatScopes();
+
         lock (Lock)
         {
-            File.AppendAllText(filename, $"{timestamp} [{logLevel}] {Category}{traceId}: {message}{Environment.NewLine}");
+            File.AppendAllText(filename, $"{timestamp} [{logLevel}] {Category}{traceId}{scopeText}: {message}{Environment.NewLine}");
         }
+    }
+
+    private string FormatScopes()
+    {
+        var provider = ScopeProvider();
+        if (provider is null)
+        {
+            return "";
+        }
+
+        var sb = new System.Text.StringBuilder();
+        provider.ForEachScope((scope, state) =>
+        {
+            if (scope is IEnumerable<KeyValuePair<string, object>> pairs)
+            {
+                foreach (var pair in pairs)
+                {
+                    // Skip the structured-logging message template entry
+                    if (pair.Key == "{OriginalFormat}")
+                    {
+                        continue;
+                    }
+                    state.Append($" {pair.Key}={pair.Value}");
+                }
+            }
+            else if (scope is not null)
+            {
+                state.Append($" {scope}");
+            }
+        }, sb);
+        return sb.ToString();
     }
 
     private static string FormatException(Exception ex)
