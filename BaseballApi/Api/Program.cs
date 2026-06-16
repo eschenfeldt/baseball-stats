@@ -6,6 +6,7 @@ using BaseballApi.Import;
 using BaseballApi.Services;
 using Microsoft.AspNetCore.Http.Features;
 using BaseballApi.Integrations;
+using BaseballApi.Observability;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using OpenTelemetry.Metrics;
@@ -71,6 +72,7 @@ if (!string.IsNullOrWhiteSpace(otelEndpoint))
             })
             .AddHttpClientInstrumentation()
             .AddNpgsql()
+            .AddSource(Telemetry.BackgroundJobsSourceName)
             .AddOtlpExporter())
         .WithMetrics(m => m
             .AddAspNetCoreInstrumentation()

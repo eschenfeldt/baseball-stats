@@ -9,4 +9,5 @@ public class TestCategory
 
     // Category names
     public const string Media = "Media";
+    public const string Observability = "Observability";
 }

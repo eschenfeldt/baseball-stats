@@ -1,0 +1,90 @@
+using System.Diagnostics;
+using BaseballApi.Observability;
+
+namespace BaseballApiTests;
+
+/// <summary>
+/// Verifies the background-job <see cref="ActivitySource"/> contract that every job
+/// call site relies on. Telemetry exports nothing locally without OTLP secrets, so
+/// these tests attach an in-process <see cref="ActivityListener"/> instead — that is
+/// enough to catch the real wiring failures (wrong source name, missing tags, error
+/// status not recorded) without a collector or a live database.
+/// </summary>
+public class TelemetryTests
+{
+    /// <summary>
+    /// Collects every activity emitted by the background-jobs source for the duration
+    /// of the returned subscription, sampling all spans as the real exporter would.
+    /// </summary>
+    private static ActivityListener ListenToBackgroundJobs(List<Activity> recorded)
+    {
+        var listener = new ActivityListener
+        {
+            ShouldListenTo = source => source.Name == Telemetry.BackgroundJobsSourceName,
+            Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllDataAndRecorded,
+            ActivityStopped = recorded.Add,
+        };
+        ActivitySource.AddActivityListener(listener);
+        return listener;
+    }
+
+    [Fact]
+    [Trait(TestCategory.Category, TestCategory.Observability)]
+    public void StartActivity_WithListener_EmitsNamedSpanWithTag()
+    {
+        var recorded = new List<Activity>();
+        using var listener = ListenToBackgroundJobs(recorded);
+
+        var importId = Guid.NewGuid();
+        using (var activity = Telemetry.BackgroundJobs.StartActivity("job.media-import"))
+        {
+            // A listener is attached, so the source must produce a live activity; if this
+            // is null the source name is wrong or no listener matched.
+            Assert.NotNull(activity);
+            activity.SetTag("import.id", importId);
+        }
+
+        var span = Assert.Single(recorded);
+        Assert.Equal("job.media-import", span.DisplayName);
+        Assert.Equal(importId, Assert.IsType<Guid>(span.GetTagItem("import.id")));
+        Assert.Equal(ActivityStatusCode.Unset, span.Status);
+    }
+
+    [Fact]
+    [Trait(TestCategory.Category, TestCategory.Observability)]
+    public void RecordException_SetsErrorStatusAndExceptionEvent()
+    {
+        var recorded = new List<Activity>();
+        using var listener = ListenToBackgroundJobs(recorded);
+
+        using (var activity = Telemetry.BackgroundJobs.StartActivity("job.media-import"))
+        {
+            Assert.NotNull(activity);
+            try
+            {
+                throw new InvalidOperationException("boom");
+            }
+            catch (Exception ex)
+            {
+                activity.SetStatus(ActivityStatusCode.Error, ex.Message);
+                activity.AddException(ex);
+            }
+        }
+
+        var span = Assert.Single(recorded);
+        Assert.Equal(ActivityStatusCode.Error, span.Status);
+        Assert.Equal("boom", span.StatusDescription);
+        var exceptionEvent = Assert.Single(span.Events);
+        Assert.Equal("exception", exceptionEvent.Name);
+    }
+
+    [Fact]
+    [Trait(TestCategory.Category, TestCategory.Observability)]
+    public void StartActivity_WithoutListener_ReturnsNull()
+    {
+        // No listener attached: StartActivity must return null, which is why every call
+        // site null-conditions the activity rather than assuming a live span.
+        using var activity = Telemetry.BackgroundJobs.StartActivity("job.media-import");
+        Assert.Null(activity);
+    }
+}

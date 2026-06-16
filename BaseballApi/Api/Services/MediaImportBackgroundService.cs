@@ -1,6 +1,8 @@
+using System.Diagnostics;
 using BaseballApi.Import;
 using BaseballApi.Media;
 using BaseballApi.Models;
+using BaseballApi.Observability;
 using Microsoft.EntityFrameworkCore;
 
 namespace BaseballApi.Services;
@@ -23,6 +25,9 @@ public class MediaImportBackgroundService(
                 // Wait for an import task to be available
                 var importId = await MediaImportQueue.PopAsync(cancellationToken);
 
+                using var activity = Telemetry.BackgroundJobs.StartActivity("job.media-import");
+                activity?.SetTag("import.id", importId);
+
                 using var logScope = Logger.BeginScope(new Dictionary<string, object>
                 {
                     ["ImportId"] = importId,
@@ -39,6 +44,12 @@ public class MediaImportBackgroundService(
                     MediaImportQueue.MarkImportInProgress();
                     // Process the import task
                     await ProcessImport(importId, remoteFileManager, context, cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+                    activity?.AddException(ex);
+                    throw;
                 }
                 finally
                 {
