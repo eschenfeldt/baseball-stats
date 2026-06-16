@@ -45,6 +45,11 @@ services:
       - prod
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    environment:
+      # Identify the underlying host (not the ephemeral container) for telemetry.
+      # Values are exported from the real VM by deploy.yml; the OTel SDK merges
+      # OTEL_RESOURCE_ATTRIBUTES into the resource automatically.
+      - OTEL_RESOURCE_ATTRIBUTES=host.name=${HOST_NAME:-},host.id=${HOST_ID:-}
     cpus: '0.7'
     mem_limit: 2G
     mem_reservation: 128M
