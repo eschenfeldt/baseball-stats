@@ -4,10 +4,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BaseballApi.Services;
 
-public class TempFileCleaner(IServiceProvider serviceProvider, ILogger<MediaImportBackgroundService> logger) : BackgroundService
+public class TempFileCleaner(IServiceProvider serviceProvider, ILogger<TempFileCleaner> logger) : BackgroundService
 {
     private IServiceProvider ServiceProvider { get; } = serviceProvider;
-    private ILogger<MediaImportBackgroundService> Logger { get; } = logger;
+    private ILogger<TempFileCleaner> Logger { get; } = logger;
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {

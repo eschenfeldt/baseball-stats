@@ -4,11 +4,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BaseballApi.Services;
 
-public class MediaImportTaskRestarter(IMediaImportQueue mediaImportQueue, IServiceProvider serviceProvider, ILogger<MediaImportBackgroundService> logger) : BackgroundService
+public class MediaImportTaskRestarter(IMediaImportQueue mediaImportQueue, IServiceProvider serviceProvider, ILogger<MediaImportTaskRestarter> logger) : BackgroundService
 {
     private IMediaImportQueue MediaImportQueue { get; } = mediaImportQueue;
     private IServiceProvider ServiceProvider { get; } = serviceProvider;
-    private ILogger<MediaImportBackgroundService> Logger { get; } = logger;
+    private ILogger<MediaImportTaskRestarter> Logger { get; } = logger;
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {

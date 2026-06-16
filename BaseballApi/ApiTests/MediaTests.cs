@@ -46,8 +46,10 @@ public class MediaTests : BaseballTests, IAsyncLifetime
         var serviceProvider = services.BuildServiceProvider();
         var backgroundLogger = FileLoggerFactory.CreateLogger<MediaImportBackgroundService>();
         MediaImportBackgroundService = new MediaImportBackgroundService(mediaImportQueue, serviceProvider, backgroundLogger);
-        MediaImportTaskRestarter = new MediaImportTaskRestarter(mediaImportQueue, serviceProvider, backgroundLogger);
-        TempFileCleaner = new TempFileCleaner(serviceProvider, backgroundLogger);
+        var mediaImportTaskRestarterLogger = FileLoggerFactory.CreateLogger<MediaImportTaskRestarter>();
+        MediaImportTaskRestarter = new MediaImportTaskRestarter(mediaImportQueue, serviceProvider, mediaImportTaskRestarterLogger);
+        var tempFileCleanerLogger = FileLoggerFactory.CreateLogger<TempFileCleaner>();
+        TempFileCleaner = new TempFileCleaner(serviceProvider, tempFileCleanerLogger);
         TestMediaImporter = new TestMediaImporter(Context, Controller, MediaImportBackgroundService);
     }
 
