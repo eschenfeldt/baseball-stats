@@ -34,26 +34,31 @@ public class MediaImportBackgroundService(
                 });
                 Logger.LogInformation("Processing import task.");
 
-                // Create a scope to resolve services
-                using var scope = ServiceProvider.CreateScope();
-                var remoteFileManager = scope.ServiceProvider.GetRequiredService<IRemoteFileManager>();
-                using var context = scope.ServiceProvider.GetRequiredService<BaseballContext>();
-
                 try
                 {
+                    // Create a scope to resolve services
+                    using var scope = ServiceProvider.CreateScope();
+                    var remoteFileManager = scope.ServiceProvider.GetRequiredService<IRemoteFileManager>();
+                    using var context = scope.ServiceProvider.GetRequiredService<BaseballContext>();
+
                     MediaImportQueue.MarkImportInProgress();
-                    // Process the import task
-                    await ProcessImport(importId, remoteFileManager, context, cancellationToken);
+                    try
+                    {
+                        // Process the import task
+                        await ProcessImport(importId, remoteFileManager, context, cancellationToken);
+                    }
+                    finally
+                    {
+                        MediaImportQueue.MarkImportComplete();
+                    }
                 }
-                catch (Exception ex)
+                // Cancellation is shutdown, not a job failure, so let it fall through to
+                // the outer handler without marking the span as errored.
+                catch (Exception ex) when (ex is not OperationCanceledException)
                 {
                     activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
                     activity?.AddException(ex);
                     throw;
-                }
-                finally
-                {
-                    MediaImportQueue.MarkImportComplete();
                 }
             }
             catch (OperationCanceledException)
