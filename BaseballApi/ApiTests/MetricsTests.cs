@@ -43,9 +43,9 @@ public class MetricsTests
 
         Telemetry.RecordMediaImportOutcome(Telemetry.MediaImportOutcome.Failed);
 
-        var measurement = Assert.Single(measurements);
-        Assert.Equal(1, measurement.Value);
-        Assert.Equal("failed", measurement.Status);
+        // Contains rather than Single: the counter is static, so a parallel test could record
+        // its own outcome while this listener is active.
+        Assert.Contains(measurements, m => m.Value == 1 && m.Status == "failed");
     }
 
     [Fact]

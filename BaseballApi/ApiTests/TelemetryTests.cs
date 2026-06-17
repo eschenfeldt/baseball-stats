@@ -28,6 +28,10 @@ public class TelemetryTests
         return listener;
     }
 
+    // Unique per call so a test can pick its own span out of the process-global listener,
+    // which could also observe spans from other tests/services running in parallel.
+    private static string UniqueSpanName() => $"job.test-{Guid.NewGuid():N}";
+
     [Fact]
     [Trait(TestCategory.Category, TestCategory.Observability)]
     public void StartActivity_WithListener_EmitsNamedSpanWithTag()
@@ -35,8 +39,9 @@ public class TelemetryTests
         var recorded = new List<Activity>();
         using var listener = ListenToBackgroundJobs(recorded);
 
+        var spanName = UniqueSpanName();
         var importId = Guid.NewGuid();
-        using (var activity = Telemetry.BackgroundJobs.StartActivity("job.media-import"))
+        using (var activity = Telemetry.BackgroundJobs.StartActivity(spanName))
         {
             // A listener is attached, so the source must produce a live activity; if this
             // is null the source name is wrong or no listener matched.
@@ -44,8 +49,7 @@ public class TelemetryTests
             activity.SetTag("import.id", importId);
         }
 
-        var span = Assert.Single(recorded);
-        Assert.Equal("job.media-import", span.DisplayName);
+        var span = Assert.Single(recorded, a => a.DisplayName == spanName);
         Assert.Equal(importId, Assert.IsType<Guid>(span.GetTagItem("import.id")));
         Assert.Equal(ActivityStatusCode.Unset, span.Status);
     }
@@ -57,7 +61,8 @@ public class TelemetryTests
         var recorded = new List<Activity>();
         using var listener = ListenToBackgroundJobs(recorded);
 
-        using (var activity = Telemetry.BackgroundJobs.StartActivity("job.media-import"))
+        var spanName = UniqueSpanName();
+        using (var activity = Telemetry.BackgroundJobs.StartActivity(spanName))
         {
             Assert.NotNull(activity);
             try
@@ -71,7 +76,7 @@ public class TelemetryTests
             }
         }
 
-        var span = Assert.Single(recorded);
+        var span = Assert.Single(recorded, a => a.DisplayName == spanName);
         Assert.Equal(ActivityStatusCode.Error, span.Status);
         Assert.Equal("boom", span.StatusDescription);
         var exceptionEvent = Assert.Single(span.Events);
@@ -85,12 +90,13 @@ public class TelemetryTests
         var recorded = new List<Activity>();
         using var listener = ListenToBackgroundJobs(recorded);
 
-        using (var activity = Telemetry.BackgroundJobs.StartActivity("job.media-import"))
+        var spanName = UniqueSpanName();
+        using (var activity = Telemetry.BackgroundJobs.StartActivity(spanName))
         {
             Telemetry.RecordJobException(activity, new InvalidOperationException("boom"));
         }
 
-        var span = Assert.Single(recorded);
+        var span = Assert.Single(recorded, a => a.DisplayName == spanName);
         Assert.Equal(ActivityStatusCode.Error, span.Status);
         Assert.Equal("boom", span.StatusDescription);
         Assert.Single(span.Events, e => e.Name == "exception");
@@ -105,12 +111,13 @@ public class TelemetryTests
         var recorded = new List<Activity>();
         using var listener = ListenToBackgroundJobs(recorded);
 
-        using (var activity = Telemetry.BackgroundJobs.StartActivity("job.media-import"))
+        var spanName = UniqueSpanName();
+        using (var activity = Telemetry.BackgroundJobs.StartActivity(spanName))
         {
             Telemetry.RecordJobException(activity, new OperationCanceledException());
         }
 
-        var span = Assert.Single(recorded);
+        var span = Assert.Single(recorded, a => a.DisplayName == spanName);
         Assert.Equal(ActivityStatusCode.Unset, span.Status);
         Assert.Empty(span.Events);
     }
