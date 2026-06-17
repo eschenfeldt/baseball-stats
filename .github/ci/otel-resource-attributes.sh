@@ -30,12 +30,12 @@ meta() { curl -fsS --connect-timeout 2 --max-time 5 "$1" | tr -d '\n'; }
 
 id="$(meta "$META/id" || true)"
 region="$(meta "$META/region" || true)"
-name="$(meta "$META/hostname" || true)"
+name="$(meta "$META/hostnamex" || true)"
 
 if [ -n "$id" ] && [ -n "$region" ] && [ -n "$name" ]; then
     printf 'cloud.provider=digitalocean,cloud.region=%s,host.id=%s,host.name=%s,grafana.host.id=%s' \
         "$region" "$id" "$name" "$id"
 else
-    id="$(cat /etc/machine-id)"
+    id="$(tr -d '\n' < /etc/machine-id)"
     printf 'host.name=%s,host.id=%s,grafana.host.id=%s' "$(hostname)" "$id" "$id"
 fi
