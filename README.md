@@ -70,4 +70,6 @@ DigitalOcean droplet's [metadata service](https://docs.digitalocean.com/referenc
 `host.name`, `grafana.host.id`), which the SDK merges into the resource. This
 keeps the app and `compose.yaml` cloud-agnostic. Grafana Cloud associates
 telemetry with a host via `grafana.host.id` (and `host.name` + `cloud.provider`);
-plain `host.id` is ignored by Grafana but kept to match OTel conventions.
+plain `host.id` is ignored by Grafana but kept to match OTel conventions. If the
+metadata service is unavailable, deploy falls back to the systemd machine id and
+emits only `host.name`/`host.id`/`grafana.host.id` (no `cloud.*`).

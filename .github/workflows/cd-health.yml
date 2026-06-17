@@ -9,7 +9,8 @@ on:
     branches: [main]
 
 permissions:
-  id-token: write # Tailscale OIDC 
+  id-token: write # Tailscale OIDC
+  contents: read # actions/checkout (explicit since setting any scope zeroes the rest)
 
 jobs:
   cd-health:
