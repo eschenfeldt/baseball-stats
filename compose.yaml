@@ -46,11 +46,15 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     environment:
-      # Host/cloud resource attributes are derived from the VM metadata
-      # service and assembled into OTEL_RESOURCE_ATTRIBUTES by deploy.yml; the OTel
-      # SDK merges that env var into the resource automatically. Kept as a pass-through
-      # so this file stays cloud-agnostic.
-      - OTEL_RESOURCE_ATTRIBUTES
+      # Host/cloud resource attributes are derived from the VM metadata service by
+      # deploy.yml; the OTel SDK merges OTEL_RESOURCE_ATTRIBUTES into the resource.
+      # NOTE: do NOT change this to a bare `- OTEL_RESOURCE_ATTRIBUTES` pass-through.
+      # The docker CLI overrides OTEL_RESOURCE_ATTRIBUTES in its own environment with
+      # its telemetry value (docker.cli.cobra.command_path=...), so a pass-through
+      # forwards Docker's value into the container, not ours. deploy.yml carries the
+      # value in HOST_RESOURCE_ATTRS (which Docker leaves alone) and we map it back
+      # in here. See docker/cli#4958.
+      - OTEL_RESOURCE_ATTRIBUTES=${HOST_RESOURCE_ATTRS}
     cpus: '0.7'
     mem_limit: 2G
     mem_reservation: 128M
