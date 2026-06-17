@@ -97,12 +97,12 @@ public class TempFileCleaner(IServiceProvider serviceProvider, ILogger<TempFileC
                     Logger.LogInformation("Marked resource {ResourceName} as deleted in the database.", resource.BaseName);
                 }
             }
-            Logger.LogInformation("Retriggering of abandoned media import tasks completed.");
+            Logger.LogInformation("Cleanup of temp files completed.");
         }
         catch (Exception ex)
         {
             Telemetry.RecordJobException(activity, ex);
-            Logger.LogError(ex, "An error occurred while retriggering imports.");
+            Logger.LogError(ex, "An error occurred while cleaning up temp files.");
         }
     }
 
@@ -148,6 +148,7 @@ public class TempFileCleaner(IServiceProvider serviceProvider, ILogger<TempFileC
                 }
                 catch (Exception ex)
                 {
+                    Telemetry.RecordJobException(activity, ex);
                     Logger.LogError(ex, "Failed to delete abandoned file: {FileName}", file.FullName);
                 }
             }
