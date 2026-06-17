@@ -78,6 +78,7 @@ if (!string.IsNullOrWhiteSpace(otelEndpoint))
             .AddAspNetCoreInstrumentation()
             .AddHttpClientInstrumentation()
             .AddRuntimeInstrumentation()
+            .AddMeter(Telemetry.MeterName)
             .AddOtlpExporter());
 
     builder.Logging.AddOpenTelemetry(options =>

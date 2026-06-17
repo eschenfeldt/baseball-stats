@@ -9,6 +9,10 @@ public interface IMediaImportQueue
     public ValueTask<Guid> PopAsync(CancellationToken cancellationToken);
 
     public bool ImportInProgress { get; }
+
+    /// <summary>Number of imports currently waiting in the queue; surfaced as a gauge metric.</summary>
+    public int Count { get; }
+
     public void MarkImportInProgress();
     public void MarkImportComplete();
 }

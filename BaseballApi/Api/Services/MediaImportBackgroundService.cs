@@ -81,6 +81,7 @@ public class MediaImportBackgroundService(
         if (importTask == null)
         {
             Logger.LogWarning("Import task not found.");
+            Telemetry.RecordMediaImportOutcome(Telemetry.MediaImportOutcome.Skipped);
             return;
         }
 
@@ -88,6 +89,7 @@ public class MediaImportBackgroundService(
             importTask.Status != MediaImportTaskStatus.InProgress)
         {
             Logger.LogWarning("Import task is not in a valid state for processing: {Status}", importTask.Status);
+            Telemetry.RecordMediaImportOutcome(Telemetry.MediaImportOutcome.Skipped);
             return;
         }
 
@@ -123,10 +125,12 @@ public class MediaImportBackgroundService(
         if (errorCount == 0)
         {
             importTask.Status = MediaImportTaskStatus.Completed;
+            Telemetry.RecordMediaImportOutcome(Telemetry.MediaImportOutcome.Completed);
         }
         else
         {
             importTask.Status = MediaImportTaskStatus.Failed;
+            Telemetry.RecordMediaImportOutcome(Telemetry.MediaImportOutcome.Failed);
         }
         importTask.CompletedAt = DateTimeOffset.UtcNow;
         await context.SaveChangesAsync(cancellationToken);
