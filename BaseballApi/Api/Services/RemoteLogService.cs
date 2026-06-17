@@ -1,3 +1,5 @@
+using BaseballApi.Observability;
+
 namespace BaseballApi.Services;
 
 public class RemoteLogService(ILogger<RemoteLogService> logger, IServiceProvider serviceProvider) : BackgroundService
@@ -27,6 +29,7 @@ public class RemoteLogService(ILogger<RemoteLogService> logger, IServiceProvider
 
     private async void UploadLogs(object? stateInfo)
     {
+        using var activity = Telemetry.BackgroundJobs.StartActivity("job.upload-logs");
         try
         {
             // Create a scope to resolve services
@@ -36,12 +39,14 @@ public class RemoteLogService(ILogger<RemoteLogService> logger, IServiceProvider
         }
         catch (Exception ex)
         {
+            Telemetry.RecordJobException(activity, ex);
             Logger.LogError(ex, "Error uploading logs.");
         }
     }
 
     private async void CleanupOldLogs(object? stateInfo)
     {
+        using var activity = Telemetry.BackgroundJobs.StartActivity("job.cleanup-old-logs");
         try
         {
             // Create a scope to resolve services
@@ -51,6 +56,7 @@ public class RemoteLogService(ILogger<RemoteLogService> logger, IServiceProvider
         }
         catch (Exception ex)
         {
+            Telemetry.RecordJobException(activity, ex);
             Logger.LogError(ex, "Error cleaning up old logs.");
         }
     }

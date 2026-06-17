@@ -1,5 +1,5 @@
-using System;
 using BaseballApi.Models;
+using BaseballApi.Observability;
 using Microsoft.EntityFrameworkCore;
 
 namespace BaseballApi.Services;
@@ -26,6 +26,7 @@ public class TempFileCleaner(IServiceProvider serviceProvider, ILogger<TempFileC
 
     private async void CleanseTempFiles(object? stateInfo)
     {
+        using var activity = Telemetry.BackgroundJobs.StartActivity("job.cleanse-temp-files");
         try
         {
             Logger.LogInformation("Identifying temp files to clean up...");
@@ -96,16 +97,18 @@ public class TempFileCleaner(IServiceProvider serviceProvider, ILogger<TempFileC
                     Logger.LogInformation("Marked resource {ResourceName} as deleted in the database.", resource.BaseName);
                 }
             }
-            Logger.LogInformation("Retriggering of abandoned media import tasks completed.");
+            Logger.LogInformation("Cleanup of temp files completed.");
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "An error occurred while retriggering imports.");
+            Telemetry.RecordJobException(activity, ex);
+            Logger.LogError(ex, "An error occurred while cleaning up temp files.");
         }
     }
 
     private async void CleanseAbandonedFiles(object? stateInfo)
     {
+        using var activity = Telemetry.BackgroundJobs.StartActivity("job.cleanse-abandoned-files");
         try
         {
             Logger.LogInformation("Identifying abandoned files to clean up...");
@@ -145,12 +148,14 @@ public class TempFileCleaner(IServiceProvider serviceProvider, ILogger<TempFileC
                 }
                 catch (Exception ex)
                 {
+                    Telemetry.RecordJobException(activity, ex);
                     Logger.LogError(ex, "Failed to delete abandoned file: {FileName}", file.FullName);
                 }
             }
         }
         catch (Exception ex)
         {
+            Telemetry.RecordJobException(activity, ex);
             Logger.LogError(ex, "An error occurred while cleaning up abandoned files.");
         }
     }

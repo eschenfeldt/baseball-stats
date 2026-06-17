@@ -1,5 +1,5 @@
-using System;
 using BaseballApi.Models;
+using BaseballApi.Observability;
 using Microsoft.EntityFrameworkCore;
 
 namespace BaseballApi.Services;
@@ -25,6 +25,7 @@ public class MediaImportTaskRestarter(IMediaImportQueue mediaImportQueue, IServi
 
     private async void RetriggerImports(object? stateInfo)
     {
+        using var activity = Telemetry.BackgroundJobs.StartActivity("job.retrigger-imports");
         try
         {
             Logger.LogInformation("Retriggering abandoned media import tasks...");
@@ -48,6 +49,7 @@ public class MediaImportTaskRestarter(IMediaImportQueue mediaImportQueue, IServi
         }
         catch (Exception ex)
         {
+            Telemetry.RecordJobException(activity, ex);
             Logger.LogError(ex, "An error occurred while retriggering imports.");
         }
     }

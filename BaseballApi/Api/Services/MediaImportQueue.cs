@@ -1,12 +1,28 @@
 using System.Threading.Channels;
+using BaseballApi.Observability;
 
 namespace BaseballApi.Services;
 
-public class MediaImportQueue(ILogger<MediaImportQueue> logger) : IMediaImportQueue
+public class MediaImportQueue : IMediaImportQueue
 {
     private Channel<Guid> Queue { get; } = Channel.CreateUnbounded<Guid>();
-    private ILogger<MediaImportQueue> Logger { get; } = logger;
+    private ILogger<MediaImportQueue> Logger { get; }
     private bool _importInProgress;
+
+    public MediaImportQueue(ILogger<MediaImportQueue> logger)
+    {
+        Logger = logger;
+        // Early-warning signal that the importer is falling behind, read from the unbounded
+        // channel on each metric collection. No need to keep the returned instrument: the
+        // Meter retains it, and observable gauges are pull-based so we never touch it again.
+        Telemetry.Meter.CreateObservableGauge(
+            "media_import.queue.depth",
+            () => Count,
+            unit: "{import}",
+            description: "Media imports waiting in the queue to be processed.");
+    }
+
+    public int Count => Queue.Reader.Count;
 
     public async ValueTask PushAsync(Guid importId)
     {

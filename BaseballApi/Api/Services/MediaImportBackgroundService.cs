@@ -1,6 +1,7 @@
 using BaseballApi.Import;
 using BaseballApi.Media;
 using BaseballApi.Models;
+using BaseballApi.Observability;
 using Microsoft.EntityFrameworkCore;
 
 namespace BaseballApi.Services;
@@ -23,26 +24,39 @@ public class MediaImportBackgroundService(
                 // Wait for an import task to be available
                 var importId = await MediaImportQueue.PopAsync(cancellationToken);
 
+                using var activity = Telemetry.BackgroundJobs.StartActivity("job.media-import");
+                activity?.SetTag("import.id", importId);
+
                 using var logScope = Logger.BeginScope(new Dictionary<string, object>
                 {
                     ["ImportId"] = importId,
                 });
                 Logger.LogInformation("Processing import task.");
 
-                // Create a scope to resolve services
-                using var scope = ServiceProvider.CreateScope();
-                var remoteFileManager = scope.ServiceProvider.GetRequiredService<IRemoteFileManager>();
-                using var context = scope.ServiceProvider.GetRequiredService<BaseballContext>();
-
                 try
                 {
+                    // Create a scope to resolve services
+                    using var scope = ServiceProvider.CreateScope();
+                    var remoteFileManager = scope.ServiceProvider.GetRequiredService<IRemoteFileManager>();
+                    using var context = scope.ServiceProvider.GetRequiredService<BaseballContext>();
+
                     MediaImportQueue.MarkImportInProgress();
-                    // Process the import task
-                    await ProcessImport(importId, remoteFileManager, context, cancellationToken);
+                    try
+                    {
+                        // Process the import task
+                        await ProcessImport(importId, remoteFileManager, context, cancellationToken);
+                    }
+                    finally
+                    {
+                        MediaImportQueue.MarkImportComplete();
+                    }
                 }
-                finally
+                catch (Exception ex)
                 {
-                    MediaImportQueue.MarkImportComplete();
+                    // Records non-cancellation failures on the span; rethrows so the outer
+                    // handler still logs (and a cancellation still breaks the loop).
+                    Telemetry.RecordJobException(activity, ex);
+                    throw;
                 }
             }
             catch (OperationCanceledException)
@@ -67,6 +81,7 @@ public class MediaImportBackgroundService(
         if (importTask == null)
         {
             Logger.LogWarning("Import task not found.");
+            Telemetry.RecordMediaImportOutcome(Telemetry.MediaImportOutcome.Skipped);
             return;
         }
 
@@ -74,6 +89,7 @@ public class MediaImportBackgroundService(
             importTask.Status != MediaImportTaskStatus.InProgress)
         {
             Logger.LogWarning("Import task is not in a valid state for processing: {Status}", importTask.Status);
+            Telemetry.RecordMediaImportOutcome(Telemetry.MediaImportOutcome.Skipped);
             return;
         }
 
@@ -109,10 +125,12 @@ public class MediaImportBackgroundService(
         if (errorCount == 0)
         {
             importTask.Status = MediaImportTaskStatus.Completed;
+            Telemetry.RecordMediaImportOutcome(Telemetry.MediaImportOutcome.Completed);
         }
         else
         {
             importTask.Status = MediaImportTaskStatus.Failed;
+            Telemetry.RecordMediaImportOutcome(Telemetry.MediaImportOutcome.Failed);
         }
         importTask.CompletedAt = DateTimeOffset.UtcNow;
         await context.SaveChangesAsync(cancellationToken);
