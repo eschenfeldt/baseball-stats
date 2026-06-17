@@ -62,3 +62,14 @@ The flat `OTEL_*` keys are read by the OTLP exporter directly from
   Configure** page (it differs from the Prometheus/Loki/Tempo instance IDs)
   and the token is a Cloud Access Policy token with `metrics:write`,
   `logs:write`, and `traces:write` scopes.
+
+Host/cloud resource attributes are not in this config. `deploy.yml` reads the
+DigitalOcean droplet's [metadata service](https://docs.digitalocean.com/reference/api/metadata/)
+(`http://169.254.169.254/metadata/v1`) on the box and assembles
+`OTEL_RESOURCE_ATTRIBUTES` (`cloud.provider`, `cloud.region`, `host.id`,
+`host.name`, `grafana.host.id`), which the SDK merges into the resource. This
+keeps the app and `compose.yaml` cloud-agnostic. Grafana Cloud associates
+telemetry with a host via `grafana.host.id` (and `host.name` + `cloud.provider`);
+plain `host.id` is ignored by Grafana but kept to match OTel conventions. If the
+metadata service is unavailable, deploy falls back to the systemd machine id and
+emits only `host.name`/`host.id`/`grafana.host.id` (no `cloud.*`).

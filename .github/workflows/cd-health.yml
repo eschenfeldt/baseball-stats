@@ -9,13 +9,17 @@ on:
     branches: [main]
 
 permissions:
-  id-token: write # Tailscale OIDC 
+  id-token: write # Tailscale OIDC
+  contents: read # actions/checkout (explicit since setting any scope zeroes the rest)
 
 jobs:
   cd-health:
     name: CD Health
     runs-on: ubuntu-latest
     steps:
+      # Needed so the .github/ci scripts below exist on the runner to pipe over SSH.
+      - uses: actions/checkout@v6
+
       - name: Connect to tailnet
         uses: tailscale/github-action@v4
         with:
@@ -27,21 +31,29 @@ jobs:
         env:
           DEPLOY_HOST: ${{ vars.DEPLOY_SSH_HOST }}
           DEPLOY_USER: ${{ vars.DEPLOY_SSH_USER }}
+        # Pipe the PR's copy of the script over stdin so it runs regardless of the
+        # droplet's deployed checkout — this is the same mechanism deploy.yml relies
+        # on for the OTel script, exercised here before any deploy.
         run: |
-          ssh -o StrictHostKeyChecking=accept-new "$DEPLOY_USER@$DEPLOY_HOST" '
-            set -e
-            echo "Logged in as:  $(whoami)"
-            echo "docker compose: $(docker compose version --short)"
-            cd ~/source/baseball-stats
-            echo "Repo HEAD:     $(git rev-parse --short HEAD) on $(git rev-parse --abbrev-ref HEAD)"
-            git status --short --branch
-            if [ -f BaseballApi/appsettings.Production.json ]; then
-              echo "prod config:   present"
-            else
-              echo "prod config:   MISSING — BaseballApi/appsettings.Production.json (build would fail)"
-              exit 1
-            fi
-          '
+          ssh -o StrictHostKeyChecking=accept-new "$DEPLOY_USER@$DEPLOY_HOST" 'sh -s' \
+            < .github/ci/server-health.sh
+
+      - name: OTel resource attributes (live droplet)
+        env:
+          DEPLOY_HOST: ${{ vars.DEPLOY_SSH_HOST }}
+          DEPLOY_USER: ${{ vars.DEPLOY_SSH_USER }}
+        # Run the exact script deploy.yml uses against the real droplet and show the
+        # OTEL_RESOURCE_ATTRIBUTES it will produce, so metadata access + fallback are
+        # confirmed before merge. Fail if grafana.host.id (the Grafana host id) is
+        # missing or empty.
+        run: |
+          attrs="$(ssh -o StrictHostKeyChecking=accept-new "$DEPLOY_USER@$DEPLOY_HOST" 'sh -s' \
+            < .github/ci/otel-resource-attributes.sh)"
+          echo "OTEL_RESOURCE_ATTRIBUTES=$attrs"
+          case "$attrs" in
+            *grafana.host.id=?*) ;;
+            *) echo "::error::otel-resource-attributes.sh produced no grafana.host.id" >&2; exit 1 ;;
+          esac
 
       - name: Read-only DB access (migration-gate creds)
         env:
