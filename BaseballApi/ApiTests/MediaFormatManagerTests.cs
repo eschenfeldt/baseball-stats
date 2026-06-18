@@ -22,6 +22,7 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
     MediaFormatManager Manager { get; }
     TestMediaImporter Importer { get; }
     private ILoggerFactory LoggerFactory { get; }
+    private TestMeterFactory MeterFactory { get; }
     long GameId { get { return Fixture.GameId; } }
 
     public MediaFormatManagerTests(TestMediaImportDatabaseFixture fixture, TestFileLoggerFixture fileLoggerFixture)
@@ -38,7 +39,8 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
         RemoteValidator = new(RemoteFileManager);
         LoggerFactory = fileLoggerFixture.FileLoggerFactory;
         var logger = LoggerFactory.CreateLogger<MediaImportQueue>();
-        var mediaMetrics = new MediaImportMetrics(new TestMeterFactory());
+        MeterFactory = new TestMeterFactory();
+        var mediaMetrics = new MediaImportMetrics(MeterFactory);
         MediaImportQueue mediaImportQueue = new(logger, mediaMetrics);
 
         IServiceCollection services = new ServiceCollection();
@@ -610,6 +612,7 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
     public async Task DisposeAsync()
     {
         await RemoteFileManager.DeleteFolder();
+        MeterFactory.Dispose();
     }
 
 }

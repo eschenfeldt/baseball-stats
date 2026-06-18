@@ -232,14 +232,17 @@ public class ReferenceManager(ILogger<ReferenceManager> logger, BaseballContext 
 
         if (unmatchedPlayers > 0)
         {
+            // Newest Players first (highest Id): a Player gets created when a current-season game is
+            // imported, so the most recently added unmatched rows are the ones most likely to be a
+            // real gap worth chasing rather than expected MiLB/historical noise.
             var sample = await Context.Players
                 .Where(p => !Context.ReferencePlayers.Any(rp => rp.PlayerId == p.Id))
-                .OrderBy(p => p.Id)
+                .OrderByDescending(p => p.Id)
                 .Take(MaxUnmatchedSampleLogged)
                 .ToListAsync(cancellation);
             Logger.LogInformation(
-                "{unmatchedPlayers} tracked Players have no ReferencePlayer (much of this is expected: the feed is current-season MLB only). Sample: {sample}",
-                unmatchedPlayers, DescribePlayers(sample));
+                "{unmatchedPlayers} tracked Players have no ReferencePlayer (much of this is expected: the feed is current-season MLB only). {sampleCount} most recently added shown: {sample}",
+                unmatchedPlayers, sample.Count, DescribePlayers(sample));
         }
     }
 

@@ -11,7 +11,7 @@ namespace BaseballApiTests;
 /// rather than a real exporter, so they need no collector or database. Each test builds its own
 /// <see cref="MediaImportMetrics"/> from a <see cref="TestMeterFactory"/>.
 /// </summary>
-public class MetricsTests
+public class MediaImportMetricsTests
 {
     [Fact]
     [Trait(TestCategory.Category, TestCategory.Observability)]
