@@ -6,16 +6,20 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace BaseballApiTests;
 
 /// <summary>
-/// Verifies the custom metrics (import-outcome counter + queue-depth gauge) emit through
-/// the shared <see cref="Telemetry.Meter"/>. Like the span tests these use an in-process
-/// listener rather than a real exporter, so they need no collector or database.
+/// Verifies the media-import metrics (outcome counter + queue-depth gauge) emit through the shared
+/// <see cref="Telemetry.MeterName"/> meter. Like the span tests these use an in-process listener
+/// rather than a real exporter, so they need no collector or database. Each test builds its own
+/// <see cref="MediaImportMetrics"/> from a <see cref="TestMeterFactory"/>.
 /// </summary>
 public class MetricsTests
 {
     [Fact]
     [Trait(TestCategory.Category, TestCategory.Observability)]
-    public void RecordMediaImportOutcome_IncrementsCounterWithStatusTag()
+    public void RecordOutcome_IncrementsCounterWithStatusTag()
     {
+        using var meterFactory = new TestMeterFactory();
+        var metrics = new MediaImportMetrics(meterFactory);
+
         var measurements = new List<(long Value, string? Status)>();
         using var listener = new MeterListener
         {
@@ -41,10 +45,10 @@ public class MetricsTests
         });
         listener.Start();
 
-        Telemetry.RecordMediaImportOutcome(Telemetry.MediaImportOutcome.Failed);
+        metrics.RecordOutcome(MediaImportMetrics.Outcome.Failed);
 
-        // Contains rather than Single: the counter is static, so a parallel test could record
-        // its own outcome while this listener is active.
+        // Contains rather than Single: a parallel test could record its own outcome on another
+        // MediaImportMetrics instance while this listener is active (same shared meter name).
         Assert.Contains(measurements, m => m.Value == 1 && m.Status == "failed");
     }
 
@@ -52,7 +56,10 @@ public class MetricsTests
     [Trait(TestCategory.Category, TestCategory.Observability)]
     public async Task QueueDepthGauge_ReportsCurrentQueueCount()
     {
-        var queue = new MediaImportQueue(NullLogger<MediaImportQueue>.Instance);
+        using var meterFactory = new TestMeterFactory();
+        var metrics = new MediaImportMetrics(meterFactory);
+        // Constructing the queue binds the gauge to its count.
+        var queue = new MediaImportQueue(NullLogger<MediaImportQueue>.Instance, metrics);
         // Three queued, none popped: a distinctive count so it's not confused with the
         // (typically empty) queues other test classes may hold alive on the shared meter.
         await queue.PushAsync(Guid.NewGuid());

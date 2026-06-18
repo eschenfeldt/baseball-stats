@@ -9,17 +9,12 @@ public class MediaImportQueue : IMediaImportQueue
     private ILogger<MediaImportQueue> Logger { get; }
     private bool _importInProgress;
 
-    public MediaImportQueue(ILogger<MediaImportQueue> logger)
+    public MediaImportQueue(ILogger<MediaImportQueue> logger, MediaImportMetrics metrics)
     {
         Logger = logger;
-        // Early-warning signal that the importer is falling behind, read from the unbounded
-        // channel on each metric collection. No need to keep the returned instrument: the
-        // Meter retains it, and observable gauges are pull-based so we never touch it again.
-        Telemetry.Meter.CreateObservableGauge(
-            "media_import.queue.depth",
-            () => Count,
-            unit: "{import}",
-            description: "Media imports waiting in the queue to be processed.");
+        // The queue-depth gauge is defined on MediaImportMetrics; bind it to this queue's count so
+        // the importer's backlog shows up as an early-warning signal when it's falling behind.
+        metrics.TrackQueueDepth(() => Count);
     }
 
     public int Count => Queue.Reader.Count;

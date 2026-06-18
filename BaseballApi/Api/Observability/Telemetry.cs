@@ -1,16 +1,20 @@
 using System.Diagnostics;
-using System.Diagnostics.Metrics;
 
 namespace BaseballApi.Observability;
 
 /// <summary>
-/// Shared telemetry primitives for background-job tracing and metrics. The
-/// <see cref="ActivitySource"/> and <see cref="Meter"/> are registered with the
-/// OpenTelemetry pipeline in <c>Program.cs</c> via
-/// <c>AddSource(Telemetry.BackgroundJobsSourceName)</c> and
-/// <c>AddMeter(Telemetry.MeterName)</c>; without those registrations
-/// <see cref="ActivitySource.StartActivity(string, ActivityKind)"/> returns null, so all
-/// span call sites must null-condition the returned activity.
+/// Shared, cross-cutting telemetry plumbing: the background-job <see cref="ActivitySource"/>, the
+/// common job-exception helper, and the OpenTelemetry meter name that every per-subsystem metrics
+/// class creates its instruments under. The source and meter name are registered with the
+/// OpenTelemetry pipeline in <c>Program.cs</c> via <c>AddSource(Telemetry.BackgroundJobsSourceName)</c>
+/// and <c>AddMeter(Telemetry.MeterName)</c>; without those registrations
+/// <see cref="ActivitySource.StartActivity(string, ActivityKind)"/> returns null, so span call
+/// sites must null-condition the returned activity.
+///
+/// Metrics deliberately do NOT live here. Each subsystem owns a dedicated, DI-registered metrics
+/// class (e.g. <c>MediaImportMetrics</c>, <c>ReferenceUpdateMetrics</c>) holding its own
+/// instruments, tag constants, and any cached gauge state, so this stays a thin shared core
+/// rather than a grab-bag that grows with every new metric.
 /// </summary>
 public static class Telemetry
 {
@@ -18,22 +22,11 @@ public static class Telemetry
 
     public static readonly ActivitySource BackgroundJobs = new(BackgroundJobsSourceName);
 
+    /// <summary>
+    /// Meter name shared by every custom metric. Per-subsystem metrics classes pass this to
+    /// <c>IMeterFactory.Create</c>, and <c>Program.cs</c> registers it with <c>AddMeter</c>.
+    /// </summary>
     public const string MeterName = "BaseballApi";
-
-    public static readonly Meter Meter = new(MeterName);
-
-    private static readonly Counter<long> MediaImportOutcomeCounter = Meter.CreateCounter<long>(
-        "media_import.outcomes",
-        unit: "{import}",
-        description: "Media import runs tagged by their final outcome.");
-
-    /// <summary>Final outcome values for the media-import counter and span tag.</summary>
-    public static class MediaImportOutcome
-    {
-        public const string Completed = "completed";
-        public const string Failed = "failed";
-        public const string Skipped = "skipped";
-    }
 
     /// <summary>
     /// Flags a background-job span as failed for an exception, except for cancellation:
@@ -49,19 +42,5 @@ public static class Telemetry
         }
         activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
         activity?.AddException(ex);
-    }
-
-    /// <summary>
-    /// Records a finished media import: increments the outcome counter tagged by
-    /// <paramref name="outcome"/> (use the <see cref="MediaImportOutcome"/> constants) and, when a
-    /// job span is active, annotates it so a trace can be filtered by the same outcome. A
-    /// crash mid-import is intentionally not an outcome here — that surfaces as a span error
-    /// instead. Note the span tag rides on <see cref="Activity.Current"/>, so call this while
-    /// the job's activity is the ambient one.
-    /// </summary>
-    public static void RecordMediaImportOutcome(string outcome)
-    {
-        MediaImportOutcomeCounter.Add(1, new KeyValuePair<string, object?>("status", outcome));
-        Activity.Current?.SetTag("import.outcome", outcome);
     }
 }

@@ -3,6 +3,7 @@ using BaseballApi.Contracts;
 using BaseballApi.Controllers;
 using BaseballApi.Import;
 using BaseballApi.Models;
+using BaseballApi.Observability;
 using BaseballApi.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -37,7 +38,8 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
         RemoteValidator = new(RemoteFileManager);
         LoggerFactory = fileLoggerFixture.FileLoggerFactory;
         var logger = LoggerFactory.CreateLogger<MediaImportQueue>();
-        MediaImportQueue mediaImportQueue = new(logger);
+        var mediaMetrics = new MediaImportMetrics(new TestMeterFactory());
+        MediaImportQueue mediaImportQueue = new(logger, mediaMetrics);
 
         IServiceCollection services = new ServiceCollection();
         services.AddSingleton<IRemoteFileManager>(RemoteFileManager);
@@ -45,7 +47,7 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
             opt.UseNpgsql(Context.Database.GetConnectionString()));
         var serviceProvider = services.BuildServiceProvider();
         var backgroundLogger = LoggerFactory.CreateLogger<MediaImportBackgroundService>();
-        var backgroundService = new MediaImportBackgroundService(mediaImportQueue, serviceProvider, backgroundLogger);
+        var backgroundService = new MediaImportBackgroundService(mediaImportQueue, serviceProvider, backgroundLogger, mediaMetrics);
         Manager = new(mediaImportQueue, serviceProvider, logger, CancellationToken.None);
 
         var controller = new MediaController(Context, RemoteFileManager, mediaImportQueue);

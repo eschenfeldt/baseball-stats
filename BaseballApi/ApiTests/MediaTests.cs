@@ -34,7 +34,7 @@ public class MediaTests : BaseballTests, IAsyncLifetime
         RemoteFileManager = new(configuration, nameof(MediaTests));
         RemoteValidator = new(RemoteFileManager);
         var logger = FileLoggerFactory.CreateLogger<MediaImportQueue>();
-        MediaImportQueue mediaImportQueue = new(logger);
+        MediaImportQueue mediaImportQueue = new(logger, MediaMetrics);
         Controller = new MediaController(Context, RemoteFileManager, mediaImportQueue);
         TestGameManager = new TestGameManager(Context);
 
@@ -45,7 +45,7 @@ public class MediaTests : BaseballTests, IAsyncLifetime
             opt.UseNpgsql(Context.Database.GetConnectionString()));
         var serviceProvider = services.BuildServiceProvider();
         var backgroundLogger = FileLoggerFactory.CreateLogger<MediaImportBackgroundService>();
-        MediaImportBackgroundService = new MediaImportBackgroundService(mediaImportQueue, serviceProvider, backgroundLogger);
+        MediaImportBackgroundService = new MediaImportBackgroundService(mediaImportQueue, serviceProvider, backgroundLogger, MediaMetrics);
         var mediaImportTaskRestarterLogger = FileLoggerFactory.CreateLogger<MediaImportTaskRestarter>();
         MediaImportTaskRestarter = new MediaImportTaskRestarter(mediaImportQueue, serviceProvider, mediaImportTaskRestarterLogger);
         var tempFileCleanerLogger = FileLoggerFactory.CreateLogger<TempFileCleaner>();

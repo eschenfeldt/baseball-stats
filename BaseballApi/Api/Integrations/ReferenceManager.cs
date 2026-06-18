@@ -1,14 +1,17 @@
+using System.Diagnostics;
 using BaseballApi.Models;
+using BaseballApi.Observability;
 using Microsoft.EntityFrameworkCore;
 
 namespace BaseballApi.Integrations;
 
-public class ReferenceManager(ILogger<ReferenceManager> logger, BaseballContext context, IMLBAMConnector mlbamConnector, FangraphsConnector fangraphsConnector)
+public class ReferenceManager(ILogger<ReferenceManager> logger, BaseballContext context, IMLBAMConnector mlbamConnector, FangraphsConnector fangraphsConnector, ReferenceUpdateMetrics metrics)
 {
     private ILogger<ReferenceManager> Logger { get; } = logger;
     private IMLBAMConnector MLBAMConnector { get; } = mlbamConnector;
     private BaseballContext Context { get; } = context;
     private FangraphsConnector FangraphsConnector { get; } = fangraphsConnector;
+    private ReferenceUpdateMetrics Metrics { get; } = metrics;
 
     public async Task<int> UpdateTeamReferences(CancellationToken cancellation)
     {
@@ -39,6 +42,15 @@ public class ReferenceManager(ILogger<ReferenceManager> logger, BaseballContext 
         var mlbamCurrentPlayers = await MLBAMConnector.GetPlayersAsync(cancellation);
         int createdCount = 0;
         int updatedCount = 0;
+        // Per-run disposition of each feed player, plus the colliding Players for each
+        // ambiguous name, so we can both count outcomes and surface the fixable rows at the end.
+        var outcomeCounts = new Dictionary<string, int>();
+        var ambiguousByName = new Dictionary<string, List<Player>>();
+        void RecordOutcome(string outcome)
+        {
+            Metrics.RecordPlayerMatchOutcome(outcome);
+            outcomeCounts[outcome] = outcomeCounts.GetValueOrDefault(outcome) + 1;
+        }
         Logger.LogInformation("Fetched {count} current players from MLBAM.", mlbamCurrentPlayers.People.Count);
         foreach (var mlbamPlayer in mlbamCurrentPlayers.People)
         {
@@ -65,7 +77,13 @@ public class ReferenceManager(ILogger<ReferenceManager> logger, BaseballContext 
                     Logger.LogInformation("Created ReferencePlayer for {player} with MLBAMId {mlbamId}.", mlbamPlayer.FullName, mlbamPlayer.Id);
                 }
             }
-            if (referencePlayer != null)
+            if (referencePlayer == null)
+            {
+                // No MLBAMId match and no birthdate to match or create on: nothing we can do
+                // this run. Previously a silent fall-through; now counted explicitly.
+                RecordOutcome(ReferenceUpdateMetrics.PlayerMatchOutcome.DroppedNoBirthdate);
+            }
+            else
             {
                 var updated = false;
                 if (referencePlayer.MLBAMId != mlbamPlayer.Id)
@@ -100,13 +118,18 @@ public class ReferenceManager(ILogger<ReferenceManager> logger, BaseballContext 
                     referencePlayer.CurrentTeamId = team.Id;
                     updated = true;
                 }
-                var player = MatchPlayerByMLBAMPlayer(referencePlayer, mlbamPlayer);
-                if (player != null && referencePlayer.PlayerId != player.Id)
+                var match = MatchPlayerByMLBAMPlayer(referencePlayer, mlbamPlayer);
+                RecordOutcome(match.Outcome);
+                if (match.Outcome == ReferenceUpdateMetrics.PlayerMatchOutcome.Ambiguous && match.AmbiguousPlayers != null)
+                {
+                    ambiguousByName[mlbamPlayer.FullName.ToLowerInvariant()] = match.AmbiguousPlayers;
+                }
+                if (match.Player != null && referencePlayer.PlayerId != match.Player.Id)
                 {
                     Logger.LogInformation("Linking ReferencePlayer {referencePlayer} to Player {player} (id {playerId}): previously {oldPlayer} (id {oldPlayerId}).",
-                        referencePlayer.Name, player.Name, player.Id,
+                        referencePlayer.Name, match.Player.Name, match.Player.Id,
                         referencePlayer.Player?.Name ?? "none", referencePlayer.PlayerId);
-                    referencePlayer.Player = player;
+                    referencePlayer.Player = match.Player;
                     updated = true;
                 }
                 if (updated && !isNewlyCreated)
@@ -126,6 +149,8 @@ public class ReferenceManager(ILogger<ReferenceManager> logger, BaseballContext 
         Logger.LogInformation("Completed player reference update: {createdCount} players created, {updatedCount} players updated.",
             createdCount, updatedCount);
 
+        await RecordPlayerMatchState(outcomeCounts, ambiguousByName, cancellation);
+
         // when we have more integrations they can also be handled here
         // unless they require too many api calls
 
@@ -135,6 +160,91 @@ public class ReferenceManager(ILogger<ReferenceManager> logger, BaseballContext 
             UpdatedCount = updatedCount
         };
     }
+
+    /// <summary>
+    /// Cap on how many ambiguous name groups / unmatched Players we spell out individually in the
+    /// end-of-run logs; counts are always reported in full, only the row-level detail is sampled.
+    /// </summary>
+    private const int MaxAmbiguousGroupsLogged = 50;
+    private const int MaxUnmatchedSampleLogged = 25;
+
+    /// <summary>
+    /// Captures the post-run match state for the observability gauges and surfaces the actual
+    /// fixable rows (ambiguous name groups) plus a sample of unmatched Players in the logs. The DB
+    /// counts are queried fresh rather than derived from the loop so they reflect total state, not
+    /// just this run's feed.
+    /// </summary>
+    private async Task RecordPlayerMatchState(
+        IReadOnlyDictionary<string, int> outcomeCounts,
+        IReadOnlyDictionary<string, List<Player>> ambiguousByName,
+        CancellationToken cancellation)
+    {
+        var totalPlayers = await Context.Players.CountAsync(cancellation);
+        var matchedPlayers = await Context.Players
+            .CountAsync(p => Context.ReferencePlayers.Any(rp => rp.PlayerId == p.Id), cancellation);
+        var unmatchedPlayers = totalPlayers - matchedPlayers;
+        var ambiguousGroups = ambiguousByName.Count;
+        var fixableUnmatched = ambiguousByName.Values
+            .SelectMany(players => players)
+            .Select(p => p.Id)
+            .Distinct()
+            .Count();
+
+        Metrics.UpdatePlayerStateSnapshot(new ReferenceUpdateMetrics.PlayerStateSnapshot(
+            Matched: matchedPlayers,
+            Unmatched: unmatchedPlayers,
+            AmbiguousNameGroups: ambiguousGroups,
+            FixableUnmatched: fixableUnmatched));
+
+        var activity = Activity.Current;
+        if (activity != null)
+        {
+            foreach (var (outcome, count) in outcomeCounts)
+            {
+                activity.SetTag($"match.{outcome}", count);
+            }
+            activity.SetTag("match.players_total", totalPlayers);
+            activity.SetTag("match.players_matched", matchedPlayers);
+            activity.SetTag("match.players_unmatched", unmatchedPlayers);
+            activity.SetTag("match.ambiguous_name_groups", ambiguousGroups);
+        }
+
+        Logger.LogInformation(
+            "Player match summary: {linkedByNameAndDob} linked by name+DOB, {linkedByNameOnly} by name only, {ambiguous} ambiguous, {unmatched} unmatched, {droppedNoBirthdate} dropped (no birthdate). DB state: {matchedPlayers}/{totalPlayers} Players matched, {unmatchedPlayers} unmatched, {fixableUnmatched} fixable across {ambiguousGroups} ambiguous name groups.",
+            outcomeCounts.GetValueOrDefault(ReferenceUpdateMetrics.PlayerMatchOutcome.LinkedByNameAndDob),
+            outcomeCounts.GetValueOrDefault(ReferenceUpdateMetrics.PlayerMatchOutcome.LinkedByNameOnly),
+            outcomeCounts.GetValueOrDefault(ReferenceUpdateMetrics.PlayerMatchOutcome.Ambiguous),
+            outcomeCounts.GetValueOrDefault(ReferenceUpdateMetrics.PlayerMatchOutcome.Unmatched),
+            outcomeCounts.GetValueOrDefault(ReferenceUpdateMetrics.PlayerMatchOutcome.DroppedNoBirthdate),
+            matchedPlayers, totalPlayers, unmatchedPlayers, fixableUnmatched, ambiguousGroups);
+
+        foreach (var (name, players) in ambiguousByName.Take(MaxAmbiguousGroupsLogged))
+        {
+            Logger.LogWarning(
+                "Ambiguous match for feed name '{name}': {count} tracked Players share it and none could be uniquely linked; set DOBs to disambiguate. Candidates: {candidates}",
+                name, players.Count, DescribePlayers(players));
+        }
+        if (ambiguousGroups > MaxAmbiguousGroupsLogged)
+        {
+            Logger.LogInformation("{remaining} additional ambiguous name groups not individually logged.",
+                ambiguousGroups - MaxAmbiguousGroupsLogged);
+        }
+
+        if (unmatchedPlayers > 0)
+        {
+            var sample = await Context.Players
+                .Where(p => !Context.ReferencePlayers.Any(rp => rp.PlayerId == p.Id))
+                .OrderBy(p => p.Id)
+                .Take(MaxUnmatchedSampleLogged)
+                .ToListAsync(cancellation);
+            Logger.LogInformation(
+                "{unmatchedPlayers} tracked Players have no ReferencePlayer (much of this is expected: the feed is current-season MLB only). Sample: {sample}",
+                unmatchedPlayers, DescribePlayers(sample));
+        }
+    }
+
+    private static string DescribePlayers(IEnumerable<Player> players) =>
+        string.Join("; ", players.Select(p => $"#{p.Id} {p.Name} (DOB {p.DateOfBirth?.ToString() ?? "none"})"));
 
     /// <summary>
     /// Limit number of players to process in each batch to avoid overwhelming Fangraphs
@@ -230,7 +340,15 @@ public class ReferenceManager(ILogger<ReferenceManager> logger, BaseballContext 
         };
     }
 
-    private Player? MatchPlayerByMLBAMPlayer(ReferencePlayer referencePlayer, MLBAMPlayer mlbamPlayer)
+    /// <summary>
+    /// Result of attempting to link a feed player to a tracked <see cref="Player"/>. <see cref="Outcome"/>
+    /// is one of the <see cref="ReferenceUpdateMetrics.PlayerMatchOutcome"/> constants; <see cref="AmbiguousPlayers"/>
+    /// carries the colliding Players when <see cref="Outcome"/> is
+    /// <see cref="ReferenceUpdateMetrics.PlayerMatchOutcome.Ambiguous"/>, for end-of-run reporting.
+    /// </summary>
+    private readonly record struct PlayerMatch(Player? Player, string Outcome, List<Player>? AmbiguousPlayers);
+
+    private PlayerMatch MatchPlayerByMLBAMPlayer(ReferencePlayer referencePlayer, MLBAMPlayer mlbamPlayer)
     {
         // First match by name and date of birth
         var referenceName = mlbamPlayer.FullName.ToLowerInvariant();
@@ -239,7 +357,7 @@ public class ReferenceManager(ILogger<ReferenceManager> logger, BaseballContext 
         {
             Logger.LogInformation("Matched MLBAM player {mlbamPlayer} to Player {player} by name and date of birth.",
                 mlbamPlayer.FullName, player.Name);
-            return player;
+            return new PlayerMatch(player, ReferenceUpdateMetrics.PlayerMatchOutcome.LinkedByNameAndDob, null);
         }
         // Next look for a unique match by name only
         var playersByName = Context.Players.Where(p => p.NameNormalized == referenceName).ToList();
@@ -247,16 +365,16 @@ public class ReferenceManager(ILogger<ReferenceManager> logger, BaseballContext 
         {
             Logger.LogInformation("Matched MLBAM player {mlbamPlayer} to Player {player} by name only.",
                 mlbamPlayer.FullName, playersByName.First().Name);
-            return playersByName.First();
+            return new PlayerMatch(playersByName.First(), ReferenceUpdateMetrics.PlayerMatchOutcome.LinkedByNameOnly, null);
         }
         else if (playersByName.Count > 1)
         {
-            // if there are multiple name matches, just warn for now;
-            // probably we should be setting the dob on the player to disambiguate
-            Logger.LogWarning("Warning: multiple players found with name {mlbamPlayerFullName}; cannot match by MLBAMId {mlbamPlayerId}", mlbamPlayer.FullName, mlbamPlayer.Id);
+            // Multiple name matches: can't pick one. These are the actionable cases (set DOBs to
+            // disambiguate); they're collected and logged together at the end of the run.
+            return new PlayerMatch(null, ReferenceUpdateMetrics.PlayerMatchOutcome.Ambiguous, playersByName);
         }
 
-        return null;
+        return new PlayerMatch(null, ReferenceUpdateMetrics.PlayerMatchOutcome.Unmatched, null);
     }
 
     private static string FangraphsIdFromUri(Uri uri)

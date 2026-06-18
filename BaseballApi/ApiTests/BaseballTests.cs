@@ -1,6 +1,7 @@
 using System.Reflection;
 using BaseballApi.Integrations;
 using BaseballApi.Models;
+using BaseballApi.Observability;
 using BaseballApi.Services;
 using Microsoft.Extensions.Logging;
 
@@ -11,11 +12,19 @@ public abstract class BaseballTests : IClassFixture<TestDatabaseFixture>, IClass
     protected BaseballContext Context { get; }
     protected TestDatabaseFixture Fixture { get; }
     protected ILoggerFactory FileLoggerFactory { get; }
+
+    private TestMeterFactory MeterFactory { get; }
+    protected MediaImportMetrics MediaMetrics { get; }
+    protected ReferenceUpdateMetrics ReferenceMetrics { get; }
+
     protected BaseballTests(TestDatabaseFixture fixture, TestFileLoggerFixture fileLoggerFixture)
     {
         Fixture = fixture;
         FileLoggerFactory = fileLoggerFixture.FileLoggerFactory;
         Context = TestDatabaseFixture.CreateContext();
+        MeterFactory = new TestMeterFactory();
+        MediaMetrics = new MediaImportMetrics(MeterFactory);
+        ReferenceMetrics = new ReferenceUpdateMetrics(MeterFactory);
         // Context.Database.BeginTransaction(); // allow changes without persisting to the db
     }
 
@@ -35,6 +44,7 @@ public abstract class BaseballTests : IClassFixture<TestDatabaseFixture>, IClass
     public void Dispose()
     {
         Context.Dispose();
+        MeterFactory.Dispose();
         GC.SuppressFinalize(this);
     }
 }
