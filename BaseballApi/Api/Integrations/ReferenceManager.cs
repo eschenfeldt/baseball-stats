@@ -184,11 +184,18 @@ public class ReferenceManager(ILogger<ReferenceManager> logger, BaseballContext 
             .CountAsync(p => Context.ReferencePlayers.Any(rp => rp.PlayerId == p.Id), cancellation);
         var unmatchedPlayers = totalPlayers - matchedPlayers;
         var ambiguousGroups = ambiguousByName.Count;
-        var fixableUnmatched = ambiguousByName.Values
+        // Only the genuinely unmatched members of the ambiguous groups are "fixable". A group can
+        // also contain a Player that's already linked to a ReferencePlayer (e.g. one linked by name
+        // only before a second Player with the same name appeared); counting those would overstate
+        // the fixable-unmatched figure and break its "Unmatched tracked Players" definition.
+        var ambiguousPlayerIds = ambiguousByName.Values
             .SelectMany(players => players)
             .Select(p => p.Id)
             .Distinct()
-            .Count();
+            .ToList();
+        var fixableUnmatched = await Context.Players
+            .CountAsync(p => ambiguousPlayerIds.Contains(p.Id)
+                && !Context.ReferencePlayers.Any(rp => rp.PlayerId == p.Id), cancellation);
 
         Metrics.UpdatePlayerStateSnapshot(new ReferenceUpdateMetrics.PlayerStateSnapshot(
             Matched: matchedPlayers,
@@ -353,7 +360,9 @@ public class ReferenceManager(ILogger<ReferenceManager> logger, BaseballContext 
 
     private PlayerMatch MatchPlayerByMLBAMPlayer(ReferencePlayer referencePlayer, MLBAMPlayer mlbamPlayer)
     {
-        // First match by name and date of birth
+        // First match by name and date of birth. NameNormalized is unaccent_immutable(lower(Name)),
+        // which already strips the diacritics that DB Player names can carry; the MLBAM feed delivers
+        // names without diacritics, so lowering the feed name is enough to line the two up.
         var referenceName = mlbamPlayer.FullName.ToLowerInvariant();
         var player = Context.Players.FirstOrDefault(p => p.NameNormalized == referenceName && p.DateOfBirth == referencePlayer.DateOfBirth);
         if (player != null)
