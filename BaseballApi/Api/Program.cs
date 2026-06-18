@@ -106,6 +106,12 @@ builder.Services.AddHttpClient<FangraphsConnector>(client =>
     client.BaseAddress = new Uri("https://www.fangraphs.com/api/search/players/");
 });
 builder.Services.AddScoped<ReferenceManager, ReferenceManager>();
+// Per-subsystem metrics: singletons so each owns its instruments for the process lifetime. They
+// pull a Meter from IMeterFactory, which AddMetrics registers (and which the metric collection
+// is built on regardless of whether the OTLP exporter above is configured).
+builder.Services.AddMetrics();
+builder.Services.AddSingleton<MediaImportMetrics>();
+builder.Services.AddSingleton<ReferenceUpdateMetrics>();
 builder.Services.AddSingleton<IMediaImportQueue, MediaImportQueue>();
 builder.Services.AddHostedService<RemoteLogService>();
 builder.Services.AddHostedService<MediaImportBackgroundService>();

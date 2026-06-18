@@ -9,11 +9,13 @@ namespace BaseballApi.Services;
 public class MediaImportBackgroundService(
         IMediaImportQueue mediaImportQueue,
         IServiceProvider serviceProvider,
-        ILogger<MediaImportBackgroundService> logger) : BackgroundService
+        ILogger<MediaImportBackgroundService> logger,
+        MediaImportMetrics metrics) : BackgroundService
 {
     private IMediaImportQueue MediaImportQueue { get; } = mediaImportQueue;
     private IServiceProvider ServiceProvider { get; } = serviceProvider;
     private ILogger<MediaImportBackgroundService> Logger { get; } = logger;
+    private MediaImportMetrics Metrics { get; } = metrics;
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
@@ -81,7 +83,7 @@ public class MediaImportBackgroundService(
         if (importTask == null)
         {
             Logger.LogWarning("Import task not found.");
-            Telemetry.RecordMediaImportOutcome(Telemetry.MediaImportOutcome.Skipped);
+            Metrics.RecordOutcome(MediaImportMetrics.Outcome.Skipped);
             return;
         }
 
@@ -89,7 +91,7 @@ public class MediaImportBackgroundService(
             importTask.Status != MediaImportTaskStatus.InProgress)
         {
             Logger.LogWarning("Import task is not in a valid state for processing: {Status}", importTask.Status);
-            Telemetry.RecordMediaImportOutcome(Telemetry.MediaImportOutcome.Skipped);
+            Metrics.RecordOutcome(MediaImportMetrics.Outcome.Skipped);
             return;
         }
 
@@ -125,12 +127,12 @@ public class MediaImportBackgroundService(
         if (errorCount == 0)
         {
             importTask.Status = MediaImportTaskStatus.Completed;
-            Telemetry.RecordMediaImportOutcome(Telemetry.MediaImportOutcome.Completed);
+            Metrics.RecordOutcome(MediaImportMetrics.Outcome.Completed);
         }
         else
         {
             importTask.Status = MediaImportTaskStatus.Failed;
-            Telemetry.RecordMediaImportOutcome(Telemetry.MediaImportOutcome.Failed);
+            Metrics.RecordOutcome(MediaImportMetrics.Outcome.Failed);
         }
         importTask.CompletedAt = DateTimeOffset.UtcNow;
         await context.SaveChangesAsync(cancellationToken);

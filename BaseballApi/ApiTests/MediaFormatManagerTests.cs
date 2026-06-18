@@ -3,6 +3,7 @@ using BaseballApi.Contracts;
 using BaseballApi.Controllers;
 using BaseballApi.Import;
 using BaseballApi.Models;
+using BaseballApi.Observability;
 using BaseballApi.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -21,6 +22,7 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
     MediaFormatManager Manager { get; }
     TestMediaImporter Importer { get; }
     private ILoggerFactory LoggerFactory { get; }
+    private TestMeterFactory MeterFactory { get; }
     long GameId { get { return Fixture.GameId; } }
 
     public MediaFormatManagerTests(TestMediaImportDatabaseFixture fixture, TestFileLoggerFixture fileLoggerFixture)
@@ -37,7 +39,9 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
         RemoteValidator = new(RemoteFileManager);
         LoggerFactory = fileLoggerFixture.FileLoggerFactory;
         var logger = LoggerFactory.CreateLogger<MediaImportQueue>();
-        MediaImportQueue mediaImportQueue = new(logger);
+        MeterFactory = new TestMeterFactory();
+        var mediaMetrics = new MediaImportMetrics(MeterFactory);
+        MediaImportQueue mediaImportQueue = new(logger, mediaMetrics);
 
         IServiceCollection services = new ServiceCollection();
         services.AddSingleton<IRemoteFileManager>(RemoteFileManager);
@@ -45,7 +49,7 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
             opt.UseNpgsql(Context.Database.GetConnectionString()));
         var serviceProvider = services.BuildServiceProvider();
         var backgroundLogger = LoggerFactory.CreateLogger<MediaImportBackgroundService>();
-        var backgroundService = new MediaImportBackgroundService(mediaImportQueue, serviceProvider, backgroundLogger);
+        var backgroundService = new MediaImportBackgroundService(mediaImportQueue, serviceProvider, backgroundLogger, mediaMetrics);
         Manager = new(mediaImportQueue, serviceProvider, logger, CancellationToken.None);
 
         var controller = new MediaController(Context, RemoteFileManager, mediaImportQueue);
@@ -608,6 +612,7 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
     public async Task DisposeAsync()
     {
         await RemoteFileManager.DeleteFolder();
+        MeterFactory.Dispose();
     }
 
 }

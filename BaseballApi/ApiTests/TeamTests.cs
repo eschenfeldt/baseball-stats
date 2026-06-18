@@ -59,7 +59,7 @@ public class TeamTests : BaseballTests
     {
         var logger = FileLoggerFactory.CreateLogger<ReferenceManager>();
         var connector = new MLBAMConnector(CreateMLBAMHttpClient());
-        var referenceManager = new ReferenceManager(logger, Context, connector, CreateFangraphsConnector());
+        var referenceManager = new ReferenceManager(logger, Context, connector, CreateFangraphsConnector(), ReferenceMetrics);
         var updatedCount = await referenceManager.UpdateTeamReferences(CancellationToken.None);
         var rangers = Context.Teams.First(t => t.Abbreviation == "TEX");
         Assert.Equal(140, rangers.MLBAMId);

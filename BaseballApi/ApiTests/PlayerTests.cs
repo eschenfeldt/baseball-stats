@@ -140,11 +140,11 @@ public class PlayerTests : BaseballTests
         var fangraphsConnector = CreateFangraphsConnector();
         // update teams so the MLBAM IDs are present
         var realConnector = new MLBAMConnector(CreateMLBAMHttpClient());
-        var realReferenceManager = new ReferenceManager(logger, Context, realConnector, fangraphsConnector);
+        var realReferenceManager = new ReferenceManager(logger, Context, realConnector, fangraphsConnector, ReferenceMetrics);
         var teamsUpdated = await realReferenceManager.UpdateTeamReferences(CancellationToken.None);
 
         var connector = new MockMLBAMConnector();
-        var referenceManager = new ReferenceManager(logger, Context, connector, fangraphsConnector);
+        var referenceManager = new ReferenceManager(logger, Context, connector, fangraphsConnector, ReferenceMetrics);
         var result = await referenceManager.UpdatePlayerReferences(CancellationToken.None);
         Assert.Equal(1, result.CreatedCount);
         Assert.Equal(2, result.UpdatedCount);
@@ -190,11 +190,11 @@ public class PlayerTests : BaseballTests
         var logger = FileLoggerFactory.CreateLogger<ReferenceManager>();
         var fangraphsConnector = CreateFangraphsConnector();
         var realConnector = new MLBAMConnector(CreateMLBAMHttpClient());
-        var realReferenceManager = new ReferenceManager(logger, Context, realConnector, fangraphsConnector);
+        var realReferenceManager = new ReferenceManager(logger, Context, realConnector, fangraphsConnector, ReferenceMetrics);
         var teamsUpdated = await realReferenceManager.UpdateTeamReferences(CancellationToken.None);
 
         var connector = new MockMLBAMConnector();
-        var referenceManager = new ReferenceManager(logger, Context, connector, fangraphsConnector);
+        var referenceManager = new ReferenceManager(logger, Context, connector, fangraphsConnector, ReferenceMetrics);
         var result = await referenceManager.UpdatePlayerReferences(CancellationToken.None);
 
         var dodgers = Context.Teams.First(t => t.Abbreviation == "LAD");
