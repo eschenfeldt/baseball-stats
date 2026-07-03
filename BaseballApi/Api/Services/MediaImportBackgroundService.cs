@@ -26,7 +26,7 @@ public class MediaImportBackgroundService(
                 // Wait for an import task to be available
                 var importId = await MediaImportQueue.PopAsync(cancellationToken);
 
-                using var activity = Telemetry.BackgroundJobs.StartActivity("job.media-import");
+                using var activity = Telemetry.StartJob("job.media-import");
                 activity?.SetTag("import.id", importId);
 
                 using var logScope = Logger.BeginScope(new Dictionary<string, object>

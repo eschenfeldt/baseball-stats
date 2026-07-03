@@ -33,7 +33,10 @@ read-only DB access) still works before you rely on it at merge time.
 3. Remove any images that need to be updated: `docker image rm <image name> --force`
 4. Optionally `export GIT_SHA="$(git rev-parse --short HEAD)"` so telemetry
    reports the right `service.version`; without it the build falls back to the
-   assembly version.
+   assembly version. Likewise optionally
+   `export HOST_RESOURCE_ATTRS="$(sh .github/ci/otel-resource-attributes.sh)"`;
+   without it this deploy's telemetry has no host attribution (fine in a
+   pinch — Grafana's host views just show a gap until the next normal deploy).
 5. Run `docker compose --profile prod up -d`, which builds the containers. (Omit the `-d` to remain attached and see logs.)
    
 
@@ -73,3 +76,8 @@ telemetry with a host via `grafana.host.id` (and `host.name` + `cloud.provider`)
 plain `host.id` is ignored by Grafana but kept to match OTel conventions. If the
 metadata service is unavailable, deploy falls back to the systemd machine id and
 emits only `host.name`/`host.id`/`grafana.host.id` (no `cloud.*`).
+
+Dashboards for consuming this telemetry are committed in
+[`docs/observability/dashboards/`](docs/observability/dashboards/) — import the
+JSON into Grafana; the folder README covers importing, the metric-name mapping,
+and known quirks.

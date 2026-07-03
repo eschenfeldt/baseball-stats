@@ -1,0 +1,306 @@
+{
+  "uid": "bb-background-jobs",
+  "title": "Baseball API — Background Jobs",
+  "description": "Media import pipeline and MLBAM/Fangraphs reference-update jobs: are they running, succeeding, and keeping the data matched? Source of truth: docs/observability/dashboards/ in the repo.",
+  "tags": ["baseball-api"],
+  "editable": true,
+  "schemaVersion": 39,
+  "time": { "from": "now-7d", "to": "now" },
+  "refresh": "",
+  "templating": {
+    "list": [
+      {
+        "name": "prom",
+        "label": "Metrics",
+        "type": "datasource",
+        "query": "prometheus",
+        "hide": 0
+      },
+      {
+        "name": "loki",
+        "label": "Logs",
+        "type": "datasource",
+        "query": "loki",
+        "hide": 0
+      },
+      {
+        "name": "service",
+        "label": "Service",
+        "type": "query",
+        "datasource": { "type": "prometheus", "uid": "${prom}" },
+        "query": "label_values(target_info, job)",
+        "refresh": 2,
+        "includeAll": false,
+        "multi": false
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "text",
+      "title": "",
+      "gridPos": { "h": 5, "w": 24, "x": 0, "y": 0 },
+      "options": {
+        "mode": "markdown",
+        "content": "Every background job emits a `job.*` span per run; the run/error/duration panels are built from Grafana's server-side span metrics, which only cover SERVER and CONSUMER spans — the job spans are deliberately emitted as CONSUMER (`Telemetry.StartJob`) so they show up here. Data starts when that change is deployed; runs before it (Internal spans) are visible in Tempo but absent from these three panels. Expected cadence — `job.media-import`: on demand · `job.update-team-references`: 12h · `job.update-player-references`: 24h · `job.update-fangraphs-links`: 6h · `job.set-content-types`: 12h · `job.create-alternate-formats`: 1h · `job.cleanse-temp-files`: 12h · `job.cleanse-abandoned-files`: 24h · `job.retrigger-imports`: 1h · `job.upload-logs`: 1h · `job.cleanup-old-logs`: 24h. A job missing from \"runs\" for ~2× its cadence is a problem even if nothing is red.\n\n**To investigate a failed run:** Explore → Tempo → TraceQL: `{name =~ \"job\\\\..*\" && status = error}` — the trace shows every DB query and outbound HTTP call the job made, with the exception on the failing span."
+      }
+    },
+    {
+      "id": 2,
+      "type": "bargauge",
+      "title": "Job runs (dashboard time range)",
+      "description": "How many times each job ran in the selected window. Compare against the cadence in the header — a missing job is as bad as a failing one.",
+      "gridPos": { "h": 9, "w": 8, "x": 0, "y": 5 },
+      "datasource": { "type": "prometheus", "uid": "${prom}" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "color": { "mode": "fixed", "fixedColor": "blue" }
+        },
+        "overrides": []
+      },
+      "options": {
+        "displayMode": "basic",
+        "orientation": "horizontal",
+        "reduceOptions": { "calcs": ["lastNotNull"], "values": false }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (span_name) (increase(traces_spanmetrics_calls_total{service=~\"$service\", span_name=~\"job\\\\..*\"}[$__range]))",
+          "legendFormat": "{{span_name}}",
+          "instant": true,
+          "range": false
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "bargauge",
+      "title": "Job failures (dashboard time range)",
+      "description": "Runs that ended with an error status on the job span. Anything nonzero deserves a look — use the TraceQL query in the header to find the failing trace. Note: cancellations at shutdown are deliberately NOT counted as failures.",
+      "gridPos": { "h": 9, "w": 8, "x": 8, "y": 5 },
+      "datasource": { "type": "prometheus", "uid": "${prom}" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 1 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "displayMode": "basic",
+        "orientation": "horizontal",
+        "reduceOptions": { "calcs": ["lastNotNull"], "values": false }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (span_name) (increase(traces_spanmetrics_calls_total{service=~\"$service\", span_name=~\"job\\\\..*\", status_code=\"STATUS_CODE_ERROR\"}[$__range]))",
+          "legendFormat": "{{span_name}}",
+          "instant": true,
+          "range": false
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Job duration p95",
+      "description": "How long each job takes. Media imports are legitimately hours-long for video batches; the interesting signal is a job whose duration suddenly changes shape.",
+      "gridPos": { "h": 9, "w": 8, "x": 16, "y": 5 },
+      "datasource": { "type": "prometheus", "uid": "${prom}" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": { "fillOpacity": 0, "showPoints": "never" }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(0.95, sum by (span_name, le) (rate(traces_spanmetrics_latency_bucket{service=~\"$service\", span_name=~\"job\\\\..*\"}[$__rate_interval])))",
+          "legendFormat": "{{span_name}}"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Media import outcomes (per hour)",
+      "description": "Final outcome of each import run. CAVEAT: 'skipped' is mostly benign noise — the hourly retrigger job re-queues anything still Queued/InProgress, and each duplicate pop lands here as 'skipped' once the real run finishes. Watch 'failed'; ignore a steady trickle of 'skipped' during long imports.",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 14 },
+      "datasource": { "type": "prometheus", "uid": "${prom}" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "custom": { "drawStyle": "bars", "fillOpacity": 60, "showPoints": "never" }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "failed" },
+            "properties": [
+              { "id": "color", "value": { "mode": "fixed", "fixedColor": "red" } }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "completed" },
+            "properties": [
+              { "id": "color", "value": { "mode": "fixed", "fixedColor": "green" } }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (status) (increase(media_import_outcomes_total{job=~\"$service\"}[1h]))",
+          "legendFormat": "{{status}}"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Media import queue depth",
+      "description": "Tasks waiting in the in-memory queue. CAVEAT: this counts queue ENTRIES, not remaining work — the hourly retrigger re-adds the currently-running task, so a single multi-hour import shows a +1-per-hour staircase that drains all at once on completion. Read it as 'is there work pending?' (>0), not as a backlog size. It also resets to 0 on every deploy (the retrigger repopulates it within the hour).",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 14 },
+      "datasource": { "type": "prometheus", "uid": "${prom}" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "custom": { "fillOpacity": 20, "showPoints": "never" }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "media_import_queue_depth{job=~\"$service\"}",
+          "legendFormat": "queued entries"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Tracked Players: matched to MLB reference data",
+      "description": "All Players in the DB, split by whether they link to a ReferencePlayer, as of the last daily reference run. Unmatched is EXPECTED to be large (the MLBAM feed is current-season MLB only; MiLB and historical players can't match). The signal is the trend: matched should creep up, and a sudden drop means the matcher broke. Uses last_over_time because the gauge is silent from each deploy until the next run (~30+ min).",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 22 },
+      "datasource": { "type": "prometheus", "uid": "${prom}" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "custom": { "fillOpacity": 10, "showPoints": "never" }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "last_over_time(reference_update_players{job=~\"$service\"}[2h])",
+          "legendFormat": "matched={{matched}}"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "type": "stat",
+      "title": "Actionable match problems",
+      "description": "Ambiguous name groups: distinct names shared by multiple tracked Players that the last run couldn't uniquely match. Fixable players: the unmatched Players inside those groups — every one can be resolved by setting a date of birth. The specific names are in the run's logs: search for 'Ambiguous match' below or in Explore.",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 22 },
+      "datasource": { "type": "prometheus", "uid": "${prom}" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 1 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "values": false },
+        "textMode": "value_and_name",
+        "colorMode": "value",
+        "graphMode": "area"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "last_over_time(reference_update_ambiguous_name_groups{job=~\"$service\"}[2h])",
+          "legendFormat": "ambiguous name groups"
+        },
+        {
+          "refId": "B",
+          "expr": "last_over_time(reference_update_fixable_unmatched{job=~\"$service\"}[2h])",
+          "legendFormat": "fixable players (set a DOB)"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "MLBAM feed match outcomes (per daily run)",
+      "description": "Disposition of each of the ~1,200 feed players in the daily run, summed over 25h so each point covers exactly one run. Stable proportions are healthy; a spike in 'ambiguous' or collapse of 'linked_*' means matching regressed (e.g. a name-normalization change).",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 30 },
+      "datasource": { "type": "prometheus", "uid": "${prom}" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "custom": { "fillOpacity": 10, "showPoints": "never" }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (outcome) (increase(reference_update_player_match_total{job=~\"$service\"}[25h]))",
+          "legendFormat": "{{outcome}}"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "type": "logs",
+      "title": "Job errors and ambiguous-match warnings",
+      "description": "Warning+ log lines from the background jobs, including the per-name 'Ambiguous match' details that the stat panel counts.",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 30 },
+      "datasource": { "type": "loki", "uid": "${loki}" },
+      "options": {
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true,
+        "enableLogDetails": true,
+        "dedupStrategy": "none"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "{service_name=\"baseball-api\"} | detected_level=~\"warn|error|fatal\" |~ \"(?i)import|reference|fangraphs|ambiguous|temp file|log\""
+        }
+      ]
+    }
+  ]
+}

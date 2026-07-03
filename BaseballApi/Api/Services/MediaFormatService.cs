@@ -31,7 +31,7 @@ public class MediaFormatService(
 
     private async void SetContentTypes(object? stateInfo)
     {
-        using var activity = Telemetry.BackgroundJobs.StartActivity("job.set-content-types");
+        using var activity = Telemetry.StartJob("job.set-content-types");
         try
         {
             var mediaFormatManager = new MediaFormatManager(MediaImportQueue, ServiceProvider, Logger, CancellationToken);
@@ -46,7 +46,7 @@ public class MediaFormatService(
 
     private async void CreateAlternateFormats(object? stateInfo)
     {
-        using var activity = Telemetry.BackgroundJobs.StartActivity("job.create-alternate-formats");
+        using var activity = Telemetry.StartJob("job.create-alternate-formats");
         try
         {
             var mediaFormatManager = new MediaFormatManager(MediaImportQueue, ServiceProvider, Logger, CancellationToken);

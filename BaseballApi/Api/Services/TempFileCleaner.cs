@@ -26,7 +26,7 @@ public class TempFileCleaner(IServiceProvider serviceProvider, ILogger<TempFileC
 
     private async void CleanseTempFiles(object? stateInfo)
     {
-        using var activity = Telemetry.BackgroundJobs.StartActivity("job.cleanse-temp-files");
+        using var activity = Telemetry.StartJob("job.cleanse-temp-files");
         try
         {
             Logger.LogInformation("Identifying temp files to clean up...");
@@ -108,7 +108,7 @@ public class TempFileCleaner(IServiceProvider serviceProvider, ILogger<TempFileC
 
     private async void CleanseAbandonedFiles(object? stateInfo)
     {
-        using var activity = Telemetry.BackgroundJobs.StartActivity("job.cleanse-abandoned-files");
+        using var activity = Telemetry.StartJob("job.cleanse-abandoned-files");
         try
         {
             Logger.LogInformation("Identifying abandoned files to clean up...");

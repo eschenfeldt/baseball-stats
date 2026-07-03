@@ -25,7 +25,7 @@ public class MediaImportTaskRestarter(IMediaImportQueue mediaImportQueue, IServi
 
     private async void RetriggerImports(object? stateInfo)
     {
-        using var activity = Telemetry.BackgroundJobs.StartActivity("job.retrigger-imports");
+        using var activity = Telemetry.StartJob("job.retrigger-imports");
         try
         {
             Logger.LogInformation("Retriggering abandoned media import tasks...");
