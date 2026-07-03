@@ -100,6 +100,14 @@ builder.Services.AddScoped<IRemoteLogManager, RemoteLogManager>();
 builder.Services.AddHttpClient<IMLBAMConnector, MLBAMConnector>(client =>
 {
     client.BaseAddress = new Uri("https://statsapi.mlb.com/api/v1/");
+})
+// Request compressed responses so we share the cache variant that public traffic keeps
+// warm in MLB's CDN: statsapi's origin 406s requests from DigitalOcean IPs, so a cache
+// miss means a failed update. For the same reason, avoid statsapi query params that
+// produce unique URLs — a unique cache key guarantees a miss.
+.ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+{
+    AutomaticDecompression = System.Net.DecompressionMethods.All,
 });
 builder.Services.AddHttpClient<FangraphsConnector>(client =>
 {
