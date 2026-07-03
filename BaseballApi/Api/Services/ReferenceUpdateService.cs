@@ -40,6 +40,10 @@ public class ReferenceUpdateService(
                 referenceManager => referenceManager.UpdateTeamReferences(CancellationToken));
             Logger.LogInformation("Team reference update completed. {updatedCount} teams updated.", updatedCount);
         }
+        catch (OperationCanceledException) when (CancellationToken.IsCancellationRequested)
+        {
+            Logger.LogInformation("Team reference update cancelled during shutdown.");
+        }
         catch (Exception ex)
         {
             Telemetry.RecordJobException(activity, ex);
@@ -56,6 +60,10 @@ public class ReferenceUpdateService(
                 referenceManager => referenceManager.UpdatePlayerReferences(CancellationToken));
             Logger.LogInformation("Player reference update completed. {createdCount} players created, {updatedCount} players updated.",
                 result.CreatedCount, result.UpdatedCount);
+        }
+        catch (OperationCanceledException) when (CancellationToken.IsCancellationRequested)
+        {
+            Logger.LogInformation("Player reference update cancelled during shutdown.");
         }
         catch (Exception ex)
         {
@@ -96,6 +104,10 @@ public class ReferenceUpdateService(
             var result = await referenceManager.UpdateFangraphsLinks(CancellationToken);
             Logger.LogInformation("Fangraphs link update completed. {playerUpdateCount} players updated, {referencePlayerUpdateCount} reference players updated.",
                 result.PlayersUpdated, result.ReferencePlayersUpdated);
+        }
+        catch (OperationCanceledException) when (CancellationToken.IsCancellationRequested)
+        {
+            Logger.LogInformation("Fangraphs link update cancelled during shutdown.");
         }
         catch (Exception ex)
         {
