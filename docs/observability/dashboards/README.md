@@ -9,7 +9,7 @@ known quirks.
 
 | File | Board | Answers |
 | --- | --- | --- |
-| `api-health.json` | Baseball API — Service Health | Is the site healthy? Traffic, 5xx, latency, memory/CPU, recent error logs. |
+| `api-health.json` | Baseball API — Service Health | Is the site healthy? Traffic, 5xx, latency, GC memory and thread-pool pressure, recent error logs. |
 | `background-jobs.json` | Baseball API — Background Jobs | Did the jobs run and succeed? Is the media import pipeline moving? Is reference matching healthy, and what's fixable? |
 
 ## Importing
@@ -53,8 +53,9 @@ is the source of truth, Grafana is just where it runs.
    here can be upgraded too.
 
 2. **Resource attributes show up as labels on `target_info`**, not on every
-   series — query `target_info{service_name="baseball-api"}` in Explore to see
-   what the server is actually sending (service version, host attributes).
+   series — query `target_info{job="baseball-api"}` in Explore (the same `job`
+   label the boards' Service dropdown filters on) to see what the server is
+   actually sending (service version, host attributes).
    This is the first stop when telemetry looks misattributed rather than
    missing.
 
