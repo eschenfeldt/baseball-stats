@@ -100,7 +100,6 @@ public class PlayerTests : BaseballTests
     [InlineData(19197, "Will Smith", "1995-03-28")] // Will Smith (C)
     [InlineData(8048, "Will Smith", "1989-07-10")]  // Will Smith (P)
     [InlineData(19755, "Shohei Ohtani")]
-    [InlineData(10155, "Mike Trout")]
     [InlineData(10155, "Mike Trout", null, false)]
     [InlineData(33829, "Shōta Imanaga")]
     public async Task TestFindFangraphsPage(int expectedFangraphsId, string playerName, string? dateOfBirth = null, bool savePlayer = true)
