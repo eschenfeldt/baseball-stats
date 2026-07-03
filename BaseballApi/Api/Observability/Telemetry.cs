@@ -23,6 +23,15 @@ public static class Telemetry
     public static readonly ActivitySource BackgroundJobs = new(BackgroundJobsSourceName);
 
     /// <summary>
+    /// Starts a background-job root span. Jobs are <see cref="ActivityKind.Consumer"/> rather than
+    /// the default Internal: each run consumes a trigger (a queue item or a timer tick), and —
+    /// decisively — Grafana Cloud's server-side span-metrics generation only covers SERVER and
+    /// CONSUMER spans by default, so Internal job spans are invisible to the background-jobs
+    /// dashboard and to Application Observability's operations view.
+    /// </summary>
+    public static Activity? StartJob(string name) => BackgroundJobs.StartActivity(name, ActivityKind.Consumer);
+
+    /// <summary>
     /// Meter name shared by every custom metric. Per-subsystem metrics classes pass this to
     /// <c>IMeterFactory.Create</c>, and <c>Program.cs</c> registers it with <c>AddMeter</c>.
     /// </summary>

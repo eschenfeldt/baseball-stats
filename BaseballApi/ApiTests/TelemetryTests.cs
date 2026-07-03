@@ -132,6 +132,25 @@ public class TelemetryTests
 
     [Fact]
     [Trait(TestCategory.Category, TestCategory.Observability)]
+    public void StartJob_EmitsConsumerKindSpan()
+    {
+        // Grafana Cloud only generates span metrics for SERVER and CONSUMER spans, so the
+        // background-jobs dashboard is blind to any job span that regresses to Internal.
+        var recorded = new List<Activity>();
+        using var listener = ListenToBackgroundJobs(recorded);
+
+        var spanName = UniqueSpanName();
+        using (var activity = Telemetry.StartJob(spanName))
+        {
+            Assert.NotNull(activity);
+        }
+
+        var span = Assert.Single(recorded, a => a.DisplayName == spanName);
+        Assert.Equal(ActivityKind.Consumer, span.Kind);
+    }
+
+    [Fact]
+    [Trait(TestCategory.Category, TestCategory.Observability)]
     public void StartActivity_WithoutListener_ReturnsNull()
     {
         // No listener attached: StartActivity must return null, which is why every call

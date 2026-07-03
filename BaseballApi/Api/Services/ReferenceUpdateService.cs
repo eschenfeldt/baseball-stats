@@ -33,7 +33,7 @@ public class ReferenceUpdateService(
 
     private async void UpdateTeamReferences(object? stateInfo)
     {
-        using var activity = Telemetry.BackgroundJobs.StartActivity("job.update-team-references");
+        using var activity = Telemetry.StartJob("job.update-team-references");
         try
         {
             using var scope = ServiceProvider.CreateScope();
@@ -50,7 +50,7 @@ public class ReferenceUpdateService(
 
     private async void UpdatePlayerReferences(object? stateInfo)
     {
-        using var activity = Telemetry.BackgroundJobs.StartActivity("job.update-player-references");
+        using var activity = Telemetry.StartJob("job.update-player-references");
         try
         {
             using var scope = ServiceProvider.CreateScope();
@@ -68,7 +68,7 @@ public class ReferenceUpdateService(
 
     private async void UpdateFangraphsLinks(object? stateInfo)
     {
-        using var activity = Telemetry.BackgroundJobs.StartActivity("job.update-fangraphs-links");
+        using var activity = Telemetry.StartJob("job.update-fangraphs-links");
         try
         {
             using var scope = ServiceProvider.CreateScope();

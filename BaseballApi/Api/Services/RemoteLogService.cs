@@ -29,7 +29,7 @@ public class RemoteLogService(ILogger<RemoteLogService> logger, IServiceProvider
 
     private async void UploadLogs(object? stateInfo)
     {
-        using var activity = Telemetry.BackgroundJobs.StartActivity("job.upload-logs");
+        using var activity = Telemetry.StartJob("job.upload-logs");
         try
         {
             // Create a scope to resolve services
@@ -46,7 +46,7 @@ public class RemoteLogService(ILogger<RemoteLogService> logger, IServiceProvider
 
     private async void CleanupOldLogs(object? stateInfo)
     {
-        using var activity = Telemetry.BackgroundJobs.StartActivity("job.cleanup-old-logs");
+        using var activity = Telemetry.StartJob("job.cleanup-old-logs");
         try
         {
             // Create a scope to resolve services
