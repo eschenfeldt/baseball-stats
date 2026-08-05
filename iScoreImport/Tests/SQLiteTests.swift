@@ -112,9 +112,6 @@ final class SQLiteTests {
                 return
             }
             #expect(fullGame.ExternalId == UUID(uuidString: "8280516F-8E5F-4BD3-A96F-3620CB19751A"))
-            let dateFormatter = DateFormatter()
-            dateFormatter.dateFormat = "yyyy-MM-dd"
-            #expect(fullGame.Date == dateFormatter.date(from: "2011-08-26"))
             let datetimeFormatter = DateFormatter()
             datetimeFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
             #expect(fullGame.ScheduledTime == nil)

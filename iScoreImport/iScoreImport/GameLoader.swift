@@ -108,11 +108,9 @@ struct GameLoader {
         let location = Park(Name: try row.decode(column: "Location", as: String.self))
         let startTime = try decodeDatetime(row: row, colName: "StartTime")
         let scheduledTime = try decodeDatetime(row: row, colName: "ScheduledTime")
-        let dateBaseTime = scheduledTime ?? startTime
         return Game(
             Name: try row.decode(column: "Name", as: String.self),
             ExternalId: try row.decode(column: "ExternalId", as: UUID.self),
-            Date: Calendar.current.startOfDay(for: dateBaseTime!),
             HomeTeam: Team.withParsedName(team: homeTeam),
             AwayTeam: Team.withParsedName(team: awayTeam),
             ScheduledTime: scheduledTime,

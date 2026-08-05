@@ -10,7 +10,6 @@ import Foundation
 struct Game : Codable {
     let Name: String
     let ExternalId: UUID?
-    let Date: Date
     let HomeTeam: Team
     let AwayTeam: Team
     let ScheduledTime: Date?

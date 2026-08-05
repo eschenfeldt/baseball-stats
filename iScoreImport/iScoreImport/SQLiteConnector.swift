@@ -57,7 +57,7 @@ struct SQLiteConnector: DbConnector {
             .all(decoding: Player.self)
     }
     
-    func getGames(afterDate: Date?) async throws -> AsyncThrowingStream<Game, Error> {
+    func getGames(afterDate: Date? = nil) async throws -> AsyncThrowingStream<Game, Error> {
         guard let db else {
             throw ConnectorError.connectionRequired
         }

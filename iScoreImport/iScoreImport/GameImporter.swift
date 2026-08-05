@@ -14,6 +14,7 @@ enum GameImportError : Error {
     case boxScoreInsertIssue(game: Game)
     case gameInsertIssue(game: Game)
     case unimportedPlayer(externalId: UUID)
+    case missingStartTime(game: Game)
 }
 
 enum GameMatchResult {
@@ -35,14 +36,20 @@ struct GameImporter {
     }
     
     func insertOrUpdateGame(game: Game) async throws {
+        guard let startTime = game.ScheduledTime ?? game.StartTime else {
+            throw GameImportError.missingStartTime(game: game)
+        }
+        // the calendar date belongs to the park, not to whatever device is running the import
+        let calendar = try await parkCalendar(team: game.HomeTeam)
+        let gameDate = calendar.startOfDay(for: startTime)
         var existingGameId: Int? = nil
         if let externalId = game.ExternalId {
             existingGameId = try await getGameId(externalId: externalId)
         }
         if existingGameId == nil {
-            let candidates = try await getGamesByDate(date: game.Date)
+            let candidates = try await getGamesByDate(date: gameDate, calendar: calendar)
             if candidates.count > 1 {
-                switch promptForGameMatch(game: game, candidates: candidates) {
+                switch promptForGameMatch(game: game, gameDate: gameDate, calendar: calendar, candidates: candidates) {
                 case .existingGame(let id):
                     existingGameId = id
                 case .insertNew:
@@ -58,14 +65,38 @@ struct GameImporter {
         }
         if let existingGameId {
             print("Updating existing")
-            try await updateGame(game: game, gameId: existingGameId)
+            try await updateGame(game: game, gameId: existingGameId, gameDate: gameDate)
         } else {
             print("Inserting new")
-            try await insertGame(game: game)
+            try await insertGame(game: game, gameDate: gameDate)
         }
     }
-    
-    private func insertGame(game: Game) async throws {
+
+    /// A calendar in the home park's time zone, falling back to the current device's zone when the
+    /// team is new or its park has no usable time zone stored.
+    private func parkCalendar(team: Team) async throws -> Calendar {
+        var calendar = Calendar.current
+        guard let city = team.City, let name = team.Name,
+              let teamId = try await teams.getTeamId(city: city, name: name),
+              let identifier = try await getParkTimeZoneIdentifier(teamId: teamId),
+              let timeZone = TimeZone(parkIdentifier: identifier) else {
+            return calendar
+        }
+        calendar.timeZone = timeZone
+        return calendar
+    }
+
+    private func getParkTimeZoneIdentifier(teamId: Int) async throws -> String? {
+        let result = try await db.select()
+            .column(SQLColumn("TimeZone", table: "Parks"))
+            .from("Parks")
+            .join("Teams", on: SQLColumn("HomeParkId", table: "Teams"), .equal, SQLColumn("Id", table: "Parks"))
+            .where(SQLColumn("Id", table: "Teams"), .equal, SQLBind(teamId))
+            .first()
+        return try? result?.decode(column: "TimeZone", as: String.self)
+    }
+
+    private func insertGame(game: Game, gameDate: Date) async throws {
         let home = try await getTeamId(team: game.HomeTeam)
         let away = try await getTeamId(team: game.AwayTeam)
         let winningTeamId = try await getOptionalTeamId(team: game.WinningTeam)
@@ -96,7 +127,7 @@ struct GameImporter {
             .values(
                 game.ExternalId ?? UUID(uuidString: "00000000-0000-0000-0000-000000000000"),
                 game.Name,
-                game.Date,
+                gameDate,
                 home,
                 away,
                 game.ScheduledTime,
@@ -123,7 +154,7 @@ struct GameImporter {
     }
 
     
-    private func updateGame(game: Game, gameId: Int) async throws {
+    private func updateGame(game: Game, gameId: Int, gameDate: Date) async throws {
         let home = try await getTeamId(team: game.HomeTeam)
         let away = try await getTeamId(team: game.AwayTeam)
         let winningTeamId = try await getOptionalTeamId(team: game.WinningTeam)
@@ -134,7 +165,7 @@ struct GameImporter {
         
         var updateStatement = db.update("Games")
             .set("Name", to: game.Name)
-            .set("Date", to: game.Date)
+            .set("Date", to: gameDate)
             .set("HomeId", to: home)
             .set("AwayId", to: away)
             .set("ScheduledTime", to: game.ScheduledTime)
@@ -370,8 +401,7 @@ struct GameImporter {
         let awayScore: Int?
     }
 
-    private func getGamesByDate(date: Date) async throws -> [GameCandidate] {
-        let calendar = Calendar.current
+    private func getGamesByDate(date: Date, calendar: Calendar) async throws -> [GameCandidate] {
         let startOfDay = calendar.startOfDay(for: date)
         let startOfNextDay = calendar.date(byAdding: .day, value: 1, to: startOfDay)!
 
@@ -394,12 +424,13 @@ struct GameImporter {
         }
     }
 
-    private func promptForGameMatch(game: Game, candidates: [GameCandidate]) -> GameMatchResult {
+    private func promptForGameMatch(game: Game, gameDate: Date, calendar: Calendar, candidates: [GameCandidate]) -> GameMatchResult {
         let dateFormatter = DateFormatter()
         dateFormatter.dateStyle = .medium
         dateFormatter.timeStyle = .none
+        dateFormatter.timeZone = calendar.timeZone
 
-        print("\nGame: \"\(game.Name)\" (\(dateFormatter.string(from: game.Date)))")
+        print("\nGame: \"\(game.Name)\" (\(dateFormatter.string(from: gameDate)))")
 
         if candidates.isEmpty {
             print("No existing games found on this date.")
