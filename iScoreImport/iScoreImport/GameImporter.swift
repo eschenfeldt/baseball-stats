@@ -405,11 +405,14 @@ struct GameImporter {
         let startOfDay = calendar.startOfDay(for: date)
         let startOfNextDay = calendar.date(byAdding: .day, value: 1, to: startOfDay)!
 
+        // match on the same time the date is derived from, so that scheduled-only games and games
+        // delayed past midnight still land in the right day
+        let scheduledOrStart = SQLFunction("COALESCE", args: SQLColumn("ScheduledTime"), SQLColumn("StartTime"))
         let rows = try await db.select()
             .columns("Id", "Name", "HomeTeamName", "AwayTeamName", "HomeScore", "AwayScore")
             .from("Games")
-            .where("StartTime", .greaterThanOrEqual, startOfDay)
-            .where("StartTime", .lessThan, startOfNextDay)
+            .where(scheduledOrStart, .greaterThanOrEqual, SQLBind(startOfDay))
+            .where(scheduledOrStart, .lessThan, SQLBind(startOfNextDay))
             .all()
 
         return try rows.map { row in
