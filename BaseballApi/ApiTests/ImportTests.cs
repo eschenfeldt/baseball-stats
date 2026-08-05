@@ -72,6 +72,7 @@ public class ImportTests(TestImportDatabaseFixture fixture) : IClassFixture<Test
             Assert.Single(games.Value.Results);
             var gameSummary = games.Value.Results.First();
             Assert.Equal("7/8/24 St. Louis Cardinals at Washington Nationals", gameSummary.Name);
+            Assert.Equal(new DateOnly(2024, 7, 8), gameSummary.Date);
             Assert.Equal("St. Louis Cardinals", gameSummary.AwayTeamName);
             Assert.Equal("Washington Nationals", gameSummary.HomeTeamName);
             Assert.Equal(metadata.ScheduledStart, gameSummary.ScheduledTime);
@@ -95,6 +96,7 @@ public class ImportTests(TestImportDatabaseFixture fixture) : IClassFixture<Test
             Assert.NotNull(gameTask);
             var game = gameTask.Value;
             Assert.Equal("7/8/24 St. Louis Cardinals at Washington Nationals", game.Name);
+            Assert.Equal(new DateOnly(2024, 7, 8), game.Date);
             Assert.Equal("St. Louis Cardinals", game.AwayTeamName);
             Assert.Equal("Washington Nationals", game.HomeTeamName);
             Assert.Equal(metadata.ScheduledStart, game.ScheduledTime);
@@ -185,7 +187,23 @@ public class ImportTests(TestImportDatabaseFixture fixture) : IClassFixture<Test
         await ValidateTeams();
         await ValidatePlayers();
 
-        var scoreCard = newGameDetail.Scorecard;
+        // Clients send start times as UTC instants, so a night game arrives dated to the following
+        // day; the date and name should still come from the park's time zone
+        var nightScheduledTime = new DateTimeOffset(2024, 7, 8, 20, 5, 0, TimeSpan.FromHours(-4)).ToUniversalTime();
+        var nightStartTime = new DateTimeOffset(2024, 7, 8, 20, 11, 0, TimeSpan.FromHours(-4)).ToUniversalTime();
+        Assert.Equal(9, nightScheduledTime.Day);
+        metadata.ScheduledStart = nightScheduledTime;
+        metadata.ActualStart = nightStartTime;
+
+        await gamesController.ImportGame(files, JsonConvert.SerializeObject(metadata));
+
+        await remoteValidator.ValidateFileDeleted(newGameDetail.Scorecard!.Value.File);
+
+        var nightGameDetail = await ValidateGameInDb(nightStartTime);
+        await ValidateTeams();
+        await ValidatePlayers();
+
+        var scoreCard = nightGameDetail.Scorecard;
         Assert.NotNull(scoreCard);
         var scoreCardResource = await context.Scorecards.FirstOrDefaultAsync(s => s.AssetIdentifier == scoreCard.Value.File.AssetIdentifier);
         Assert.NotNull(scoreCardResource);
