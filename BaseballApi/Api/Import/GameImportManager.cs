@@ -11,21 +11,29 @@ public class GameImportManager(GameImportData data, BaseballContext context)
     Dictionary<ImportFileType, CsvLoader> Files { get; } = [];
     private PlayerManager PlayerManager { get; } = new PlayerManager(context);
     public string? ScorecardFilePath { get; private set; }
+    private TimeZoneInfo? ParkTimeZone { get; set; }
     private DateOnly GameDate
     {
         get
         {
-            var gameDate = Metadata.ActualStart?.Date ?? Metadata.ScheduledStart?.Date;
-            if (!gameDate.HasValue)
+            // Match the iScore importer precedence for now, see #154
+            var start = Metadata.ScheduledStart ?? Metadata.ActualStart;
+            if (!start.HasValue)
             {
                 throw new ArgumentException("Must provide either actual or scheduled start time");
             }
-            return DateOnly.FromDateTime(gameDate.Value);
+            var parkTime = ParkTimeZone == null
+                ? start.Value
+                : TimeZoneInfo.ConvertTime(start.Value, ParkTimeZone);
+            return DateOnly.FromDateTime(parkTime.Date);
         }
     }
 
     public async Task<Game> GetGame()
     {
+        var home = await this.GetTeam(Metadata.Home.City, Metadata.Home.Name);
+        var away = await this.GetTeam(Metadata.Away.City, Metadata.Away.Name);
+        this.ParkTimeZone = GetTimeZone(home.HomePark);
         var gameDate = GameDate;
         var awayTeamName = $"{Metadata.Away.City} {Metadata.Away.Name}";
         var homeTeamName = $"{Metadata.Home.City} {Metadata.Home.Name}";
@@ -40,12 +48,22 @@ public class GameImportManager(GameImportData data, BaseballContext context)
             EndTime = Metadata.End?.ToUniversalTime(),
             GameType = Metadata.GameType,
             HomeTeamName = homeTeamName,
-            Home = await this.GetTeam(Metadata.Home.City, Metadata.Home.Name),
+            Home = home,
             AwayTeamName = awayTeamName,
-            Away = await this.GetTeam(Metadata.Away.City, Metadata.Away.Name),
+            Away = away,
             Scorecard = this.GetScorecard(),
             BoxScores = []
         };
+    }
+
+    private static TimeZoneInfo? GetTimeZone(Park? park)
+    {
+        if (park?.TimeZone is string timeZoneId
+            && TimeZoneInfo.TryFindSystemTimeZoneById(timeZoneId, out TimeZoneInfo? timeZone))
+        {
+            return timeZone;
+        }
+        return null;
     }
 
     public void AddLocation(Game game)
