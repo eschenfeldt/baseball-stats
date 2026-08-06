@@ -8,6 +8,7 @@
 import Foundation
 import Testing
 import SQLKit
+@testable import iScoreImport
 
 final class PostgresTests {
     

@@ -8,6 +8,7 @@ import Foundation
 import Testing
 import SQLKit
 import SQLiteKit
+@testable import iScoreImport
 
 @Suite("SQLite Tests")
 final class SQLiteTests {
