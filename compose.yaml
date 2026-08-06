@@ -104,10 +104,38 @@ services:
       - proxy
     entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
 
+  # Runs the iScoreImport Swift tests against the db service below. The tests build
+  # their own scratch database per test from Tests/iScoreImportTests/Resources/schema.sql,
+  # so nothing needs seeding first.
+  swift-tests:
+    image: swift:6.1-noble
+    profiles:
+      - swift-test
+    depends_on:
+      db:
+        condition: "service_healthy"
+    working_dir: /source
+    volumes:
+      - ./iScoreImport:/source
+      # Anonymous volume: keeps the container's build output (and its root ownership)
+      # out of the host working tree, where a macOS .build already lives.
+      - /source/.build
+    secrets:
+      - baseball_password
+    environment:
+      ISCORE_TEST_PG_HOST: db
+      ISCORE_TEST_PG_PORT: "5432"
+      ISCORE_TEST_PG_PASSWORD_FILE: /run/secrets/baseball_password
+      # Deliberately not US Eastern, so a timezone-dependent expectation fails here
+      # rather than only on someone else's machine.
+      TZ: UTC
+    command: ["swift", "test"]
+
   db:
     image: postgres:15.8
     profiles:
       - test
+      - swift-test
     ports:
       - 5433:5432
     restart: always
