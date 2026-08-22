@@ -17,7 +17,7 @@ public class ReferenceUpdateService(
         CancellationToken = cancellationToken;
         var teamsTimer = new Timer(UpdateTeamReferences, null, TimeSpan.Zero, TimeSpan.FromHours(12));
         var playerTimer = new Timer(UpdatePlayerReferences, null, TimeSpan.FromMinutes(30), TimeSpan.FromHours(24));
-        // Fangraphs is serving a Cloudfare 403, so disabling until this is reworked.
+        // Fangraphs is serving a Cloudflare 403, so disabling until this is reworked.
         // var fangraphsTimer = new Timer(UpdateFangraphsLinks, null, TimeSpan.FromMinutes(60), TimeSpan.FromHours(6));
         try
         {
