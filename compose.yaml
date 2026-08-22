@@ -105,7 +105,9 @@ services:
     entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
 
   db:
-    image: postgres:15.8
+    # Pinned to match the production server's major version (Debian bookworm's
+    # postgresql-15).
+    image: postgres:15.19
     profiles:
       - test
     ports:
