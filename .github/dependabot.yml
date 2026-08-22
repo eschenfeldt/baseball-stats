@@ -1,0 +1,15 @@
+version: 2
+
+updates:
+  # Keeps compose.yaml's pinned images current. The one that matters is the
+  # `db` service's postgres tag: the test database should track the patch
+  # version running on the production server (Debian bookworm's postgresql-15,
+  # which picks up upstream minor releases automatically via bookworm-security).
+  - package-ecosystem: docker-compose
+    directory: /
+    schedule:
+      interval: weekly
+    ignore:
+      - dependency-name: postgres
+        update-types:
+          - version-update:semver-major
