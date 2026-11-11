@@ -15,6 +15,7 @@ public class GamePitcher(Pitcher pitcher)
         { Stat.Saves.Name, pitcher.Saves },
         { Stat.ThirdInningsPitched.Name, pitcher.ThirdInningsPitched },
         { Stat.BattersFaced.Name, pitcher.BattersFaced },
+        { Stat.GameScore.Name, GameScore(pitcher) },
         { Stat.Balls.Name, pitcher.Balls },
         { Stat.Strikes.Name, pitcher.Strikes },
         { Stat.Pitches.Name, pitcher.Pitches },
@@ -35,4 +36,17 @@ public class GamePitcher(Pitcher pitcher)
         { Stat.FirstPitchStrikes.Name, pitcher.FirstPitchStrikes },
         { Stat.FirstPitchBalls.Name, pitcher.FirstPitchBalls },
     };
+
+    private static int GameScore(Pitcher pitcher)
+    {
+        // Using the Tango definition from https://www.mlb.com/glossary/advanced-stats/game-score
+        var gameScore = 40;
+        gameScore += pitcher.ThirdInningsPitched * 2;
+        gameScore += pitcher.Strikeouts;
+        gameScore -= pitcher.Walks * 2;
+        gameScore -= pitcher.Hits * 2;
+        gameScore -= pitcher.Runs * 3;
+        gameScore -= pitcher.Homeruns * 6;
+        return gameScore;
+    }
 }

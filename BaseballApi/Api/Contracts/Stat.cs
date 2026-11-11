@@ -225,6 +225,13 @@ public struct Stat
         ShortName = "BF",
         Format = StatFormat.Integer
     };
+    public static readonly Stat GameScore = new()
+    {
+        Name = "GameScore",
+        ShortName = "GmSc",
+        LongName = "Game Score",
+        Format = StatFormat.Integer
+    };
     public static readonly Stat Balls = new()
     {
         Name = "Balls",

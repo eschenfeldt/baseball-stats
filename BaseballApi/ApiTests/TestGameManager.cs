@@ -200,6 +200,7 @@ public class TestGameManager
         Assert.Equal(expected.EarnedRuns, actual.Stats[Stat.EarnedRuns.Name]);
         Assert.Equal(expected.Outs, actual.Stats[Stat.ThirdInningsPitched.Name]);
         Assert.Equal(expected.Runs, actual.Stats[Stat.Runs.Name]);
+        Assert.Equal(expected.GameScore, actual.Stats[Stat.GameScore.Name]);
     }
 
 
@@ -355,6 +356,7 @@ public class TestGameManager
         public int Outs { get; set; }
         public int Runs { get; set; }
         public int EarnedRuns { get; set; }
+        public int GameScore { get; set; }
     }
 
     struct BatterInfo
@@ -408,7 +410,8 @@ public class TestGameManager
                             PitcherNumber = 1,
                             Outs = 27,
                             EarnedRuns = 0,
-                            Runs = 0
+                            Runs = 0,
+                            GameScore = 94 // 40 + 2*27
                         }
                     ],
                     Fielders = [
@@ -449,7 +452,8 @@ public class TestGameManager
                             PitcherNumber = 2,
                             Outs = 9,
                             EarnedRuns = 1,
-                            Runs = 2
+                            Runs = 2,
+                            GameScore = 52 // 40 + 2*9 - 3*2
                         }
                     ],
                     Fielders = []
@@ -485,7 +489,8 @@ public class TestGameManager
                             PitcherNumber = 1,
                             Outs = 15,
                             EarnedRuns = 0,
-                            Runs = 2
+                            Runs = 2,
+                            GameScore = 64 // 40 + 2*15 - 3*2
                         }
                     ],
                     Fielders = [
@@ -525,7 +530,8 @@ public class TestGameManager
                             PitcherNumber = 2,
                             Outs = 14,
                             EarnedRuns = 3,
-                            Runs = 3
+                            Runs = 3,
+                            GameScore = 59 // 40 + 2*14 - 3*3
                         }
                     ],
                     Fielders = []
@@ -570,7 +576,8 @@ public class TestGameManager
                             PitcherNumber = 2,
                             Outs = 14,
                             EarnedRuns = 0,
-                            Runs = 0
+                            Runs = 0,
+                            GameScore = 68 // 40 + 2*14
                         }
                     ],
                     Fielders = []
@@ -604,7 +611,8 @@ public class TestGameManager
                             PitcherNumber = 1,
                             Outs = 10,
                             EarnedRuns = 0,
-                            Runs = 0
+                            Runs = 0,
+                            GameScore = 60 // 40 + 2*10
                         }
                     ],
                     Fielders = []
