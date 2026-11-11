@@ -42,7 +42,7 @@ public class GamePitcher(Pitcher pitcher)
         // Using the Tango definition from https://www.mlb.com/glossary/advanced-stats/game-score
         var gameScore = 40;
         gameScore += pitcher.ThirdInningsPitched * 2;
-        gameScore += pitcher.Strikeouts * 1;
+        gameScore += pitcher.Strikeouts;
         gameScore -= pitcher.Walks * 2;
         gameScore -= pitcher.Hits * 2;
         gameScore -= pitcher.Runs * 3;

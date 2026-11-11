@@ -228,7 +228,8 @@ public struct Stat
     public static readonly Stat GameScore = new()
     {
         Name = "GameScore",
-        ShortName = "GS",
+        ShortName = "GmSc",
+        LongName = "Game Score",
         Format = StatFormat.Integer
     };
     public static readonly Stat Balls = new()
