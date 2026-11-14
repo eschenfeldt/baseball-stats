@@ -39,8 +39,6 @@ Each setting can be overridden by an environment variable when pointing somewher
 `ISCORE_TEST_PG_PASSWORD_FILE`. If no password resolves, the database-backed suites skip
 rather than fail.
 
-**Frontend (Angular).** `npm test` in `baseball-app` (CI builds but does not test it).
-
 #### Keeping schema.sql current
 
 The Swift tests build their scratch databases from a committed copy of the API's schema.
