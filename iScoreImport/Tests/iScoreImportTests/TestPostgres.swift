@@ -98,14 +98,41 @@ enum TestPostgres {
 
         do {
             let result = try await withScratchConnector(settings, databaseName, body)
-            try await dropDatabase(settings, databaseName)
+            if keepAllDatabases {
+                reportKept(settings, databaseName, reason: "ISCORE_TEST_KEEP_DB is set")
+            } else {
+                try await dropDatabase(settings, databaseName)
+            }
             return result
         } catch {
-            // Best effort: a failed test shouldn't leave a database behind, but the
-            // original error is the interesting one.
-            try? await dropDatabase(settings, databaseName)
+            // PostgresNIO redacts its errors' plain descriptions, which is all Swift Testing
+            // shows for a thrown error; the server message and query are only in the
+            // reflecting form.
+            print("[\(databaseName)] \(String(reflecting: error))")
+            // Scratch databases hold nothing but test data, so keep the evidence.
+            reportKept(settings, databaseName, reason: "the test threw")
             throw error
         }
+    }
+
+    /// Keeps every scratch database, not just those whose test threw. Failed `#expect`s
+    /// don't throw, so this is the way to inspect the state behind one.
+    private static var keepAllDatabases: Bool {
+        let value = ProcessInfo.processInfo.environment["ISCORE_TEST_KEEP_DB"] ?? ""
+        return !value.isEmpty && value != "0"
+    }
+
+    private static func reportKept(
+        _ settings: TestPostgresSettings,
+        _ databaseName: String,
+        reason: String
+    ) {
+        print("""
+            Kept scratch database \(databaseName) (\(reason)). Inspect with:
+              psql -h \(settings.hostname) -p \(settings.port) -U "\(settings.username)" \(databaseName)
+            Drop it when done with:
+              DROP DATABASE \(databaseName);
+            """)
     }
 
     private static func withScratchConnector<T>(
