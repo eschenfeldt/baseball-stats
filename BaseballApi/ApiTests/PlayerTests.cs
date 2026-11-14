@@ -96,7 +96,7 @@ public class PlayerTests : BaseballTests
         }
     }
 
-    [Theory]
+    [Theory(Skip = "FanGraphs now serves a site-wide Cloudflare challenge (403) to non-browser clients, so the search API is unreachable. Skipped until the feature is reworked or dropped.")]
     [InlineData(19197, "Will Smith", "1995-03-28")] // Will Smith (C)
     [InlineData(8048, "Will Smith", "1989-07-10")]  // Will Smith (P)
     [InlineData(19755, "Shohei Ohtani")]
@@ -182,7 +182,7 @@ public class PlayerTests : BaseballTests
         Assert.Equal(0, secondUpdateResults.UpdatedCount);
     }
 
-    [Fact]
+    [Fact(Skip = "FanGraphs now serves a site-wide Cloudflare challenge (403) to non-browser clients, so the search API is unreachable. Skipped until the feature is reworked or dropped.")]
     public async Task TestFangraphsLinkUpdater()
     {
         // first make sure MLBAM references are up to date
