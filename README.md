@@ -1,6 +1,88 @@
 # baseball-stats
 Webapp displaying statistics and photos from baseball games. Live version at https://baseball.eschenfeldt.me
 
+### Running the tests
+
+All three suites run in CI (`.github/workflows/ci.yml`) on every pull request.
+
+**API (.NET).** Runs in the dev container against the `db` compose service:
+
+```
+docker compose build baseball-api-dev   # after changing API source
+docker compose --profile test run --remove-orphans --rm baseball-api-dev \
+  dotnet test /source --filter="Category!=Media"
+```
+
+Dropping the filter includes the slow media tests (S3, ImageMagick, ffmpeg).
+
+**Importer (Swift).** The tests create a private scratch database per test from
+`iScoreImport/Tests/iScoreImportTests/Resources/schema.sql`, so nothing needs seeding —
+they just need a Postgres to talk to. With the compose database up, the defaults
+(`localhost:5433`, user `baseball owner`, password from `baseball_password.txt`) need no
+configuration:
+
+```
+docker compose --profile test up -d db
+cd iScoreImport && swift test
+```
+
+Opening `iScoreImport/Package.swift` in Xcode and hitting ⌘U does the same thing. To run
+them the way CI does — containerized, in UTC, against the `db` service directly:
+
+```
+docker compose --profile swift-test run --remove-orphans --rm swift-tests
+```
+
+Each setting can be overridden by an environment variable when pointing somewhere else:
+`ISCORE_TEST_PG_HOST`, `ISCORE_TEST_PG_PORT`, `ISCORE_TEST_PG_USER`,
+`ISCORE_TEST_PG_ADMIN_DB`, and `ISCORE_TEST_PG_PASSWORD` or
+`ISCORE_TEST_PG_PASSWORD_FILE`. If no password resolves, the database-backed suites skip
+rather than fail.
+
+#### Keeping schema.sql current
+
+The Swift tests build their scratch databases from a committed copy of the API's schema.
+After adding an EF migration, regenerate it — the `Swift Test Schema Up To Date` CI job
+fails otherwise:
+
+```
+dotnet ef migrations script --idempotent --context BaseballContext \
+  --project BaseballApi/Api --output iScoreImport/Tests/iScoreImportTests/Resources/schema.sql
+```
+
+### Running an import
+
+`iScoreImport` is a Swift command-line tool that copies teams, players, and games out of
+an iScore SQLite export into the app's database. Imports are ad-hoc: the source file has
+to be pulled out of the iOS app by hand first.
+
+```
+cd iScoreImport
+swift run -c release iScoreImport \
+  --source-file ~/Programming/Scorecards/data/iScoreDbs/2026-05-07/iScore_baseball.sqlite \
+  --target-config config/prod.postgres_config \
+  --included-types Games \
+  --since 2025-08-01
+```
+
+`--included-types` takes any of `Teams`, `Players`, `Games` and may be repeated; `--since`
+(`yyyy-MM-dd`) only applies to games. `swift run iScoreImport --help` lists everything.
+
+Connection details come from a JSON config file. `*.postgres_config` is gitignored, since
+these hold live credentials, so create `config/prod.postgres_config` yourself:
+
+```json
+{
+    "hostname": "",
+    "database": "",
+    "username": "",
+    "password": "",
+    "port": 5432
+}
+```
+
+`port` is optional and defaults to 5432.
+
 ### Deployment
 
 Deploys happen automatically on merge to `main` via the **Deploy** workflow

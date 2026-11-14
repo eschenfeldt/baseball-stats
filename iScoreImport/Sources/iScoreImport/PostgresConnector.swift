@@ -19,6 +19,8 @@ struct PostgresConfig : Codable {
     var database: String
     var username: String
     var password: String
+    /// Optional so existing config files, which predate this, still decode.
+    var port: Int?
 }
 
 struct PostgresConnector : DbConnector {
@@ -59,7 +61,12 @@ struct PostgresConnector : DbConnector {
         let decoder = JSONDecoder()
         
         if let decoded = try? decoder.decode(PostgresConfig.self, from: data) {
-            config = SQLPostgresConfiguration(hostname: decoded.hostname, username: decoded.username, password: decoded.password, database: decoded.database, tls: .disable)
+            config = SQLPostgresConfiguration(hostname: decoded.hostname,
+                                              port: decoded.port ?? SQLPostgresConfiguration.ianaPortNumber,
+                                              username: decoded.username,
+                                              password: decoded.password,
+                                              database: decoded.database,
+                                              tls: .disable)
         } else {
             throw PostgresConnectionError.invalidConfig(data: data)
         }

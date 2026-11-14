@@ -26,6 +26,42 @@ jobs:
           docker compose --profile test run --remove-orphans --rm baseball-api-dev \
             dotnet test /source --filter="Category!=Media"
 
+  swift-tests:
+    name: Swift Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Stage non-secret test config
+        run: |
+          cp appsettings.Test.ci.json appsettings.Test.json
+          cp baseball_password.ci.txt baseball_password.txt
+
+      - name: Run Swift tests
+        run: |
+          docker compose --profile swift-test run --remove-orphans --rm swift-tests
+
+  schema-drift:
+    name: Swift Test Schema Up To Date
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - run: dotnet tool install --global dotnet-ef --version 8.*
+
+      # The Swift tests build their scratch databases from a committed copy of the
+      # API's schema. Regenerate it here so adding a migration without refreshing
+      # that copy fails the PR rather than silently testing a stale schema.
+      - name: Check schema.sql matches the EF migrations
+        run: |
+          dotnet ef migrations script --idempotent --context BaseballContext \
+            --project BaseballApi/Api --output /tmp/schema.sql
+          diff -u iScoreImport/Tests/iScoreImportTests/Resources/schema.sql /tmp/schema.sql
+
   frontend-build:
     name: Frontend Build
     runs-on: ubuntu-latest

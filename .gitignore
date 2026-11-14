@@ -4,6 +4,8 @@
 **/obj/*
 **/.DS_Store
 xcuserdata/
+.swiftpm/
+iScoreImport/.build/
 *.postgres_config
 *.bucket_config
 .Python
