@@ -15,7 +15,7 @@ struct SQLiteTests {
 
     @Test("Connector Test")
     func testConnection() async throws {
-        try await TestFixtures.withISCoreReader { reader in
+        try await TestFixtures.withiScoreReader { reader in
             let db = try await reader.getDb()
             let result = try await db.select()
                 .column("game_nm", as: "Game Name")
@@ -30,7 +30,7 @@ struct SQLiteTests {
 
     @Test("Team Load")
     func testLoadingTeams() async throws {
-        try await TestFixtures.withISCoreReader { reader in
+        try await TestFixtures.withiScoreReader { reader in
             let teams = try await reader.getTeams()
             #expect(teams.count == 40)
             let bandits = try #require(teams.first { $0.CombinedName == "Quad Cities River Bandits" })
@@ -44,7 +44,7 @@ struct SQLiteTests {
 
     @Test("Player Load")
     func testLoadingPlayers() async throws {
-        try await TestFixtures.withISCoreReader { reader in
+        try await TestFixtures.withiScoreReader { reader in
             let players = try await reader.getPlayers(take: 20)
             #expect(players.count == 20)
             let ankiel = try #require(players.first { $0.Name == "Rick Ankiel" })
@@ -56,7 +56,7 @@ struct SQLiteTests {
 
     @Test("Game Load")
     func testLoadingGame() async throws {
-        try await TestFixtures.withISCoreReader { reader in
+        try await TestFixtures.withiScoreReader { reader in
             let games = try await reader.getGames()
             let fullGame = try #require(await games.first {
                 $0.Name == "8/26/11 Chicago Cubs at Milwaukee Brewers"

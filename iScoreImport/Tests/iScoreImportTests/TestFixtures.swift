@@ -25,7 +25,7 @@ enum TestFixtures {
 
     /// Runs `body` against a connected reader for the bundled iScore export, closing it
     /// afterwards whether or not `body` throws.
-    static func withISCoreReader<T>(
+    static func withiScoreReader<T>(
         _ body: (inout SQLiteConnector) async throws -> T
     ) async throws -> T {
         var reader = SQLiteConnector(filePath: try iScoreDatabasePath())

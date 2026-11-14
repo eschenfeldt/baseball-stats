@@ -16,7 +16,7 @@ struct IntegrationTests {
     @Test("Import Teams")
     func testImportTeams() async throws {
         try await TestPostgres.withScratchDatabase { writer in
-            try await TestFixtures.withISCoreReader { reader in
+            try await TestFixtures.withiScoreReader { reader in
                 let resultDb = try await writer.getDb()
 
                 let initialCount = try await countTeams(db: resultDb)
@@ -65,7 +65,7 @@ struct IntegrationTests {
     @Test("Import Players")
     func testImportPlayers() async throws {
         try await TestPostgres.withScratchDatabase { writer in
-            try await TestFixtures.withISCoreReader { reader in
+            try await TestFixtures.withiScoreReader { reader in
                 let resultDb = try await writer.getDb()
 
                 let initialCount = try await countPlayers(db: resultDb)
@@ -114,7 +114,7 @@ struct IntegrationTests {
     @Test("Import Game")
     func testImportGame() async throws {
         try await TestPostgres.withScratchDatabase { writer in
-            try await TestFixtures.withISCoreReader { reader in
+            try await TestFixtures.withiScoreReader { reader in
                 // get one player we know is used in this game so we can add them to the writer first
                 let players = try await reader.getPlayers(lastName: "Soriano")
                 #expect(players.count >= 1)
