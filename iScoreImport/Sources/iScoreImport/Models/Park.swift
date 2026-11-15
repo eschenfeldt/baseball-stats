@@ -7,6 +7,6 @@
 
 import Foundation
 
-struct Park : Codable {
+struct Park: Codable {
     let Name: String
 }

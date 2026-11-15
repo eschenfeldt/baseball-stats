@@ -22,7 +22,7 @@ enum SQLScript {
 
         func matches(_ token: [Character], at index: Int) -> Bool {
             guard index + token.count <= chars.count else { return false }
-            return Array(chars[index ..< (index + token.count)]) == token
+            return Array(chars[index..<(index + token.count)]) == token
         }
 
         while i < chars.count {
@@ -98,7 +98,8 @@ enum SQLScript {
         }
         statements.append(current)
 
-        return statements
+        return
+            statements
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }
     }

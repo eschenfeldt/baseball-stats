@@ -5,35 +5,35 @@
 //  Created by Patrick Eschenfeldt on 6/27/24.
 //
 
+import ArgumentParser
 import Foundation
 import SQLiteKit
-import ArgumentParser
 
 @main
 struct Import: AsyncParsableCommand {
-    
+
     enum DataType: String, ExpressibleByArgument, CaseIterable {
         case Teams = "Teams"
         case Players = "Players"
         case Games = "Games"
     }
-    
-    @Option(name:.shortAndLong, help:"Update data of these types")
+
+    @Option(name: .shortAndLong, help: "Update data of these types")
     var includedTypes: [DataType] = []
-    @Option(name:[.short, .customLong("source-file")], help: "Path to source sqlite file, with extension")
+    @Option(name: [.short, .customLong("source-file")], help: "Path to source sqlite file, with extension")
     var sourceFilePath: String
-    @Option(name:[.short, .customLong("target-config")], help: "Path to config file for target Postgres instance, with extension")
+    @Option(name: [.short, .customLong("target-config")], help: "Path to config file for target Postgres instance, with extension")
     var targetFilePath: String
-    @Option(name:[.long], help:"For game import limit to games on or after this date in yyyy-MM-dd format")
+    @Option(name: [.long], help: "For game import limit to games on or after this date in yyyy-MM-dd format")
     var since: String?
-    
+
     func run() async throws {
-        
+
         guard includedTypes.count > 0 else {
             print("No types specified to import. Not doing anything")
             return
         }
-        
+
         var reader = SQLiteConnector(filePath: sourceFilePath)
         do {
             try await reader.connect()
@@ -85,11 +85,11 @@ struct Import: AsyncParsableCommand {
             try? await writer.close()
             throw error
         }
-        
+
         try? await reader.close()
         try? await writer.close()
     }
-    
+
     func updateTeams(from: SQLiteConnector, to: PostgresConnector) async throws {
         let teams = try await from.getTeams()
         for team in teams {
@@ -101,7 +101,7 @@ struct Import: AsyncParsableCommand {
             }
         }
     }
-    
+
     func updatePlayers(from: SQLiteConnector, to: PostgresConnector) async throws {
         let players = try await from.getPlayers()
         for player in players {
@@ -109,7 +109,7 @@ struct Import: AsyncParsableCommand {
             try await to.insertOrUpdatePlayer(player: player)
         }
     }
-    
+
     func updateGames(from: SQLiteConnector, to: PostgresConnector, afterDate: Date?) async throws {
         let games = try await from.getGames(afterDate: afterDate)
         for try await game in games {

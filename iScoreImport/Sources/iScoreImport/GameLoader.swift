@@ -8,15 +8,15 @@
 import Foundation
 import SQLKit
 
-enum GameLoadError : Error {
+enum GameLoadError: Error {
     case noGameIdentifier
 }
 
 struct GameLoader {
-    
+
     let db: SQLDatabase
     static let zeroTime = Date(timeIntervalSince1970: 0)
-    
+
     func loadGames(afterDate: Date?) async throws -> AsyncThrowingStream<Game, Error> {
         // columns from "game"
         var query: SQLSelectBuilder = db.select()
@@ -26,7 +26,7 @@ struct GameLoader {
             .column("start_dt", as: "StartTime")
             .column("end_dt", as: "EndTime")
             .column("location", as: "Location")
-        
+
         // columns from teams
         query = query.column(SQLColumn("team_guid", table: "home_team_game"), as: "HomeTeamGuid")
             .column(SQLColumn("team_nm", table: "home_team_game"), as: "HomeTeamName")
@@ -34,57 +34,75 @@ struct GameLoader {
             .column(SQLColumn("team_guid", table: "away_team_game"), as: "AwayTeamGuid")
             .column(SQLColumn("team_nm", table: "away_team_game"), as: "AwayTeamName")
             .column(SQLColumn("team_nm", table: "away_team"), as: "CurrentAwayTeamName")
-        
+
         // winning pitcher
         query = query.column(SQLColumn("first_nm", table: "win_p"), as: "WinningPitcherFirstName")
             .column(SQLColumn("last_nm", table: "win_p"), as: "WinningPitcherLastName")
-            .column(SQLFunction("CONCAT", args: SQLColumn("first_nm", table: "win_p"), SQLLiteral.string(" "), SQLColumn("last_nm", table: "win_p")), as: "WinningPitcherName")
+            .column(
+                SQLFunction("CONCAT", args: SQLColumn("first_nm", table: "win_p"), SQLLiteral.string(" "), SQLColumn("last_nm", table: "win_p")),
+                as: "WinningPitcherName"
+            )
             .column(SQLColumn("guid", table: "win_p"), as: "WinningPitcherGuid")
-        
+
         // losing pitcher
         query = query.column(SQLColumn("first_nm", table: "lose_p"), as: "LosingPitcherFirstName")
             .column(SQLColumn("last_nm", table: "lose_p"), as: "LosingPitcherLastName")
-            .column(SQLFunction("CONCAT", args: SQLColumn("first_nm", table: "lose_p"), SQLLiteral.string(" "), SQLColumn("last_nm", table: "lose_p")), as: "LosingPitcherName")
+            .column(
+                SQLFunction("CONCAT", args: SQLColumn("first_nm", table: "lose_p"), SQLLiteral.string(" "), SQLColumn("last_nm", table: "lose_p")),
+                as: "LosingPitcherName"
+            )
             .column(SQLColumn("guid", table: "lose_p"), as: "LosingPitcherGuid")
-        
+
         // saving pitcher
         query = query.column(SQLColumn("first_nm", table: "save_p"), as: "SavingPitcherFirstName")
             .column(SQLColumn("last_nm", table: "save_p"), as: "SavingPitcherLastName")
-            .column(SQLFunction("CONCAT", args: SQLColumn("first_nm", table: "save_p"), SQLLiteral.string(" "), SQLColumn("last_nm", table: "save_p")), as: "SavingPitcherName")
+            .column(
+                SQLFunction("CONCAT", args: SQLColumn("first_nm", table: "save_p"), SQLLiteral.string(" "), SQLColumn("last_nm", table: "save_p")),
+                as: "SavingPitcherName"
+            )
             .column(SQLColumn("guid", table: "save_p"), as: "SavingPitcherGuid")
-        
+
         // game and team joins
         query = query.from("game")
-            .join(SQLAlias("team_game", as: "home_team_game"), on: SQLColumn("home_game_guid"), .equal, SQLColumn("guid", table:"home_team_game"))
+            .join(SQLAlias("team_game", as: "home_team_game"), on: SQLColumn("home_game_guid"), .equal, SQLColumn("guid", table: "home_team_game"))
             .join(SQLAlias("team", as: "home_team"), on: SQLColumn("team_guid", table: "home_team_game"), .equal, SQLColumn("guid", table: "home_team"))
-            .join(SQLAlias("team_game", as: "away_team_game"), on: SQLColumn("visitor_game_guid"), .equal, SQLColumn("guid", table:"away_team_game"))
+            .join(SQLAlias("team_game", as: "away_team_game"), on: SQLColumn("visitor_game_guid"), .equal, SQLColumn("guid", table: "away_team_game"))
             .join(SQLAlias("team", as: "away_team"), on: SQLColumn("team_guid", table: "away_team_game"), .equal, SQLColumn("guid", table: "away_team"))
 
-        
         // pitcher joins
-        query = query.join(SQLAlias("player_game", as: "win_pg"), method: SQLJoinMethod.left, on: SQLColumn("pitcher_win"), .equal, SQLColumn("guid", table:"win_pg"))
-            .join(SQLAlias("player", as: "win_p"), method: SQLJoinMethod.left, on: SQLColumn("player_guid", table: "win_pg"), .equal, SQLColumn("guid", table: "win_p"))
-            .join(SQLAlias("player_game", as: "lose_pg"), method: SQLJoinMethod.left, on: SQLColumn("pitcher_lose"), .equal, SQLColumn("guid", table:"lose_pg"))
-            .join(SQLAlias("player", as: "lose_p"), method: SQLJoinMethod.left, on: SQLColumn("player_guid", table: "lose_pg"), .equal, SQLColumn("guid", table: "lose_p"))
-            .join(SQLAlias("player_game", as: "save_pg"), method: SQLJoinMethod.left, on: SQLColumn("pitcher_save"), .equal, SQLColumn("guid", table:"save_pg"))
-            .join(SQLAlias("player", as: "save_p"), method: SQLJoinMethod.left, on: SQLColumn("player_guid", table: "save_pg"), .equal, SQLColumn("guid", table: "save_p"))
-        
+        query = query.join(
+            SQLAlias("player_game", as: "win_pg"), method: SQLJoinMethod.left, on: SQLColumn("pitcher_win"), .equal, SQLColumn("guid", table: "win_pg")
+        )
+        .join(
+            SQLAlias("player", as: "win_p"), method: SQLJoinMethod.left, on: SQLColumn("player_guid", table: "win_pg"), .equal,
+            SQLColumn("guid", table: "win_p")
+        )
+        .join(SQLAlias("player_game", as: "lose_pg"), method: SQLJoinMethod.left, on: SQLColumn("pitcher_lose"), .equal, SQLColumn("guid", table: "lose_pg"))
+        .join(
+            SQLAlias("player", as: "lose_p"), method: SQLJoinMethod.left, on: SQLColumn("player_guid", table: "lose_pg"), .equal,
+            SQLColumn("guid", table: "lose_p")
+        )
+        .join(SQLAlias("player_game", as: "save_pg"), method: SQLJoinMethod.left, on: SQLColumn("pitcher_save"), .equal, SQLColumn("guid", table: "save_pg"))
+        .join(
+            SQLAlias("player", as: "save_p"), method: SQLJoinMethod.left, on: SQLColumn("player_guid", table: "save_pg"), .equal,
+            SQLColumn("guid", table: "save_p"))
+
         // where not deleted
         query = query.where(SQLFunction.coalesce(SQLColumn("is_deleted", table: "game"), SQLLiteral.numeric("0")), .equal, SQLLiteral.numeric("0"))
-        
+
         if let afterDate {
             query = query.where(SQLColumn("start_dt", table: "game"), .greaterThan, SQLLiteral.numeric(afterDate.timeIntervalSince1970.description))
         }
-        
+
         let rows = try await query.all()
-        
+
         print("Found \(rows.count) games. Loading details...")
-        
+
         var index = 0
-        
+
         return AsyncThrowingStream {
-            guard index < rows.count else { return nil}
-            
+            guard index < rows.count else { return nil }
+
             let row = rows[index]
             index += 1
             let game = try sqlRowToGame(row: row)
@@ -93,9 +111,9 @@ struct GameLoader {
             print("Loaded details for \(game.Name)")
             return withBoxScore
         }
-            
+
     }
-                
+
     func sqlRowToGame(row: SQLRow) throws -> Game {
         let homeTeam = Team(
             ExternalId: try row.decode(column: "HomeTeamGuid", as: UUID.self),
@@ -118,7 +136,7 @@ struct GameLoader {
             EndTime: try decodeDatetime(row: row, colName: "EndTime"),
             Location: location,
             HomeScore: nil,
-            AwayScore: nil, 
+            AwayScore: nil,
             HomeTeamName: try row.decode(column: "HomeTeamName", as: String.self),
             AwayTeamName: try row.decode(column: "AwayTeamName", as: String.self),
             WinningTeam: nil,
@@ -129,7 +147,7 @@ struct GameLoader {
             HomeBoxScore: nil
         )
     }
-    
+
     private func playerFromRow(row: SQLRow, prefix: String) throws -> Player? {
         let name = try? row.decode(column: "\(prefix)Name", as: String.self)
         guard let name else {
@@ -138,24 +156,25 @@ struct GameLoader {
         guard name != " " else {
             return nil
         }
-        return Player(Name: name,
-                      ExternalId: try row.decode(column: "\(prefix)Guid", as: UUID.self),
-                      DateOfBirth: nil,
-                      FirstName: try row.decode(column: "\(prefix)FirstName", as: String.self),
-                      MiddleName: nil,
-                      LastName: try row.decode(column: "\(prefix)LastName", as: String.self),
-                      Suffix: nil)
+        return Player(
+            Name: name,
+            ExternalId: try row.decode(column: "\(prefix)Guid", as: UUID.self),
+            DateOfBirth: nil,
+            FirstName: try row.decode(column: "\(prefix)FirstName", as: String.self),
+            MiddleName: nil,
+            LastName: try row.decode(column: "\(prefix)LastName", as: String.self),
+            Suffix: nil)
     }
-    
+
     private func decodeDatetime(row: SQLRow, colName: String) throws -> Date? {
         let time = try row.decode(column: colName, as: Date.self)
-        if (time == GameLoader.zeroTime) {
+        if time == GameLoader.zeroTime {
             return nil
         } else {
             return time
         }
     }
-    
+
     private func loadBoxScore(game: Game) async throws -> Game {
         guard let gameGuid = game.ExternalId else {
             throw GameLoadError.noGameIdentifier
@@ -166,9 +185,9 @@ struct GameLoader {
         let awayPitchers = try await getPitchers(gameGuid: gameGuid, home: false)
         let homeFielders = try await getFielders(gameGuid: gameGuid, home: true)
         let awayFielders = try await getFielders(gameGuid: gameGuid, home: false)
-        
+
         var returnGame = game
-        
+
         returnGame.AwayScore = awayBatters.reduce(0) {
             $0 + $1.Runs
         }
@@ -176,7 +195,7 @@ struct GameLoader {
             $0 + $1.Runs
         }
         returnGame.assignWinner()
-        
+
         returnGame.HomeBoxScore = BoxScore(
             batters: homeBatters,
             pitchers: homePitchers,
@@ -187,10 +206,10 @@ struct GameLoader {
             pitchers: awayPitchers,
             fielders: awayFielders
         )
-        
+
         return returnGame
     }
-    
+
     private static let batterColumnMap = [
         "bat_games": "Games",
         "bat_pa": "PlateAppearances",
@@ -213,9 +232,9 @@ struct GameLoader {
         "bat_fc": "FieldersChoices",
         "bat_ci": "CatchersInterference",
         "bat_gidp": "GroundedIntoDoublePlay",
-        "bat_gitp": "GroundedIntoTriplePlay"
+        "bat_gitp": "GroundedIntoTriplePlay",
     ]
-    
+
     private func getBatters(gameGuid: UUID, home: Bool) async throws -> [Batter] {
         let joinCol = home ? "home_game_guid" : "visitor_game_guid"
         var query = db.select()
@@ -224,30 +243,35 @@ struct GameLoader {
             .column(SQLFunction("CONCAT", args: SQLColumn("first_nm"), SQLLiteral.string(" "), SQLColumn("last_nm")), as: "PlayerName")
             .column("player_number", as: "Number")
             // "bat_ab" seems to always be null for some reason, so compute it
-            .column(SQLBinaryExpression(SQLColumn("bat_pa"), .subtract,
-                                        SQLBinaryExpression(SQLColumn("bat_ci"), .subtract,
-                                                            SQLBinaryExpression(
-                                                                SQLColumn("bat_sf"), .subtract,
-                                                                SQLBinaryExpression(SQLColumn("bat_scb"), .subtract,
-                                                                                    SQLBinaryExpression(SQLColumn("bat_hbp"), .subtract,
-                                                                                                        SQLColumn("bat_bb")))))),
-                    as: "AtBats")
+            .column(
+                SQLBinaryExpression(
+                    SQLColumn("bat_pa"), .subtract,
+                    SQLBinaryExpression(
+                        SQLColumn("bat_ci"), .subtract,
+                        SQLBinaryExpression(
+                            SQLColumn("bat_sf"), .subtract,
+                            SQLBinaryExpression(
+                                SQLColumn("bat_scb"), .subtract,
+                                SQLBinaryExpression(
+                                    SQLColumn("bat_hbp"), .subtract,
+                                    SQLColumn("bat_bb")))))),
+                as: "AtBats")
         for kvp in GameLoader.batterColumnMap {
             query = query.column(
                 SQLFunction("COALESCE", args: SQLColumn(kvp.key), SQLLiteral.numeric("0")),
                 as: kvp.value)
         }
-        
+
         let batters = try await query.from("game")
             .join("team_game", on: SQLColumn(joinCol, table: "game"), .equal, SQLColumn("guid", table: "team_game"))
             .join("player_game", on: SQLColumn("guid", table: "team_game"), .equal, SQLColumn("team_game_guid", table: "player_game"))
             .join("stat_summary", on: SQLColumn("player_guid", table: "player_game"), .equal, SQLColumn("player_game_guid", table: "stat_summary"))
             .join("player", on: SQLColumn("player_guid", table: "player_game"), .equal, SQLColumn("guid", table: "player"))
-            .where(SQLColumn("game_guid", table:"stat_summary"), .equal, SQLColumn("guid", table: "game"))
+            .where(SQLColumn("game_guid", table: "stat_summary"), .equal, SQLColumn("guid", table: "game"))
             .where("bat_games", .greaterThan, 0)
             .where(SQLColumn("guid", table: "game"), .equal, SQLLiteral.string("\(gameGuid)"))
             .all(decoding: Batter.self)
-        
+
         var returnBatters: [Batter] = []
         for var batter in batters {
             batter.Player = try await getPlayer(externalId: batter.PlayerExternalId)
@@ -255,7 +279,7 @@ struct GameLoader {
         }
         return returnBatters
     }
-    
+
     private static let pitcherColumnMap = [
         "pit_games": "Games",
         "pit_win": "Wins",
@@ -282,8 +306,7 @@ struct GameLoader {
         "pit_first_strikes": "FirstPitchStrikes",
         "pit_first_balls": "FirstPitchBalls",
     ]
-    
-    
+
     private func getPitchers(gameGuid: UUID, home: Bool) async throws -> [Pitcher] {
         let joinCol = home ? "home_game_guid" : "visitor_game_guid"
         var query = db.select()
@@ -296,17 +319,17 @@ struct GameLoader {
                 SQLFunction("COALESCE", args: SQLColumn(kvp.key), SQLLiteral.numeric("0")),
                 as: kvp.value)
         }
-        
+
         let pitchers = try await query.from("game")
             .join("team_game", on: SQLColumn(joinCol, table: "game"), .equal, SQLColumn("guid", table: "team_game"))
             .join("player_game", on: SQLColumn("guid", table: "team_game"), .equal, SQLColumn("team_game_guid", table: "player_game"))
             .join("stat_summary", on: SQLColumn("player_guid", table: "player_game"), .equal, SQLColumn("player_game_guid", table: "stat_summary"))
             .join("player", on: SQLColumn("player_guid", table: "player_game"), .equal, SQLColumn("guid", table: "player"))
-            .where(SQLColumn("game_guid", table:"stat_summary"), .equal, SQLColumn("guid", table: "game"))
+            .where(SQLColumn("game_guid", table: "stat_summary"), .equal, SQLColumn("guid", table: "game"))
             .where("pit_games", .greaterThan, 0)
             .where(SQLColumn("guid", table: "game"), .equal, SQLLiteral.string("\(gameGuid)"))
             .all(decoding: Pitcher.self)
-        
+
         var returnPitchers: [Pitcher] = []
         for var pitcher in pitchers {
             pitcher.Player = try await getPlayer(externalId: pitcher.PlayerExternalId)
@@ -314,7 +337,7 @@ struct GameLoader {
         }
         return returnPitchers
     }
-    
+
     private static let fielderColumnMap = [
         "fld_games": "Games",
         "fld_throw_errors": "ErrorsThrowing",
@@ -328,7 +351,7 @@ struct GameLoader {
         "fld_pickoff_failed": "PickoffFailed",
         "fld_pickoff_success": "PickoffSuccess",
     ]
-    
+
     private func getFielders(gameGuid: UUID, home: Bool) async throws -> [Fielder] {
         let joinCol = home ? "home_game_guid" : "visitor_game_guid"
         var query = db.select()
@@ -342,17 +365,17 @@ struct GameLoader {
                 SQLFunction("COALESCE", args: SQLColumn(kvp.key), SQLLiteral.numeric("0")),
                 as: kvp.value)
         }
-        
+
         let fielders = try await query.from("game")
             .join("team_game", on: SQLColumn(joinCol, table: "game"), .equal, SQLColumn("guid", table: "team_game"))
             .join("player_game", on: SQLColumn("guid", table: "team_game"), .equal, SQLColumn("team_game_guid", table: "player_game"))
             .join("stat_summary", on: SQLColumn("player_guid", table: "player_game"), .equal, SQLColumn("player_game_guid", table: "stat_summary"))
             .join("player", on: SQLColumn("player_guid", table: "player_game"), .equal, SQLColumn("guid", table: "player"))
-            .where(SQLColumn("game_guid", table:"stat_summary"), .equal, SQLColumn("guid", table: "game"))
+            .where(SQLColumn("game_guid", table: "stat_summary"), .equal, SQLColumn("guid", table: "game"))
             .where("fld_games", .greaterThan, 0)
             .where(SQLColumn("guid", table: "game"), .equal, SQLLiteral.string("\(gameGuid)"))
             .all(decoding: Fielder.self)
-        
+
         var returnFielders: [Fielder] = []
         for var fielder in fielders {
             fielder.Player = try await getPlayer(externalId: fielder.PlayerExternalId)
@@ -360,7 +383,7 @@ struct GameLoader {
         }
         return returnFielders
     }
-    
+
     private func getPlayer(externalId: UUID) async throws -> Player? {
         return try await db.select()
             .column("guid", as: "ExternalId")

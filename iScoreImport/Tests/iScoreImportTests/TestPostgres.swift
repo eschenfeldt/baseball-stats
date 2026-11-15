@@ -10,6 +10,7 @@
 
 import Foundation
 import PostgresKit
+
 @testable import iScoreImport
 
 enum TestPostgresError: Error {
@@ -52,7 +53,8 @@ struct TestPostgresSettings {
         }
         let path = env["ISCORE_TEST_PG_PASSWORD_FILE"] ?? defaultPasswordFilePath()
         guard let path,
-              let contents = try? String(contentsOfFile: path, encoding: .utf8) else {
+            let contents = try? String(contentsOfFile: path, encoding: .utf8)
+        else {
             return nil
         }
         let trimmed = contents.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -127,7 +129,8 @@ enum TestPostgres {
         _ databaseName: String,
         reason: String
     ) {
-        print("""
+        print(
+            """
             Kept scratch database \(databaseName) (\(reason)). Inspect with:
               psql -h \(settings.hostname) -p \(settings.port) -U "\(settings.username)" \(databaseName)
             Drop it when done with:
@@ -184,11 +187,12 @@ enum TestPostgres {
         _ settings: TestPostgresSettings,
         _ databaseName: String
     ) throws -> String {
-        let config = PostgresConfig(hostname: settings.hostname,
-                                    database: databaseName,
-                                    username: settings.username,
-                                    password: settings.password,
-                                    port: settings.port)
+        let config = PostgresConfig(
+            hostname: settings.hostname,
+            database: databaseName,
+            username: settings.username,
+            password: settings.password,
+            port: settings.port)
         let url = FileManager.default.temporaryDirectory
             .appendingPathComponent("\(databaseName).postgres_config")
         try JSONEncoder().encode(config).write(to: url)
