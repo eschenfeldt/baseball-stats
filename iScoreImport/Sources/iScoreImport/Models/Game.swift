@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Game : Codable {
+struct Game: Codable {
     let Name: String
     let ExternalId: UUID?
     let HomeTeam: Team
@@ -27,7 +27,7 @@ struct Game : Codable {
     let SavingPitcher: Player?
     var HomeBoxScore: BoxScore?
     var AwayBoxScore: BoxScore?
-    
+
     mutating func assignWinner() {
         guard let homeScore = self.HomeScore, let awayScore = self.AwayScore else { return }
         if homeScore > awayScore {

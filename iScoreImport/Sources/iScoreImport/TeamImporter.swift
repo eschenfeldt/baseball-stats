@@ -10,7 +10,7 @@ import SQLKit
 
 struct TeamImporter {
     let db: SQLDatabase
-    
+
     func insertOrUpdateTeam(team: Team) async throws {
         var existingTeamId: Int? = nil
         if let externalId = team.ExternalId {
@@ -25,7 +25,7 @@ struct TeamImporter {
             try await insertTeam(team: team)
         }
     }
-    
+
     private func getTeamId(externalId: UUID) async throws -> Int? {
         let result = try await db.select()
             .column("Id")
@@ -34,7 +34,7 @@ struct TeamImporter {
             .first()
         return try result?.decode(column: "Id", as: Int.self)
     }
-    
+
     func getTeamId(city: String, name: String) async throws -> Int? {
         let result = try await db.select()
             .column("Id")
@@ -44,14 +44,14 @@ struct TeamImporter {
             .first()
         return try result?.decode(column: "Id", as: Int.self)
     }
-    
+
     private func insertTeam(team: Team) async throws {
         try await db.insert(into: "Teams")
             .columns("ExternalId", "City", "Name")
             .values(team.ExternalId ?? UUID(uuidString: "00000000-0000-0000-0000-000000000000"), team.City, team.Name)
             .run()
     }
-    
+
     private func updateTeam(team: Team, id: Int) async throws {
         try await db.update("Teams")
             .set("ExternalId", to: team.ExternalId)

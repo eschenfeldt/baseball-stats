@@ -11,7 +11,7 @@ struct Pitcher: Codable {
     let PlayerExternalId: UUID
     var Player: Player?
     let TeamExternalId: UUID
-    
+
     let Number: Int
     let Games: Int
     let Wins: Int

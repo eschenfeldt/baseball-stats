@@ -13,11 +13,11 @@ enum ConnectorError: Error {
 }
 
 protocol DbConnector {
-    
+
     mutating func getDb() async throws -> SQLDatabase
-    
+
     mutating func connect() async throws
-    
+
     mutating func close() async throws
-    
+
 }

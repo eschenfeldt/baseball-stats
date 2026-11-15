@@ -6,8 +6,9 @@
 //
 
 import Foundation
-import Testing
 import SQLKit
+import Testing
+
 @testable import iScoreImport
 
 @Suite("Postgres Tests", .enabled(if: TestPostgres.isConfigured))
@@ -129,7 +130,8 @@ struct PostgresTests {
 
             let updatedLastName = "New Test"
             let updatedName = "\(firstName) \(updatedLastName)"
-            let updatedPlayer = Player(Name: updatedName, ExternalId: externalId, DateOfBirth: nil, FirstName: firstName, MiddleName: nil, LastName: updatedLastName, Suffix: nil)
+            let updatedPlayer = Player(
+                Name: updatedName, ExternalId: externalId, DateOfBirth: nil, FirstName: firstName, MiddleName: nil, LastName: updatedLastName, Suffix: nil)
             try await connector.insertOrUpdatePlayer(player: updatedPlayer)
 
             let savedNameRaw = try await db.select()
