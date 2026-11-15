@@ -75,6 +75,9 @@ namespace BaseballApi.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
+                    b.Property<int?>("AppearanceOrder")
+                        .HasColumnType("integer");
+
                     b.Property<int>("AtBats")
                         .HasColumnType("integer");
 
@@ -118,6 +121,9 @@ namespace BaseballApi.Migrations
                         .HasColumnType("integer");
 
                     b.Property<int>("Homeruns")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("LineupPosition")
                         .HasColumnType("integer");
 
                     b.Property<int>("Number")
@@ -542,6 +548,9 @@ namespace BaseballApi.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
                     b.Property<int>("AirOuts")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("AppearanceOrder")
                         .HasColumnType("integer");
 
                     b.Property<int>("Balks")
