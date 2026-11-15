@@ -49,9 +49,9 @@ jobs:
 
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: '10.0.x'
 
-      - run: dotnet tool install --global dotnet-ef --version 8.*
+      - run: dotnet tool install --global dotnet-ef --version 10.*
 
       # The Swift tests build their scratch databases from a committed copy of the
       # API's schema. Regenerate it here so adding a migration without refreshing
