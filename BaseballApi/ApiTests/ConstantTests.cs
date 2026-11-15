@@ -16,7 +16,7 @@ public class ConstantTests : BaseballTests
     }
 
     [Fact]
-    public async void TestRefreshConstants()
+    public async Task TestRefreshConstants()
     {
         var filePath = Path.Join("data", "FanGraphs Leaderboard.csv");
         var fileName = Path.GetFileName(filePath);

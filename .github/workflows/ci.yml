@@ -49,15 +49,18 @@ jobs:
 
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: '10.0.x'
 
-      - run: dotnet tool install --global dotnet-ef --version 8.*
+      - run: dotnet tool install --global dotnet-ef --version 10.*
 
       # The Swift tests build their scratch databases from a committed copy of the
       # API's schema. Regenerate it here so adding a migration without refreshing
       # that copy fails the PR rather than silently testing a stale schema.
       - name: Check schema.sql matches the EF migrations
+        # dotnet-ef 10 reads project metadata before its own build/restore, so it
+        # fails on a fresh checkout (NETSDK1004: project.assets.json not found).
         run: |
+          dotnet restore BaseballApi/Api
           dotnet ef migrations script --idempotent --context BaseballContext \
             --project BaseballApi/Api --output /tmp/schema.sql
           diff -u iScoreImport/Tests/iScoreImportTests/Resources/schema.sql /tmp/schema.sql

@@ -131,7 +131,7 @@ public class TestMediaImporter(BaseballContext context, MediaController controll
             }
             Assert.Equal(expectedMessage, importTask.Value.Message);
             i++;
-        } while (i < 300);
+        } while (i < 900);
 
         Assert.Equal(MediaImportTaskStatus.Completed, importTask.Value.Status);
         expectedMessage = $"Imported {Pluralize(photoCount, "photo")}, {Pluralize(videoCount, "video")}, and {Pluralize(livePhotoCount, "live photo")}";

@@ -25,7 +25,7 @@ public class GameTests : BaseballTests
     [InlineData(2, 2)]
     [InlineData(3, 1)]
     // intentionally not validating games 4+ since they don't have player info
-    public async void TestGetGames(int testGameNumber, int expectedSkip)
+    public async Task TestGetGames(int testGameNumber, int expectedSkip)
     {
         var games = await Controller.GetGames(expectedSkip, 1, asc: true);
         Assert.NotNull(games.Value);
@@ -43,7 +43,7 @@ public class GameTests : BaseballTests
     [InlineData(1, 4)]
     [InlineData(2, 3)]
     [InlineData(3, 1)]
-    public async void TestGetGamesByTeam(int testTeamNumber, int gameCount)
+    public async Task TestGetGamesByTeam(int testTeamNumber, int gameCount)
     {
         var teamId = TestGameManager.GetTeamId(testTeamNumber);
         var games = await Controller.GetGames(0, 10, teamId: teamId);
@@ -55,7 +55,7 @@ public class GameTests : BaseballTests
     [Theory]
     [InlineData("Test Park", 1)]
     [InlineData("Test Stadium", 6)]
-    public async void TestGetGamesByPark(string parkName, int gameCount)
+    public async Task TestGetGamesByPark(string parkName, int gameCount)
     {
         var parkId = Context.Parks.FirstOrDefault(p => p.Name == parkName)?.Id;
         Assert.NotNull(parkId);
@@ -68,7 +68,7 @@ public class GameTests : BaseballTests
     [InlineData(1, 4, 2, 1, 2)]
     [InlineData(2, 3, 0, 2, 2)]
     // [InlineData(3, 1, 1, 0, 1)] // Team 3 does not have any player data so the endpoint fails
-    public async void TestGetTeamSummaryStats(int testTeamNumber, int games, int wins, int losses, int parks)
+    public async Task TestGetTeamSummaryStats(int testTeamNumber, int games, int wins, int losses, int parks)
     {
         var teamId = TestGameManager.GetTeamId(testTeamNumber);
         var stats = await Controller.GetSummaryStats(teamId);
@@ -105,7 +105,7 @@ public class GameTests : BaseballTests
     [Theory]
     [InlineData("Test Park", 1, 2, 0, 1)]
     [InlineData("Test Stadium", 6, 5, 1, 4)]
-    public async void TestGetParkSummaryStats(string parkName, int games, int teams, int wins, int losses)
+    public async Task TestGetParkSummaryStats(string parkName, int games, int teams, int wins, int losses)
     {
         var parkId = Context.Parks.FirstOrDefault(p => p.Name == parkName)?.Id;
         Assert.NotNull(parkId);
@@ -146,7 +146,7 @@ public class GameTests : BaseballTests
     [InlineData(2022, 2)]
     [InlineData(2023, 1)]
     [InlineData(2024, 1)]
-    public async void TestGetGamesByYear(int year, int gameCount)
+    public async Task TestGetGamesByYear(int year, int gameCount)
     {
         var games = await Controller.GetGames(0, 10, year: year);
         Assert.NotNull(games.Value);
@@ -158,7 +158,7 @@ public class GameTests : BaseballTests
     [InlineData(1, 2022, 2023, 2024)]
     [InlineData(2, 2022, 2023)]
     [InlineData(3, 2024)]
-    public async void TestGetAvailableYears(int? testTeamNumber, params int[] years)
+    public async Task TestGetAvailableYears(int? testTeamNumber, params int[] years)
     {
         long? teamId = testTeamNumber.HasValue ? TestGameManager.GetTeamId(testTeamNumber.Value) : null;
         var actualYears = await Controller.GetGameYears(teamId);
@@ -169,7 +169,7 @@ public class GameTests : BaseballTests
     [Theory]
     [InlineData("Test Park", 2023)]
     [InlineData("Test Stadium", 2022, 2024, 2025)]
-    public async void TestGetAvailableYearsByPark(string parkName, params int[] years)
+    public async Task TestGetAvailableYearsByPark(string parkName, params int[] years)
     {
         long? parkId = Context.Parks.FirstOrDefault(p => p.Name == parkName)?.Id;
         Assert.NotNull(parkId);

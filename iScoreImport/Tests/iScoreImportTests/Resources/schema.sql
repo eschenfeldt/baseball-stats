@@ -6,7 +6,6 @@
 
 START TRANSACTION;
 
-
 DO $EF$
 BEGIN
     IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20240426033523_InitialCreate') THEN
@@ -353,13 +352,12 @@ DO $EF$
 BEGIN
     IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20240426033523_InitialCreate') THEN
     INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
-    VALUES ('20240426033523_InitialCreate', '8.0.6');
+    VALUES ('20240426033523_InitialCreate', '10.0.15');
     END IF;
 END $EF$;
 COMMIT;
 
 START TRANSACTION;
-
 
 DO $EF$
 BEGIN
@@ -386,13 +384,12 @@ DO $EF$
 BEGIN
     IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20240629162236_ExternalIds') THEN
     INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
-    VALUES ('20240629162236_ExternalIds', '8.0.6');
+    VALUES ('20240629162236_ExternalIds', '10.0.15');
     END IF;
 END $EF$;
 COMMIT;
 
 START TRANSACTION;
-
 
 DO $EF$
 BEGIN
@@ -419,13 +416,12 @@ DO $EF$
 BEGIN
     IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20240705010100_LosingTeam') THEN
     INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
-    VALUES ('20240705010100_LosingTeam', '8.0.6');
+    VALUES ('20240705010100_LosingTeam', '10.0.15');
     END IF;
 END $EF$;
 COMMIT;
 
 START TRANSACTION;
-
 
 DO $EF$
 BEGIN
@@ -445,13 +441,12 @@ DO $EF$
 BEGIN
     IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20240705012804_GamePropertyNullability') THEN
     INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
-    VALUES ('20240705012804_GamePropertyNullability', '8.0.6');
+    VALUES ('20240705012804_GamePropertyNullability', '10.0.15');
     END IF;
 END $EF$;
 COMMIT;
 
 START TRANSACTION;
-
 
 DO $EF$
 BEGIN
@@ -548,13 +543,12 @@ DO $EF$
 BEGIN
     IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20240705021337_BoxScoreTeams') THEN
     INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
-    VALUES ('20240705021337_BoxScoreTeams', '8.0.6');
+    VALUES ('20240705021337_BoxScoreTeams', '10.0.15');
     END IF;
 END $EF$;
 COMMIT;
 
 START TRANSACTION;
-
 
 DO $EF$
 BEGIN
@@ -581,13 +575,12 @@ DO $EF$
 BEGIN
     IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20240705024343_BoxScoreFK') THEN
     INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
-    VALUES ('20240705024343_BoxScoreFK', '8.0.6');
+    VALUES ('20240705024343_BoxScoreFK', '10.0.15');
     END IF;
 END $EF$;
 COMMIT;
 
 START TRANSACTION;
-
 
 DO $EF$
 BEGIN
@@ -607,13 +600,12 @@ DO $EF$
 BEGIN
     IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20240705043329_BoxScoreUniqueIndex') THEN
     INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
-    VALUES ('20240705043329_BoxScoreUniqueIndex', '8.0.6');
+    VALUES ('20240705043329_BoxScoreUniqueIndex', '10.0.15');
     END IF;
 END $EF$;
 COMMIT;
 
 START TRANSACTION;
-
 
 DO $EF$
 BEGIN
@@ -647,13 +639,12 @@ DO $EF$
 BEGIN
     IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20240705043748_PlayerGameUniqueIndices') THEN
     INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
-    VALUES ('20240705043748_PlayerGameUniqueIndices', '8.0.6');
+    VALUES ('20240705043748_PlayerGameUniqueIndices', '10.0.15');
     END IF;
 END $EF$;
 COMMIT;
 
 START TRANSACTION;
-
 
 DO $EF$
 BEGIN
@@ -666,13 +657,12 @@ DO $EF$
 BEGIN
     IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20240728205528_GameUniqueIndex') THEN
     INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
-    VALUES ('20240728205528_GameUniqueIndex', '8.0.6');
+    VALUES ('20240728205528_GameUniqueIndex', '10.0.15');
     END IF;
 END $EF$;
 COMMIT;
 
 START TRANSACTION;
-
 
 DO $EF$
 BEGIN
@@ -787,13 +777,12 @@ DO $EF$
 BEGIN
     IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20240815014411_RemoteResources') THEN
     INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
-    VALUES ('20240815014411_RemoteResources', '8.0.6');
+    VALUES ('20240815014411_RemoteResources', '10.0.15');
     END IF;
 END $EF$;
 COMMIT;
 
 START TRANSACTION;
-
 
 DO $EF$
 BEGIN
@@ -830,13 +819,12 @@ DO $EF$
 BEGIN
     IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20240831033006_FangraphsConstants') THEN
     INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
-    VALUES ('20240831033006_FangraphsConstants', '8.0.6');
+    VALUES ('20240831033006_FangraphsConstants', '10.0.15');
     END IF;
 END $EF$;
 COMMIT;
 
 START TRANSACTION;
-
 
 DO $EF$
 BEGIN
@@ -849,13 +837,12 @@ DO $EF$
 BEGIN
     IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20240914171338_TeamAbbreviation') THEN
     INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
-    VALUES ('20240914171338_TeamAbbreviation', '8.0.6');
+    VALUES ('20240914171338_TeamAbbreviation', '10.0.15');
     END IF;
 END $EF$;
 COMMIT;
 
 START TRANSACTION;
-
 
 DO $EF$
 BEGIN
@@ -911,13 +898,12 @@ DO $EF$
 BEGIN
     IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20250707014202_MediaImportTask') THEN
     INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
-    VALUES ('20250707014202_MediaImportTask', '8.0.6');
+    VALUES ('20250707014202_MediaImportTask', '10.0.15');
     END IF;
 END $EF$;
 COMMIT;
 
 START TRANSACTION;
-
 
 DO $EF$
 BEGIN
@@ -930,13 +916,12 @@ DO $EF$
 BEGIN
     IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20250724015432_MediaImportFileCleanup') THEN
     INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
-    VALUES ('20250724015432_MediaImportFileCleanup', '8.0.6');
+    VALUES ('20250724015432_MediaImportFileCleanup', '10.0.15');
     END IF;
 END $EF$;
 COMMIT;
 
 START TRANSACTION;
-
 
 DO $EF$
 BEGIN
@@ -949,13 +934,12 @@ DO $EF$
 BEGIN
     IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20250726130847_ContentType') THEN
     INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
-    VALUES ('20250726130847_ContentType', '8.0.6');
+    VALUES ('20250726130847_ContentType', '10.0.15');
     END IF;
 END $EF$;
 COMMIT;
 
 START TRANSACTION;
-
 
 DO $EF$
 BEGIN
@@ -968,13 +952,12 @@ DO $EF$
 BEGIN
     IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20250801023458_ParkTimeZone') THEN
     INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
-    VALUES ('20250801023458_ParkTimeZone', '8.0.6');
+    VALUES ('20250801023458_ParkTimeZone', '10.0.15');
     END IF;
 END $EF$;
 COMMIT;
 
 START TRANSACTION;
-
 
 DO $EF$
 BEGIN
@@ -987,13 +970,12 @@ DO $EF$
 BEGIN
     IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20250810000306_AltFormatOverride') THEN
     INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
-    VALUES ('20250810000306_AltFormatOverride', '8.0.6');
+    VALUES ('20250810000306_AltFormatOverride', '10.0.15');
     END IF;
 END $EF$;
 COMMIT;
 
 START TRANSACTION;
-
 
 DO $EF$
 BEGIN
@@ -1094,19 +1076,18 @@ DO $EF$
 BEGIN
     IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20251115063527_ReferencePlayer') THEN
     INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
-    VALUES ('20251115063527_ReferencePlayer', '8.0.6');
+    VALUES ('20251115063527_ReferencePlayer', '10.0.15');
     END IF;
 END $EF$;
 COMMIT;
 
 START TRANSACTION;
 
-
 DO $EF$
 BEGIN
     IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261115155107_NameNormalizedCleanup') THEN
     INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
-    VALUES ('20261115155107_NameNormalizedCleanup', '8.0.6');
+    VALUES ('20261115155107_NameNormalizedCleanup', '10.0.15');
     END IF;
 END $EF$;
 COMMIT;
