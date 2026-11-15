@@ -26,7 +26,7 @@ public class SearchTests : BaseballTests
     [InlineData("Mike Trout")]
     [InlineData("alternate", "St. Test Guinea Pigs")] // Example for searching by alternate team names
     [InlineData("tct", "Test City Testers")] // Example for searching by team abbreviation
-    public async void TestSearch(string searchQuery, params string[] expectedNames)
+    public async Task TestSearch(string searchQuery, params string[] expectedNames)
     {
         var result = await Controller.Search(searchQuery);
         Assert.NotNull(result.Value);
@@ -46,7 +46,7 @@ public class SearchTests : BaseballTests
     [InlineData("Test Pitcher 1", "TCT '22-'23")]
     [InlineData("Test Batter 3", "NTT '22-'23")]
     [InlineData("Test Bench Player", "No Games")]
-    public async void TestPlayerSearch(string playerName, string expectedDescription)
+    public async Task TestPlayerSearch(string playerName, string expectedDescription)
     {
         var result = await Controller.Search(playerName);
         Assert.NotNull(result.Value);
@@ -61,7 +61,7 @@ public class SearchTests : BaseballTests
     [Theory]
     [InlineData("Test City Testers", "TCT")]
     [InlineData("New Tester Town Tubes", "NTT")]
-    public async void TestTeamSearch(string teamName, string expectedDescription)
+    public async Task TestTeamSearch(string teamName, string expectedDescription)
     {
         var result = await Controller.Search(teamName);
         Assert.NotNull(result.Value);

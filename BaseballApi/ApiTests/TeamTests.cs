@@ -17,7 +17,7 @@ public class TeamTests : BaseballTests
     [InlineData("Test City", "Testers")]
     [InlineData("New Tester Town", "Tubes")]
     [InlineData("St. Test", "Guinea Pigs")]
-    public async void TestGetTeams(string city, string name)
+    public async Task TestGetTeams(string city, string name)
     {
         var teams = await Controller.GetTeams();
         Assert.NotNull(teams.Value);
@@ -46,7 +46,7 @@ public class TeamTests : BaseballTests
     }
 
     [Fact]
-    public async void TestGetMLBAMTeams()
+    public async Task TestGetMLBAMTeams()
     {
         var connector = new MLBAMConnector(CreateMLBAMHttpClient());
         var teams = await connector.GetTeamsAsync();
@@ -56,7 +56,7 @@ public class TeamTests : BaseballTests
     }
 
     [Fact]
-    public async void TestUpdateTeamReferences()
+    public async Task TestUpdateTeamReferences()
     {
         var logger = FileLoggerFactory.CreateLogger<ReferenceManager>();
         var connector = new MLBAMConnector(CreateMLBAMHttpClient());
