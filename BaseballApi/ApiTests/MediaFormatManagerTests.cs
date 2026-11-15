@@ -68,7 +68,7 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
     [InlineData("other/IMG_1278.JPG", false, ".jpg")]
     [InlineData("other/IMG_1278.JPG", false, ".jpeg")]
     [InlineData("other/IMG_1278.JPG", false, ".JPEG")]
-    public async void TestNoCleanupRequired(string fileToUpload, bool generatesAltFormat, string? swapExtension = null)
+    public async Task TestNoCleanupRequired(string fileToUpload, bool generatesAltFormat, string? swapExtension = null)
     {
         // Upload a file through the regular endpoint and validate that it doesn't require background cleanup
         string fileName = await UploadFile(fileToUpload, swapExtension);
@@ -92,7 +92,7 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
     [InlineData("photos/IMG_4721.HEIC", true)]
     [InlineData("other/h264.MOV", false)]
     [InlineData("other/IMG_1278.JPG", false)]
-    public async void TestContentTypeSet(string fileToUpload, bool generatesAltFormat)
+    public async Task TestContentTypeSet(string fileToUpload, bool generatesAltFormat)
     {
         // Upload a file then delete the content type in the db and make sure it gets set again
         string fileName = await UploadFile(fileToUpload);
@@ -139,7 +139,7 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
     [InlineData("other/IMG_1278.JPG", false, ".jpg")]
     [InlineData("other/IMG_1278.JPG", false, ".JPEG")]
     [InlineData("other/IMG_1278.JPG", false, ".jpeg")]
-    public async void TestContentTypeCorrected(string fileToUpload, bool generatesAltFormat, string? swapExtension = null)
+    public async Task TestContentTypeCorrected(string fileToUpload, bool generatesAltFormat, string? swapExtension = null)
     {
         // Upload a file then manipulate the content type in the bucket and make sure it gets corrected
         string fileName = await UploadFile(fileToUpload, swapExtension);
@@ -187,7 +187,7 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
     [InlineData("photos/IMG_4721.HEIC", true)]
     [InlineData("other/h264.MOV", false)]
     [InlineData("other/IMG_1278.JPG", false)]
-    public async void TestAlternateFormatCreated(string fileToUpload, bool generatesAltFormat)
+    public async Task TestAlternateFormatCreated(string fileToUpload, bool generatesAltFormat)
     {
         // Upload a file then delete the alternate formats from the db and bucket, then make sure they get recreated
         string fileName = await UploadFile(fileToUpload);
@@ -243,13 +243,13 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
         }
         else
         {
-            Assert.Empty(resource.Files.Where(f => f.Purpose == RemoteFilePurpose.AlternateFormat));
+            Assert.DoesNotContain(resource.Files, f => f.Purpose == RemoteFilePurpose.AlternateFormat);
         }
     }
 
     [Fact]
     [Trait(TestCategory.Category, TestCategory.Media)]
-    public async void TestAlternateFormatLivePhoto()
+    public async Task TestAlternateFormatLivePhoto()
     {
         // upload a live photo, delete one alternate file, check it recreates, then repeat for the other file and both files at once
         List<IFormFile> files = [];
@@ -337,7 +337,7 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
 
     [Fact]
     [Trait(TestCategory.Category, TestCategory.Media)]
-    public async void TestAlternateFormatLivePhotoIncorrectContentType()
+    public async Task TestAlternateFormatLivePhotoIncorrectContentType()
     {
         // upload a live photo, set the content type for all files to binary/octet-stream,
         // then delete one alternate file, check it recreates, then repeat for the other file and both files at once
@@ -469,7 +469,7 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
 
     [Fact]
     [Trait(TestCategory.Category, TestCategory.Media)]
-    public async void TestAlternateFormatLivePhotoDuplicateOriginals()
+    public async Task TestAlternateFormatLivePhotoDuplicateOriginals()
     {
         // upload a live photo, create duplicate entries for the original video and photo in the db
         // This will cause it to be flagged for alternate format creation, which will delete the duplicates instead
@@ -534,7 +534,7 @@ public class MediaFormatManagerTests : IClassFixture<TestMediaImportDatabaseFixt
 
     [Fact]
     [Trait(TestCategory.Category, TestCategory.Media)]
-    public async void TestAlternateFormatOverrideSet()
+    public async Task TestAlternateFormatOverrideSet()
     {
         // Upload an h264 MOV file, then unset the alternate format override and make sure it gets reset
         // This is to simulate pre-existing files that don't have the override set

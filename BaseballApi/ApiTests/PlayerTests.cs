@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 
 namespace BaseballApiTests;
 
+[Collection(TestCollections.MLBAMTeamReferences)]
 public class PlayerTests : BaseballTests
 {
     private PlayerController Controller { get; }
@@ -27,7 +28,7 @@ public class PlayerTests : BaseballTests
     [InlineData("Test Batter 3")]
     [InlineData("Test Pitcher 1")]
     [InlineData("Test Pitcher 2")]
-    public async void TestGetPlayers(string name)
+    public async Task TestGetPlayers(string name)
     {
         var players = await Controller.GetPlayers();
         Assert.NotNull(players.Value);

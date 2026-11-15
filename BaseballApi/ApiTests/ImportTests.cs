@@ -20,7 +20,7 @@ public class ImportTests(TestImportDatabaseFixture fixture) : IClassFixture<Test
     }
 
     [Fact]
-    public async void TestImportGameViaController()
+    public async Task TestImportGameViaController()
     {
         using BaseballContext setupContext = Fixture.CreateContext();
 

@@ -16,7 +16,7 @@ public class ParkTests : BaseballTests
     [Theory]
     [InlineData("Test Park")]
     [InlineData("Test Stadium")]
-    public async void TestGetParks(string name)
+    public async Task TestGetParks(string name)
     {
         var parks = await Controller.GetParks();
         Assert.NotNull(parks.Value);
@@ -32,7 +32,7 @@ public class ParkTests : BaseballTests
     [InlineData("Test Stadium", 2, 2, 2, 0, 1, "2022-04-27", "2022-08-27")]
     [InlineData("Test Park", 1, 1, 2, 0, 1, "2023-06-27", "2023-06-27")]
     [InlineData("Test Park", 2, 1, 2, 0, 1, "2023-06-27", "2023-06-27")]
-    public async void TestGetParkSummaries(string name, int? teamNumber, int games, int teams, int wins, int losses, string firstGameDate, string lastGameDate)
+    public async Task TestGetParkSummaries(string name, int? teamNumber, int games, int teams, int wins, int losses, string firstGameDate, string lastGameDate)
     {
         long? teamId = teamNumber.HasValue ? TestGameManager.GetTeamId(teamNumber.Value) : null;
         var summaries = await Controller.GetParkSummaries(0, 10, teamId: teamId);
