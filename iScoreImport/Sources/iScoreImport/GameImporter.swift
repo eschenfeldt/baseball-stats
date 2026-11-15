@@ -502,6 +502,8 @@ struct GameImporter {
         let BoxScoreId: Int
         let PlayerId: Int
         let Number: Int
+        let LineupPosition: Int?
+        let AppearanceOrder: Int?
         let Games: Int
         let PlateAppearances: Int
         let AtBats: Int
@@ -536,6 +538,8 @@ struct GameImporter {
             self.PlayerId = playerId
 
             self.Number = batter.Number
+            self.LineupPosition = batter.LineupPosition
+            self.AppearanceOrder = batter.AppearanceOrder
             self.Games = batter.Games
             self.PlateAppearances = batter.PlateAppearances
             self.AtBats = batter.AtBats
@@ -612,6 +616,7 @@ struct GameImporter {
         let PlayerId: Int
 
         let Number: Int
+        let AppearanceOrder: Int?
         let Games: Int
         let Wins: Int
         let Losses: Int
@@ -643,6 +648,7 @@ struct GameImporter {
             self.PlayerId = playerId
 
             self.Number = pitcher.Number
+            self.AppearanceOrder = pitcher.AppearanceOrder
             self.Games = pitcher.Games
             self.Wins = pitcher.Wins
             self.Losses = pitcher.Losses

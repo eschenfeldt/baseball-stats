@@ -13,6 +13,10 @@ struct Batter: Codable {
     let TeamExternalId: UUID
 
     let Number: Int
+    /// 1-based batting order slot; filled in from the lineup / play-by-play after the stats load
+    var LineupPosition: Int?
+    /// 1 for the starter in a lineup slot, 2 for the first substitute into that slot, etc.
+    var AppearanceOrder: Int?
     let Games: Int
     let PlateAppearances: Int
     let AtBats: Int

@@ -179,8 +179,9 @@ struct GameLoader {
         guard let gameGuid = game.ExternalId else {
             throw GameLoadError.noGameIdentifier
         }
-        let homeBatters = try await getBatters(gameGuid: gameGuid, home: true)
-        let awayBatters = try await getBatters(gameGuid: gameGuid, home: false)
+        let order = try await loadBattingOrder(gameGuid: gameGuid)
+        let homeBatters = try await getBatters(gameGuid: gameGuid, home: true, order: order.home)
+        let awayBatters = try await getBatters(gameGuid: gameGuid, home: false, order: order.away)
         let homePitchers = try await getPitchers(gameGuid: gameGuid, home: true)
         let awayPitchers = try await getPitchers(gameGuid: gameGuid, home: false)
         let homeFielders = try await getFielders(gameGuid: gameGuid, home: true)
@@ -235,7 +236,160 @@ struct GameLoader {
         "bat_gitp": "GroundedIntoTriplePlay",
     ]
 
-    private func getBatters(gameGuid: UUID, home: Bool) async throws -> [Batter] {
+    // MARK: Box score order
+    //
+    // How iScore stores batting order (verified against every play-by-play game in the real
+    // database by replaying it and comparing the PAs credited to each player with stat_summary.bat_pa):
+    //
+    // - Play-by-play never names the batter. Pitch/play events give the batter's 1-based lineup
+    //   slot as the first number in `bt_act` (e.g. "4:0"), and `game_update.home_at_bat` /
+    //   `visitor_at_bat` is the slot due up. So iScore rebuilds "who is in slot N" from the
+    //   starting lineup plus substitutions, and we do the same.
+    // - Starting lineup: `player_game` rows with non-zero `isStarter` (it's usually 1, rarely 2),
+    //   ordered by `batting_order`, then by rowid. Older games have `batting_order` 0 for every
+    //   player, and rowid order is the lineup order there. The starting pitcher's
+    //   `batting_order` can be large (e.g. 27) when he hits 9th, because it's a roster position,
+    //   not a slot number, so the ranking is what matters. Players past the lineup size can also be
+    //   flagged as starters (e.g. an opener in a DH game, or bench players), so only the first
+    //   `lineupSize` count. `lineupSize` is the largest slot the play-by-play ever brings up.
+    // - The `LINEUP` play-by-play event is NOT used. iScore doesn't update it when the lineup is
+    //   edited after the game starts, but it does update `player_game`.
+    // - Substitutions: `SUBOFF` events, replayed in order. Entries are "<player_game guid>:<slot>"
+    //   and may be in either `bt_act` (the team batting that half-inning) or `ft_act`, so the
+    //   team comes from `player_game`, not from the column.
+    // - Pitcher appearance order is stored directly as `stat_summary.pit_seq`. It matches the
+    //   order of `SUBDEF` to position 1 in every game, so it's selected in `getPitchers`.
+
+    struct BattingSlot: Equatable {
+        let lineupPosition: Int
+        let appearanceOrder: Int
+    }
+
+    /// Batting order slot and appearance within the slot for every player on one team who got into
+    /// the batting order, keyed by player guid.
+    struct BattingOrder {
+        private(set) var slots: [UUID: BattingSlot] = [:]
+        private var slotCounts: [Int: Int] = [:]
+
+        subscript(player: UUID) -> BattingSlot? { slots[player] }
+
+        fileprivate mutating func add(_ player: UUID, slot: Int) {
+            // A player keeps the slot they first entered; a pinch hitter staying in on defense
+            // only generates SUBDEF, but guard against a repeated SUBOFF anyway.
+            guard slots[player] == nil else { return }
+            let appearance = (slotCounts[slot] ?? 0) + 1
+            slotCounts[slot] = appearance
+            slots[player] = BattingSlot(lineupPosition: slot, appearanceOrder: appearance)
+        }
+    }
+
+    private struct PlayerGameRow: Decodable {
+        let PlayerGameGuid: UUID
+        let PlayerGuid: UUID
+        let IsStarter: Int
+    }
+
+    private struct LineupSizeRow: Decodable {
+        let HomeSize: Int?
+        let AwaySize: Int?
+    }
+
+    private struct SubstitutionRow: Decodable {
+        let BattingTeamAction: String?
+        let FieldingTeamAction: String?
+    }
+
+    func loadBattingOrder(gameGuid: UUID) async throws -> (home: BattingOrder, away: BattingOrder) {
+        let sizes = try await db.select()
+            .column(SQLFunction("MAX", args: SQLColumn("home_at_bat")), as: "HomeSize")
+            .column(SQLFunction("MAX", args: SQLColumn("visitor_at_bat")), as: "AwaySize")
+            .from("game_update")
+            .where("game_guid", .equal, SQLLiteral.string("\(gameGuid)"))
+            .first(decoding: LineupSizeRow.self)
+
+        var home = BattingOrder()
+        var away = BattingOrder()
+        // player_game.guid -> (is home team, player guid); substitution events use player_game guids
+        var playerGames: [UUID: (home: Bool, player: UUID)] = [:]
+
+        for isHome in [true, false] {
+            let joinCol = isHome ? "home_game_guid" : "visitor_game_guid"
+            let rows = try await db.select()
+                .column(SQLColumn("guid", table: "player_game"), as: "PlayerGameGuid")
+                .column(SQLColumn("player_guid", table: "player_game"), as: "PlayerGuid")
+                .column(
+                    SQLFunction.coalesce(SQLColumn("isStarter"), SQLLiteral.numeric("0")),
+                    as: "IsStarter"
+                )
+                .from("game")
+                .join(
+                    "player_game", on: SQLColumn(joinCol, table: "game"), .equal,
+                    SQLColumn("team_game_guid", table: "player_game")
+                )
+                .where(SQLColumn("guid", table: "game"), .equal, SQLLiteral.string("\(gameGuid)"))
+                .orderBy(SQLColumn("batting_order", table: "player_game"))
+                .orderBy(SQLColumn("rowid", table: "player_game"))
+                .all(decoding: PlayerGameRow.self)
+
+            var order = BattingOrder()
+            for row in rows {
+                playerGames[row.PlayerGameGuid] = (isHome, row.PlayerGuid)
+            }
+            let lineupSize = (isHome ? sizes?.HomeSize : sizes?.AwaySize) ?? 0
+            let starters = rows.filter { $0.IsStarter != 0 }.prefix(lineupSize)
+            for (index, starter) in starters.enumerated() {
+                order.add(starter.PlayerGuid, slot: index + 1)
+            }
+            if isHome { home = order } else { away = order }
+        }
+
+        let substitutions = try await db.select()
+            .column(SQLColumn("bt_act", table: "game_update_event"), as: "BattingTeamAction")
+            .column(SQLColumn("ft_act", table: "game_update_event"), as: "FieldingTeamAction")
+            .from("game_update")
+            .join(
+                "game_update_event", on: SQLColumn("guid", table: "game_update"), .equal,
+                SQLColumn("game_update_guid", table: "game_update_event")
+            )
+            .where(
+                SQLColumn("game_guid", table: "game_update"), .equal,
+                SQLLiteral.string("\(gameGuid)")
+            )
+            .where(SQLColumn("type", table: "game_update_event"), .equal, SQLLiteral.string("SUBOFF"))
+            .orderBy(SQLColumn("update_dt", table: "game_update"))
+            .orderBy(SQLColumn("rowid", table: "game_update_event"))
+            .all(decoding: SubstitutionRow.self)
+
+        for event in substitutions {
+            let entries = [event.BattingTeamAction, event.FieldingTeamAction]
+                .compactMap { $0 }
+                .flatMap { $0.split(separator: ",") }
+                .compactMap(GameLoader.parseSubstitution)
+            for (playerGameGuid, slot) in entries {
+                guard let (isHome, player) = playerGames[playerGameGuid] else { continue }
+                if isHome {
+                    home.add(player, slot: slot)
+                } else {
+                    away.add(player, slot: slot)
+                }
+            }
+        }
+
+        return (home, away)
+    }
+
+    private static func parseSubstitution(_ entry: Substring) -> (UUID, Int)? {
+        let parts = entry.split(separator: ":")
+        guard parts.count == 2,
+            let guid = UUID(uuidString: String(parts[0])),
+            let value = Int(parts[1])
+        else { return nil }
+        return (guid, value)
+    }
+
+    // MARK: Stats
+
+    private func getBatters(gameGuid: UUID, home: Bool, order: BattingOrder) async throws -> [Batter] {
         let joinCol = home ? "home_game_guid" : "visitor_game_guid"
         var query = db.select()
             .column(SQLColumn("team_guid", table: "team_game"), as: "TeamExternalId")
@@ -275,6 +429,9 @@ struct GameLoader {
         var returnBatters: [Batter] = []
         for var batter in batters {
             batter.Player = try await getPlayer(externalId: batter.PlayerExternalId)
+            let slot = order[batter.PlayerExternalId]
+            batter.LineupPosition = slot?.lineupPosition
+            batter.AppearanceOrder = slot?.appearanceOrder
             returnBatters.append(batter)
         }
         return returnBatters
@@ -314,6 +471,8 @@ struct GameLoader {
             .column(SQLColumn("player_guid", table: "player_game"), as: "PlayerExternalId")
             .column(SQLFunction("CONCAT", args: SQLColumn("first_nm"), SQLLiteral.string(" "), SQLColumn("last_nm")), as: "PlayerName")
             .column("player_number", as: "Number")
+            // pit_seq is iScore's own 1-based pitching appearance order
+            .column(SQLFunction("NULLIF", args: SQLColumn("pit_seq"), SQLLiteral.numeric("0")), as: "AppearanceOrder")
         for kvp in GameLoader.pitcherColumnMap {
             query = query.column(
                 SQLFunction("COALESCE", args: SQLColumn(kvp.key), SQLLiteral.numeric("0")),
