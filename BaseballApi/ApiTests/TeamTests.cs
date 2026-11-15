@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 
 namespace BaseballApiTests;
 
+[Collection(TestCollections.MLBAMTeamReferences)]
 public class TeamTests : BaseballTests
 {
     private TeamsController Controller { get; }
@@ -60,6 +61,16 @@ public class TeamTests : BaseballTests
         var logger = FileLoggerFactory.CreateLogger<ReferenceManager>();
         var connector = new MLBAMConnector(CreateMLBAMHttpClient());
         var referenceManager = new ReferenceManager(logger, Context, connector, CreateFangraphsConnector(), ReferenceMetrics);
+
+        // The test db is shared and other tests (e.g. PlayerTests) also update team references,
+        // so clear any MLBAM ids already set to make the update count deterministic.
+        string[] mlbAbbreviations = ["TEX", "LAD", "ATL", "BOS", "CHC"];
+        foreach (var team in Context.Teams.Where(t => mlbAbbreviations.Contains(t.Abbreviation)))
+        {
+            team.MLBAMId = null;
+        }
+        await Context.SaveChangesAsync();
+
         var updatedCount = await referenceManager.UpdateTeamReferences(CancellationToken.None);
         var rangers = Context.Teams.First(t => t.Abbreviation == "TEX");
         Assert.Equal(140, rangers.MLBAMId);

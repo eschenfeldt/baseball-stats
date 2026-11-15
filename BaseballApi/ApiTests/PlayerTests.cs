@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 
 namespace BaseballApiTests;
 
+[Collection(TestCollections.MLBAMTeamReferences)]
 public class PlayerTests : BaseballTests
 {
     private PlayerController Controller { get; }
