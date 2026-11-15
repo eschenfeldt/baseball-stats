@@ -26,21 +26,21 @@ extension TimeZone {
         "Central Standard Time (Mexico)": "America/Mexico_City",
         "GMT Standard Time": "Europe/London",
         "Tokyo Standard Time": "Asia/Tokyo",
-        "Korea Standard Time": "Asia/Seoul"
+        "Korea Standard Time": "Asia/Seoul",
     ]
 }
 
 // from https://www.swiftbysundell.com/articles/async-and-concurrent-forEach-and-map/
 extension Sequence {
-    func asyncMap<T> (
+    func asyncMap<T>(
         _ transform: (Element) async throws -> T
     ) async rethrows -> [T] {
         var values = [T]()
-        
+
         for element in self {
             try await values.append(transform(element))
         }
-        
+
         return values
     }
 }

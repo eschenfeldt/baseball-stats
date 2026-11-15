@@ -5,9 +5,10 @@
 //  Created by Patrick Eschenfeldt on 6/27/24.
 //
 import Foundation
-import Testing
 import SQLKit
 import SQLiteKit
+import Testing
+
 @testable import iScoreImport
 
 @Suite("SQLite Tests")
@@ -58,9 +59,10 @@ struct SQLiteTests {
     func testLoadingGame() async throws {
         try await TestFixtures.withiScoreReader { reader in
             let games = try await reader.getGames()
-            let fullGame = try #require(await games.first {
-                $0.Name == "8/26/11 Chicago Cubs at Milwaukee Brewers"
-            })
+            let fullGame = try #require(
+                await games.first {
+                    $0.Name == "8/26/11 Chicago Cubs at Milwaukee Brewers"
+                })
             #expect(fullGame.ExternalId == UUID(uuidString: "8280516F-8E5F-4BD3-A96F-3620CB19751A"))
 
             // iScore stores these as absolute instants (Unix epoch seconds), so the
@@ -75,7 +77,7 @@ struct SQLiteTests {
             #expect(fullGame.EndTime == datetimeFormatter.date(from: "2011-08-27 03:12:00"))
 
             #expect(fullGame.AwayScore == 2)
-            #expect(fullGame.AwayTeamName == "Chicago Cubs") // team name at the time of the game, possibly different than current name
+            #expect(fullGame.AwayTeamName == "Chicago Cubs")  // team name at the time of the game, possibly different than current name
             #expect(fullGame.AwayTeam.CombinedName == "Chicago Cubs")
             #expect(fullGame.HomeScore == 5)
             #expect(fullGame.HomeTeamName == "Milwaukee Brewers")

@@ -8,7 +8,7 @@
 import Foundation
 import SQLKit
 
-enum GameImportError : Error {
+enum GameImportError: Error {
     case incompleteTeam(team: Team)
     case playerInsertIssue(player: Player)
     case boxScoreInsertIssue(game: Game)
@@ -24,17 +24,17 @@ enum GameMatchResult {
 }
 
 struct GameImporter {
-    
+
     let db: SQLDatabase
     let teams: TeamImporter
     let players: PlayerImporter
-    
+
     init(db: SQLDatabase) {
         self.db = db
         self.teams = TeamImporter(db: db)
         self.players = PlayerImporter(db: db)
     }
-    
+
     func insertOrUpdateGame(game: Game) async throws {
         guard let startTime = game.ScheduledTime ?? game.StartTime else {
             throw GameImportError.missingStartTime(game: game)
@@ -77,9 +77,10 @@ struct GameImporter {
     private func parkCalendar(team: Team) async throws -> Calendar {
         var calendar = Calendar.current
         guard let city = team.City, let name = team.Name,
-              let teamId = try await teams.getTeamId(city: city, name: name),
-              let identifier = try await getParkTimeZoneIdentifier(teamId: teamId),
-              let timeZone = TimeZone(parkIdentifier: identifier) else {
+            let teamId = try await teams.getTeamId(city: city, name: name),
+            let identifier = try await getParkTimeZoneIdentifier(teamId: teamId),
+            let timeZone = TimeZone(parkIdentifier: identifier)
+        else {
             return calendar
         }
         calendar.timeZone = timeZone
@@ -144,16 +145,15 @@ struct GameImporter {
                 savingPitcherId
             )
             .run()
-        
+
         guard let gameId = try await getGameId(name: game.Name) else {
             throw GameImportError.gameInsertIssue(game: game)
         }
-        
+
         try await setBoxScoreIdsIfNecessary(game: game, gameId: gameId)
         try await insertOrUpdatePlayerGames(game: game, gameId: gameId)
     }
 
-    
     private func updateGame(game: Game, gameId: Int, gameDate: Date) async throws {
         let home = try await getTeamId(team: game.HomeTeam)
         let away = try await getTeamId(team: game.AwayTeam)
@@ -162,7 +162,7 @@ struct GameImporter {
         let winningPitcherId = try await getOptionalPlayerId(player: game.WinningPitcher)
         let losingPitcherId = try await getOptionalPlayerId(player: game.LosingPitcher)
         let savingPitcherId = try await getOptionalPlayerId(player: game.SavingPitcher)
-        
+
         var updateStatement = db.update("Games")
             .set("Name", to: game.Name)
             .set("Date", to: gameDate)
@@ -178,35 +178,36 @@ struct GameImporter {
             .set("WinningPitcherId", to: winningPitcherId)
             .set("LosingPitcherId", to: losingPitcherId)
             .set("SavingPitcherId", to: savingPitcherId)
-        
+
         if let externalId = game.ExternalId {
-            updateStatement = updateStatement
+            updateStatement =
+                updateStatement
                 .set("ExternalId", to: externalId)
         }
         updateStatement = updateStatement.where("Id", .equal, gameId)
-        
+
         do {
             try await updateStatement.run()
-        }
-        catch {
+        } catch {
             print("Update failure: \(String(reflecting: error))")
             throw error
         }
         try await setBoxScoreIdsIfNecessary(game: game, gameId: gameId)
         try await insertOrUpdatePlayerGames(game: game, gameId: gameId)
     }
-    
+
     private func insertOrUpdatePlayerGames(game: Game, gameId: Int) async throws {
         guard let homeBoxScoreId = try await getBoxScoreId(gameId: gameId, home: true),
-              let awayBoxScoreId = try await getBoxScoreId(gameId: gameId, home: false),
-              let homeBoxScore = game.HomeBoxScore,
-              let awayBoxScore = game.AwayBoxScore else {
+            let awayBoxScoreId = try await getBoxScoreId(gameId: gameId, home: false),
+            let homeBoxScore = game.HomeBoxScore,
+            let awayBoxScore = game.AwayBoxScore
+        else {
             throw GameImportError.boxScoreInsertIssue(game: game)
         }
         try await insertOrUpdatePlayerGames(game: game, boxScoreId: homeBoxScoreId, boxScore: homeBoxScore)
         try await insertOrUpdatePlayerGames(game: game, boxScoreId: awayBoxScoreId, boxScore: awayBoxScore)
     }
-    
+
     private func insertOrUpdatePlayerGames(game: Game, boxScoreId: Int, boxScore: BoxScore) async throws {
         for batter in boxScore.batters {
             let playerId = try await getPlayerId(externalId: batter.PlayerExternalId, player: batter.Player)
@@ -236,7 +237,7 @@ struct GameImporter {
             }
         }
     }
-    
+
     private func getPlayerId(externalId: UUID, player: Player?) async throws -> Int {
         if let playerId = try await players.getPlayerId(externalId: externalId) {
             // already stored by external id
@@ -251,46 +252,46 @@ struct GameImporter {
         }
         return playerId
     }
-    
+
     private func insertBatter(model: BatterInsertModel) async throws {
         try await db.insert(into: "Batters")
             .model(model)
             .run()
     }
-    
+
     private func updateBatter(batterId: Int, model: BatterInsertModel) async throws {
         try await db.update("Batters")
             .set(model: model)
             .where("Id", .equal, batterId)
             .run()
     }
-    
+
     private func insertPitcher(model: PitcherInsertModel) async throws {
         try await db.insert(into: "Pitchers")
             .model(model)
             .run()
     }
-    
+
     private func updatePitcher(pitcherId: Int, model: PitcherInsertModel) async throws {
         try await db.update("Pitchers")
             .set(model: model)
             .where("Id", .equal, pitcherId)
             .run()
     }
-    
+
     private func insertFielder(model: FielderInsertModel) async throws {
         try await db.insert(into: "Fielders")
             .model(model)
             .run()
     }
-    
+
     private func updateFielder(fielderId: Int, model: FielderInsertModel) async throws {
         try await db.update("Fielders")
             .set(model: model)
             .where("Id", .equal, fielderId)
             .run()
     }
-    
+
     private func getPlayerGameId(playerId: Int, boxScoreId: Int, baseTable: String) async throws -> Int? {
         let rawResult = try await db.select()
             .column(SQLColumn("Id", table: baseTable))
@@ -300,18 +301,18 @@ struct GameImporter {
             .first()
         return try rawResult?.decode(column: "Id", as: Int.self)
     }
-    
+
     private func setBoxScoreIdsIfNecessary(game: Game, gameId: Int) async throws {
         let homeBoxScoreId = try await insertBoxScoreIfNecessary(game: game, gameId: gameId, home: true)
         let awayBoxScoreId = try await insertBoxScoreIfNecessary(game: game, gameId: gameId, home: false)
-        
+
         try await db.update("Games")
             .set("HomeBoxScoreId", to: homeBoxScoreId)
             .set("AwayBoxScoreId", to: awayBoxScoreId)
             .where("Id", .equal, gameId)
             .run()
     }
-    
+
     private func insertBoxScoreIfNecessary(game: Game, gameId: Int, home: Bool) async throws -> Int {
         let team = home ? game.HomeTeam : game.AwayTeam
         let teamId = try await getTeamId(team: team)
@@ -321,7 +322,7 @@ struct GameImporter {
             return try await insertBoxScore(game: game, gameId: gameId, teamId: teamId)
         }
     }
-    
+
     private func insertBoxScore(game: Game, gameId: Int, teamId: Int) async throws -> Int {
         try await db.insert(into: "BoxScores")
             .columns("GameId", "TeamId")
@@ -332,7 +333,7 @@ struct GameImporter {
         }
         return boxScoreId
     }
-    
+
     private func getOptionalTeamId(team: Team?) async throws -> Int? {
         if let team {
             return try await getTeamId(team: team)
@@ -340,7 +341,7 @@ struct GameImporter {
             return nil
         }
     }
-    
+
     private func getTeamId(team: Team) async throws -> Int {
         guard let city = team.City, let name = team.Name else {
             throw GameImportError.incompleteTeam(team: team)
@@ -354,7 +355,7 @@ struct GameImporter {
         }
         return teamId
     }
-    
+
     private func getOptionalPlayerId(player: Player?) async throws -> Int? {
         if let player {
             return try await getPlayerId(player: player)
@@ -362,7 +363,7 @@ struct GameImporter {
             return nil
         }
     }
-    
+
     private func getPlayerId(player: Player) async throws -> Int {
         guard let playerId = try await players.getPlayerId(name: player.Name) else {
             try await players.insertOrUpdatePlayer(player: player)
@@ -373,7 +374,7 @@ struct GameImporter {
         }
         return playerId
     }
-    
+
     private func getGameId(externalId: UUID) async throws -> Int? {
         let result = try await db.select()
             .column("Id")
@@ -382,7 +383,7 @@ struct GameImporter {
             .first()
         return try result?.decode(column: "Id", as: Int.self)
     }
-    
+
     func getGameId(name: String) async throws -> Int? {
         let result = try await db.select()
             .column("Id")
@@ -391,7 +392,7 @@ struct GameImporter {
             .first()
         return try result?.decode(column: "Id", as: Int.self)
     }
-    
+
     private struct GameCandidate {
         let id: Int
         let name: String
@@ -464,7 +465,7 @@ struct GameImporter {
             print("Invalid input. Please try again: ", terminator: "")
         }
     }
-    
+
     private func describe(candidate: GameCandidate) -> String {
         let scoreStr: String
         if let home = candidate.homeScore, let away = candidate.awayScore {
@@ -474,7 +475,7 @@ struct GameImporter {
         }
         return "\"\(candidate.name)\" — \(candidate.homeTeamName) vs \(candidate.awayTeamName) (\(scoreStr))"
     }
-    
+
     private func getBoxScoreId(gameId: Int, teamId: Int) async throws -> Int? {
         let result = try await db.select()
             .column("Id")
@@ -484,7 +485,7 @@ struct GameImporter {
             .first()
         return try result?.decode(column: "Id", as: Int.self)
     }
-    
+
     private func getBoxScoreId(gameId: Int, home: Bool) async throws -> Int? {
         let column = home ? "HomeBoxScoreId" : "AwayBoxScoreId"
         let result = try await db.select()
@@ -496,7 +497,7 @@ struct GameImporter {
             .first()
         return try result?.decode(column: "Id", as: Int.self)
     }
-    
+
     private struct BatterInsertModel: Encodable {
         let BoxScoreId: Int
         let PlayerId: Int
@@ -529,11 +530,11 @@ struct GameImporter {
         let GroundedIntoTriplePlay: Int
         let AtBatsWithRunnersInScoringPosition: Int
         let HitsWithRunnersInScoringPosition: Int
-        
+
         init(boxScoreId: Int, playerId: Int, batter: Batter) {
             self.BoxScoreId = boxScoreId
             self.PlayerId = playerId
-            
+
             self.Number = batter.Number
             self.Games = batter.Games
             self.PlateAppearances = batter.PlateAppearances
@@ -565,11 +566,11 @@ struct GameImporter {
             self.HitsWithRunnersInScoringPosition = 0
         }
     }
-    
-    private struct FielderInsertModel : Encodable {
+
+    private struct FielderInsertModel: Encodable {
         let BoxScoreId: Int
         let PlayerId: Int
-        
+
         let Number: Int
         let Games: Int
         let Errors: Int
@@ -584,11 +585,11 @@ struct GameImporter {
         let PassedBalls: Int
         let PickoffFailed: Int
         let PickoffSuccess: Int
-        
+
         init(boxScoreId: Int, playerId: Int, fielder: Fielder) {
             self.BoxScoreId = boxScoreId
             self.PlayerId = playerId
-            
+
             self.Number = fielder.Number
             self.Games = fielder.Games
             self.Errors = fielder.ErrorsFielding + fielder.ErrorsThrowing
@@ -605,11 +606,11 @@ struct GameImporter {
             self.PickoffSuccess = fielder.PickoffSuccess
         }
     }
-    
-    private struct PitcherInsertModel : Encodable {
+
+    private struct PitcherInsertModel: Encodable {
         let BoxScoreId: Int
         let PlayerId: Int
-        
+
         let Number: Int
         let Games: Int
         let Wins: Int
@@ -636,11 +637,11 @@ struct GameImporter {
         let AirOuts: Int
         let FirstPitchStrikes: Int
         let FirstPitchBalls: Int
-        
+
         init(boxScoreId: Int, playerId: Int, pitcher: Pitcher) {
             self.BoxScoreId = boxScoreId
             self.PlayerId = playerId
-            
+
             self.Number = pitcher.Number
             self.Games = pitcher.Games
             self.Wins = pitcher.Wins

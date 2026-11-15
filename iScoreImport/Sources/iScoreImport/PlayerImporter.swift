@@ -10,7 +10,7 @@ import SQLKit
 
 struct PlayerImporter {
     let db: SQLDatabase
-    
+
     func insertOrUpdatePlayer(player: Player) async throws {
         var existingPlayerId: Int? = nil
         if let externalId = player.ExternalId {
@@ -25,7 +25,7 @@ struct PlayerImporter {
             try await insertPlayer(player: player)
         }
     }
-    
+
     func getPlayerId(externalId: UUID) async throws -> Int? {
         let result = try await db.select()
             .column("Id")
@@ -34,7 +34,7 @@ struct PlayerImporter {
             .first()
         return try result?.decode(column: "Id", as: Int.self)
     }
-    
+
     func getPlayerId(name: String) async throws -> Int? {
         let result = try await db.select()
             .column("Id")
@@ -43,15 +43,17 @@ struct PlayerImporter {
             .first()
         return try result?.decode(column: "Id", as: Int.self)
     }
-    
+
     private func insertPlayer(player: Player) async throws {
         try await db.insert(into: "Players")
             .columns("ExternalId", "Name", "FirstName", "LastName")
-            .values(player.ExternalId ?? UUID(uuidString: "00000000-0000-0000-0000-000000000000"),
-                    player.Name, player.FirstName, player.LastName)
+            .values(
+                player.ExternalId ?? UUID(uuidString: "00000000-0000-0000-0000-000000000000"),
+                player.Name, player.FirstName, player.LastName
+            )
             .run()
     }
-    
+
     private func updatePlayer(player: Player, id: Int) async throws {
         try await db.update("Players")
             .set("ExternalId", to: player.ExternalId)

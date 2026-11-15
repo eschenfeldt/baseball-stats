@@ -6,8 +6,9 @@
 //
 
 import Foundation
-import Testing
 import SQLKit
+import Testing
+
 @testable import iScoreImport
 
 @Suite("Integration Tests", .enabled(if: TestPostgres.isConfigured))
@@ -122,9 +123,10 @@ struct IntegrationTests {
 
                 let resultDb = try await writer.getDb()
                 let games = try await reader.getGames()
-                let fullGame = try #require(await games.first {
-                    $0.Name == "8/26/11 Chicago Cubs at Milwaukee Brewers"
-                })
+                let fullGame = try #require(
+                    await games.first {
+                        $0.Name == "8/26/11 Chicago Cubs at Milwaukee Brewers"
+                    })
 
                 // insert Soriano
                 let preSorianoPlayerCount = try await countPlayers(db: resultDb)
@@ -220,32 +222,32 @@ struct IntegrationTests {
             .all(decoding: GameSummary.self)
         let batterSummaries = try await db.select()
             .column("ExternalId")
-            .column(SQLFunction("COUNT", args: SQLColumn("Id", table:"Batters")), as: "BatterCount")
-            .column(SQLFunction("SUM", args: SQLColumn("Runs", table:"Batters")), as: "BatterRuns")
-            .column(SQLFunction("SUM", args: SQLColumn("AtBats", table:"Batters")), as: "BatterAtBats")
+            .column(SQLFunction("COUNT", args: SQLColumn("Id", table: "Batters")), as: "BatterCount")
+            .column(SQLFunction("SUM", args: SQLColumn("Runs", table: "Batters")), as: "BatterRuns")
+            .column(SQLFunction("SUM", args: SQLColumn("AtBats", table: "Batters")), as: "BatterAtBats")
             .from("Games")
             .join("BoxScores", on: SQLColumn("Id", table: "Games"), .equal, SQLColumn("GameId", table: "BoxScores"))
             .join("Batters", method: SQLJoinMethod.left, on: SQLColumn("Id", table: "BoxScores"), .equal, SQLColumn("BoxScoreId", table: "Batters"))
-            .where(SQLColumn("Id", table:"Games"), .equal, SQLLiteral.numeric("\(gameId)"))
+            .where(SQLColumn("Id", table: "Games"), .equal, SQLLiteral.numeric("\(gameId)"))
             .groupBy("ExternalId")
             .all(decoding: BatterSummary.self)
         let pitcherSummaries = try await db.select()
             .column("ExternalId")
-            .column(SQLFunction("COUNT", args: SQLColumn("Id", table:"Pitchers")), as: "PitcherCount")
-            .column(SQLFunction("SUM", args: SQLFunction.coalesce(SQLColumn("Runs", table:"Pitchers"), SQLLiteral.numeric("0"))), as: "PitcherRuns")
+            .column(SQLFunction("COUNT", args: SQLColumn("Id", table: "Pitchers")), as: "PitcherCount")
+            .column(SQLFunction("SUM", args: SQLFunction.coalesce(SQLColumn("Runs", table: "Pitchers"), SQLLiteral.numeric("0"))), as: "PitcherRuns")
             .from("Games")
             .join("BoxScores", on: SQLColumn("Id", table: "Games"), .equal, SQLColumn("GameId", table: "BoxScores"))
             .join("Pitchers", method: SQLJoinMethod.left, on: SQLColumn("Id", table: "BoxScores"), .equal, SQLColumn("BoxScoreId", table: "Pitchers"))
-            .where(SQLColumn("Id", table:"Games"), .equal, SQLLiteral.numeric("\(gameId)"))
+            .where(SQLColumn("Id", table: "Games"), .equal, SQLLiteral.numeric("\(gameId)"))
             .groupBy("ExternalId")
             .all(decoding: PitcherSummary.self)
         let fielderSummaries = try await db.select()
             .column("ExternalId")
-            .column(SQLFunction("COUNT", args: SQLColumn("Id", table:"Fielders")), as: "FielderCount")
+            .column(SQLFunction("COUNT", args: SQLColumn("Id", table: "Fielders")), as: "FielderCount")
             .from("Games")
             .join("BoxScores", on: SQLColumn("Id", table: "Games"), .equal, SQLColumn("GameId", table: "BoxScores"))
             .join("Fielders", method: SQLJoinMethod.left, on: SQLColumn("Id", table: "BoxScores"), .equal, SQLColumn("BoxScoreId", table: "Fielders"))
-            .where(SQLColumn("Id", table:"Games"), .equal, SQLLiteral.numeric("\(gameId)"))
+            .where(SQLColumn("Id", table: "Games"), .equal, SQLLiteral.numeric("\(gameId)"))
             .groupBy("ExternalId")
             .all(decoding: FielderSummary.self)
         #expect(gameSummaries.count == 1)

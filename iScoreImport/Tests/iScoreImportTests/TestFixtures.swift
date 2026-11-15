@@ -4,6 +4,7 @@
 //
 
 import Foundation
+
 @testable import iScoreImport
 
 enum TestFixtureError: Error {

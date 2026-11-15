@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Team : Codable {
+struct Team: Codable {
     let ExternalId: UUID?
     var City: String?
     var Name: String?
@@ -15,8 +15,11 @@ struct Team : Codable {
     let HomePark: Park?
     let ColorHex: String?
     let Abbreviation: String?
-    
-    init(ExternalId: UUID? = nil, City: String? = nil, Name: String? = nil, CombinedName: String? = nil, HomePark: Park? = nil, ColorHex: String? = nil, Abbreviation: String? = nil) {
+
+    init(
+        ExternalId: UUID? = nil, City: String? = nil, Name: String? = nil, CombinedName: String? = nil, HomePark: Park? = nil, ColorHex: String? = nil,
+        Abbreviation: String? = nil
+    ) {
         self.ExternalId = ExternalId
         self.City = City
         self.Name = Name
@@ -25,11 +28,11 @@ struct Team : Codable {
         self.ColorHex = ColorHex
         self.Abbreviation = Abbreviation
     }
-    
+
     static let compoundCityStarts = Set<String>([
-        "Los", "Las", "San", "St.", "Great", "New", "Quad", "Lake", "Kane", "Tampa", "Kansas"
+        "Los", "Las", "San", "St.", "Great", "New", "Quad", "Lake", "Kane", "Tampa", "Kansas",
     ])
-    
+
     static func withParsedName(team: Team) -> Team {
         guard let combinedName = team.CombinedName else {
             return team
@@ -53,6 +56,8 @@ struct Team : Codable {
         } else {
             name = combinedName
         }
-        return Team(ExternalId: team.ExternalId, City: city, Name: name, CombinedName: combinedName, HomePark: team.HomePark, ColorHex: team.ColorHex, Abbreviation: team.Abbreviation)
+        return Team(
+            ExternalId: team.ExternalId, City: city, Name: name, CombinedName: combinedName, HomePark: team.HomePark, ColorHex: team.ColorHex,
+            Abbreviation: team.Abbreviation)
     }
 }
