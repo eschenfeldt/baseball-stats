@@ -185,6 +185,8 @@ public class TestGameManager
         var batterId = GetPlayerId(batterNumber: expected.BatterNumber);
         var actual = allActual.FirstOrDefault(b => b.Player.Id == batterId);
         Assert.NotNull(actual);
+        Assert.Equal(expected.LineupPosition, actual.LineupPosition);
+        Assert.Equal(expected.AppearanceOrder, actual.AppearanceOrder);
         Assert.Equal(expected.AtBats, actual.Stats[Stat.AtBats.Name]);
         Assert.Equal(expected.Hits, actual.Stats[Stat.Hits.Name]);
         Assert.Equal(expected.Homeruns, actual.Stats[Stat.Homeruns.Name]);
@@ -197,6 +199,7 @@ public class TestGameManager
         var pitcherId = GetPlayerId(pitcherNumber: expected.PitcherNumber);
         var actual = allActual.FirstOrDefault(b => b.Player.Id == pitcherId);
         Assert.NotNull(actual);
+        Assert.Equal(expected.AppearanceOrder, actual.AppearanceOrder);
         Assert.Equal(expected.EarnedRuns, actual.Stats[Stat.EarnedRuns.Name]);
         Assert.Equal(expected.Outs, actual.Stats[Stat.ThirdInningsPitched.Name]);
         Assert.Equal(expected.Runs, actual.Stats[Stat.Runs.Name]);
@@ -275,6 +278,8 @@ public class TestGameManager
                 {
                     BoxScore = boxScore,
                     Player = Batters[batterInfo.BatterNumber],
+                    LineupPosition = batterInfo.LineupPosition,
+                    AppearanceOrder = batterInfo.AppearanceOrder,
                     Games = 1,
                     PlateAppearances = batterInfo.PlateAppearances,
                     AtBats = batterInfo.AtBats,
@@ -288,6 +293,7 @@ public class TestGameManager
         {
             BoxScore = boxScore,
             Player = Pitchers[pitcherInfo.PitcherNumber],
+            AppearanceOrder = pitcherInfo.AppearanceOrder,
             Games = 1,
             ThirdInningsPitched = pitcherInfo.Outs,
             Runs = pitcherInfo.Runs,
@@ -353,6 +359,7 @@ public class TestGameManager
     struct PitcherInfo
     {
         public int PitcherNumber { get; set; }
+        public int? AppearanceOrder { get; set; }
         public int Outs { get; set; }
         public int Runs { get; set; }
         public int EarnedRuns { get; set; }
@@ -362,6 +369,8 @@ public class TestGameManager
     struct BatterInfo
     {
         public int BatterNumber { get; set; }
+        public int? LineupPosition { get; set; }
+        public int? AppearanceOrder { get; set; }
         public int PlateAppearances { get; set; }
         public int AtBats { get; set; }
         public int Hits { get; set; }
@@ -397,6 +406,8 @@ public class TestGameManager
                         new BatterInfo
                         {
                             BatterNumber = 1,
+                            LineupPosition = 1,
+                            AppearanceOrder = 1,
                             PlateAppearances = 3,
                             AtBats = 3,
                             Hits = 1,
@@ -408,6 +419,7 @@ public class TestGameManager
                         new PitcherInfo
                         {
                             PitcherNumber = 1,
+                            AppearanceOrder = 1,
                             Outs = 27,
                             EarnedRuns = 0,
                             Runs = 0,
@@ -439,6 +451,8 @@ public class TestGameManager
                         new BatterInfo
                         {
                             BatterNumber = 3,
+                            LineupPosition = 1,
+                            AppearanceOrder = 1,
                             PlateAppearances = 4,
                             AtBats = 4,
                             Hits = 0,
@@ -450,6 +464,7 @@ public class TestGameManager
                         new PitcherInfo
                         {
                             PitcherNumber = 2,
+                            AppearanceOrder = 1,
                             Outs = 9,
                             EarnedRuns = 1,
                             Runs = 2,
@@ -476,6 +491,8 @@ public class TestGameManager
                         new BatterInfo
                         {
                             BatterNumber = 1,
+                            LineupPosition = 1,
+                            AppearanceOrder = 1,
                             PlateAppearances = 4,
                             AtBats = 3,
                             Hits = 1,
@@ -487,6 +504,7 @@ public class TestGameManager
                         new PitcherInfo
                         {
                             PitcherNumber = 1,
+                            AppearanceOrder = 1,
                             Outs = 15,
                             EarnedRuns = 0,
                             Runs = 2,
@@ -517,6 +535,8 @@ public class TestGameManager
                         new BatterInfo
                         {
                             BatterNumber = 3,
+                            LineupPosition = 1,
+                            AppearanceOrder = 1,
                             PlateAppearances = 3,
                             AtBats = 3,
                             Hits = 1,
@@ -528,6 +548,7 @@ public class TestGameManager
                         new PitcherInfo
                         {
                             PitcherNumber = 2,
+                            AppearanceOrder = 1,
                             Outs = 14,
                             EarnedRuns = 3,
                             Runs = 3,
@@ -554,6 +575,8 @@ public class TestGameManager
                         new BatterInfo
                         {
                             BatterNumber = 3,
+                            LineupPosition = 1,
+                            AppearanceOrder = 1,
                             PlateAppearances = 4,
                             AtBats = 4,
                             Hits = 2,
@@ -563,6 +586,8 @@ public class TestGameManager
                         new BatterInfo
                         {
                             BatterNumber = 4,
+                            LineupPosition = 2,
+                            AppearanceOrder = 1,
                             PlateAppearances = 1,
                             AtBats = 1,
                             Hits = 0,
@@ -574,6 +599,7 @@ public class TestGameManager
                         new PitcherInfo
                         {
                             PitcherNumber = 2,
+                            AppearanceOrder = 1,
                             Outs = 14,
                             EarnedRuns = 0,
                             Runs = 0,
@@ -589,6 +615,8 @@ public class TestGameManager
                         new BatterInfo
                         {
                             BatterNumber = 2,
+                            LineupPosition = 1,
+                            AppearanceOrder = 1,
                             PlateAppearances = 3,
                             AtBats = 3,
                             Hits = 1,
@@ -598,6 +626,8 @@ public class TestGameManager
                         new BatterInfo
                         {
                             BatterNumber = 5,
+                            LineupPosition = 1,
+                            AppearanceOrder = 2,
                             PlateAppearances = 1,
                             AtBats = 1,
                             Hits = 0,
@@ -609,6 +639,7 @@ public class TestGameManager
                         new PitcherInfo
                         {
                             PitcherNumber = 1,
+                            AppearanceOrder = 1,
                             Outs = 10,
                             EarnedRuns = 0,
                             Runs = 0,

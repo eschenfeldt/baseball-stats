@@ -143,6 +143,55 @@ public class ImportTests(TestImportDatabaseFixture fixture) : IClassFixture<Test
             Assert.Equal(3, game.AwayBoxScore.Value.Pitchers.Count);
             Assert.Equal(11, game.AwayBoxScore.Value.Fielders.Count);
 
+            // CSV import is best-effort on lineups: the first 9 batters listed are the starters in
+            // slot order, and substitutes (appended at the end of the CSV) get no lineup info
+            void ValidateBatterOrder(ICollection<GameBatter> batters, string name, int? lineupPosition, int? appearanceOrder)
+            {
+                var batter = Assert.Single(batters, b => b.Player.Name == name);
+                Assert.Equal(lineupPosition, batter.LineupPosition);
+                Assert.Equal(appearanceOrder, batter.AppearanceOrder);
+            }
+
+            void ValidatePitcherOrder(ICollection<GamePitcher> pitchers, string name, int appearanceOrder)
+            {
+                var pitcher = Assert.Single(pitchers, p => p.Player.Name == name);
+                Assert.Equal(appearanceOrder, pitcher.AppearanceOrder);
+            }
+
+            var homeBatters = game.HomeBoxScore.Value.Batters;
+            ValidateBatterOrder(homeBatters, "CJ Abrams", 1, 1);
+            ValidateBatterOrder(homeBatters, "Lane Thomas", 2, 1);
+            ValidateBatterOrder(homeBatters, "James Wood", 3, 1);
+            ValidateBatterOrder(homeBatters, "Jesse Winker", 4, 1);
+            ValidateBatterOrder(homeBatters, "Keibert Ruiz", 5, 1);
+            ValidateBatterOrder(homeBatters, "Luis Garcia Jr", 6, 1);
+            ValidateBatterOrder(homeBatters, "Juan Yepez", 7, 1);
+            ValidateBatterOrder(homeBatters, "Trey Lipscomb", 8, 1);
+            ValidateBatterOrder(homeBatters, "Jacob Young", 9, 1);
+            ValidateBatterOrder(homeBatters, "Ildemaro Vargas", null, null);
+            ValidateBatterOrder(homeBatters, "Harold Ramirez", null, null);
+
+            var awayBatters = game.AwayBoxScore.Value.Batters;
+            ValidateBatterOrder(awayBatters, "Masyn Winn", 1, 1);
+            ValidateBatterOrder(awayBatters, "Alec Burleson", 2, 1);
+            ValidateBatterOrder(awayBatters, "Willson Contreras", 3, 1);
+            ValidateBatterOrder(awayBatters, "Paul Goldschmidt", 4, 1);
+            ValidateBatterOrder(awayBatters, "Nolan Arenado", 5, 1);
+            ValidateBatterOrder(awayBatters, "Brendan Donovan", 6, 1);
+            ValidateBatterOrder(awayBatters, "Lars Nootbar", 7, 1);
+            ValidateBatterOrder(awayBatters, "Nolan Gorman", 8, 1);
+            ValidateBatterOrder(awayBatters, "Michael Siani", 9, 1);
+
+            var homePitchers = game.HomeBoxScore.Value.Pitchers;
+            ValidatePitcherOrder(homePitchers, "Mitchell Parker", 1);
+            ValidatePitcherOrder(homePitchers, "Jacob Barnes", 2);
+            ValidatePitcherOrder(homePitchers, "Joan Adon", 3);
+
+            var awayPitchers = game.AwayBoxScore.Value.Pitchers;
+            ValidatePitcherOrder(awayPitchers, "Miles Mikolas", 1);
+            ValidatePitcherOrder(awayPitchers, "Andrew Kittredge", 2);
+            ValidatePitcherOrder(awayPitchers, "JoJo Romero", 3);
+
             return game;
         }
 
