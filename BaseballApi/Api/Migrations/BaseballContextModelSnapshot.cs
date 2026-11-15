@@ -20,6 +20,7 @@ namespace BaseballApi.Migrations
                 .HasAnnotation("ProductVersion", "8.0.6")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
+            NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "unaccent");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("BaseballApi.Models.AlternateParkName", b =>
@@ -666,10 +667,19 @@ namespace BaseballApi.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("NameNormalized")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("text")
+                        .HasColumnName("name_normalized")
+                        .HasComputedColumnSql("public.unaccent_immutable(lower(\"Name\"))", true);
+
                     b.Property<string>("Suffix")
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("NameNormalized")
+                        .HasDatabaseName("idx_players_name_normalized");
 
                     b.ToTable("Players");
                 });

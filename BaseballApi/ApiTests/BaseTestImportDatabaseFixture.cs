@@ -25,7 +25,7 @@ public class BaseTestImportDatabaseFixture : IDisposable
 
         using var context = CreateContext();
         context.Database.EnsureDeleted();
-        context.Database.EnsureCreated();
+        context.Database.Migrate();
     }
 
     public BaseballContext CreateContext()
