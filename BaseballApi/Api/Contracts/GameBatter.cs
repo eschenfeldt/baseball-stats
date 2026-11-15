@@ -7,6 +7,8 @@ public class GameBatter(Batter batter)
     public PlayerInfo Player { get; set; } = new(batter.Player);
 
     public int Number { get; set; } = batter.Number;
+    public int? LineupPosition { get; set; } = batter.LineupPosition;
+    public int? AppearanceOrder { get; set; } = batter.AppearanceOrder;
 
     public Dictionary<string, int> Stats { get; set; } = new()
     {

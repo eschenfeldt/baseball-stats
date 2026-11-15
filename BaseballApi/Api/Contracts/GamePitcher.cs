@@ -7,6 +7,7 @@ public class GamePitcher(Pitcher pitcher)
     public PlayerInfo Player { get; set; } = new(pitcher.Player);
 
     public int Number { get; set; } = pitcher.Number;
+    public int? AppearanceOrder { get; set; } = pitcher.AppearanceOrder;
 
     public Dictionary<string, int> Stats { get; } = new() {
         { Stat.Games.Name, pitcher.Games },
