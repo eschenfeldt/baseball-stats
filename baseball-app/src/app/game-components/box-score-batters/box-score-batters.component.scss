@@ -20,6 +20,11 @@ table {
     max-height: 100%;
 }
 
+.substitute {
+    display: inline-block;
+    width: 2em;
+}
+
 @media (prefers-color-scheme: dark) {
 
     table,

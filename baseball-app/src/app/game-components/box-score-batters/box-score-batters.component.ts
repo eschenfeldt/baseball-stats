@@ -55,9 +55,24 @@ export class BoxScoreBattersComponent implements OnInit, AfterViewInit {
 
     ngAfterViewInit(): void {
         this.sort.sortChange.subscribe(() => {
-            const basicSort = this.sort.active as (keyof StatDefCollection);
-            if (basicSort && basicSort != 'player') {
-                this.dataSource.sort((a, b) => a.stats[basicSort] - b.stats[basicSort]);
+            const sortCol = this.sort.active;
+            let sortFunc: ((a: GameBatter, b: GameBatter) => number) | undefined;
+            if (sortCol === 'name') {
+                sortFunc = (a, b) => {
+                    if (a.lineupPosition === b.lineupPosition) {
+                        return a.appearanceOrder - b.appearanceOrder;
+                    } else {
+                        return a.lineupPosition - b.lineupPosition;
+                    }
+                };
+            } else {
+                const basicSort = this.sort.active as (keyof StatDefCollection);
+                if (basicSort && basicSort != 'player') {
+                    sortFunc = (a, b) => a.stats[basicSort] - b.stats[basicSort];
+                }
+            }
+            if (sortFunc) {
+                this.dataSource.sort(sortFunc);
                 if (this.sort.direction === 'desc') {
                     this.dataSource.reverse();
                 }

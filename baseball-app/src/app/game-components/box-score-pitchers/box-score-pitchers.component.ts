@@ -57,9 +57,18 @@ export class BoxScorePitchersComponent {
 
     ngAfterViewInit(): void {
         this.sort.sortChange.subscribe(() => {
-            const basicSort = this.sort.active as (keyof StatDefCollection);
-            if (basicSort && basicSort != 'player') {
-                this.dataSource.sort((a, b) => a.stats[basicSort] - b.stats[basicSort]);
+            let sortFunc: ((a: GamePitcher, b: GamePitcher) => number) | undefined;
+            const sortCol = this.sort.active;
+            if (sortCol === 'name') {
+                sortFunc = (a, b) => a.appearanceOrder - b.appearanceOrder;
+            } else {
+                const basicSort = this.sort.active as (keyof StatDefCollection);
+                if (basicSort && basicSort != 'player') {
+                    sortFunc = (a, b) => a.stats[basicSort] - b.stats[basicSort];
+                }
+            }
+            if (sortFunc) {
+                this.dataSource.sort(sortFunc);
                 if (this.sort.direction === 'desc') {
                     this.dataSource.reverse();
                 }
