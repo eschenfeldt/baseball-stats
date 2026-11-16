@@ -10,7 +10,7 @@
                 {{batter.lineupPosition}}
                 &nbsp;
                 }
-                @if (batter.appearanceOrder > 1) {
+                @else if (hasLineup) {
                 <span class="substitute"></span>
                 }
             </span>

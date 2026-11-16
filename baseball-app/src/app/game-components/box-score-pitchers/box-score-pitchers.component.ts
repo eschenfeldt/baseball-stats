@@ -60,7 +60,7 @@ export class BoxScorePitchersComponent {
             let sortFunc: ((a: GamePitcher, b: GamePitcher) => number) | undefined;
             const sortCol = this.sort.active;
             if (sortCol === 'name') {
-                sortFunc = (a, b) => a.appearanceOrder - b.appearanceOrder;
+                sortFunc = (a, b) => Utils.compareOrder(a.appearanceOrder, b.appearanceOrder);
             } else {
                 const basicSort = this.sort.active as (keyof StatDefCollection);
                 if (basicSort && basicSort != 'player') {

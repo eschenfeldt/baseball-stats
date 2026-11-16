@@ -5,6 +5,19 @@ import { Team } from './contracts/team';
 
 export class Utils {
 
+    /** Compares lineup positions or appearance orders, putting unknown (null) values last. */
+    public static compareOrder(a: number | null, b: number | null): number {
+        if (a === b) {
+            return 0;
+        } else if (a === null) {
+            return 1;
+        } else if (b === null) {
+            return -1;
+        } else {
+            return a - b;
+        }
+    }
+
     public static keyToUrl(key: string): string {
         return `${environment.bucketUrl}/${key}`;
     }

@@ -7,6 +7,7 @@ import { TypeSafeMatRowDef } from '../../type-safe-mat-row-def.directive';
 import { RouterModule } from '@angular/router';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { StatDefCollection } from '../../contracts/stat-def';
+import { Utils } from '../../utils';
 
 @Component({
     selector: 'app-box-score-batters',
@@ -31,6 +32,11 @@ export class BoxScoreBattersComponent implements OnInit, AfterViewInit {
     @Input({ required: true })
     stats!: StatDefCollection
     displayedColumns = BoxScoreBattersComponent.fullSizeDisplayedColumns;
+
+    /** True when at least one batter has a known lineup slot, so names need slot-number alignment. */
+    get hasLineup(): boolean {
+        return this.dataSource.some(b => b.lineupPosition !== null);
+    }
 
     get statNames(): string[] {
         return Object.keys(this.stats);
@@ -60,9 +66,9 @@ export class BoxScoreBattersComponent implements OnInit, AfterViewInit {
             if (sortCol === 'name') {
                 sortFunc = (a, b) => {
                     if (a.lineupPosition === b.lineupPosition) {
-                        return a.appearanceOrder - b.appearanceOrder;
+                        return Utils.compareOrder(a.appearanceOrder, b.appearanceOrder);
                     } else {
-                        return a.lineupPosition - b.lineupPosition;
+                        return Utils.compareOrder(a.lineupPosition, b.lineupPosition);
                     }
                 };
             } else {
