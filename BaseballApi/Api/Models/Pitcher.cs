@@ -16,6 +16,7 @@ public class Pitcher
     public required Player Player { get; set; }
 
     public int Number { get; set; }
+    public int? AppearanceOrder { get; set; }
     public int Games { get; set; }
     public int Wins { get; set; }
     public int Losses { get; set; }

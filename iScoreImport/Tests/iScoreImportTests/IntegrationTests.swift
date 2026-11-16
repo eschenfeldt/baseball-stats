@@ -192,12 +192,15 @@ struct IntegrationTests {
         let BatterCount: Int
         let BatterRuns: Int
         let BatterAtBats: Int
+        let BatterLineupPositions: Int
+        let BatterAppearanceOrders: Int
     }
 
     private struct PitcherSummary: Codable {
         let ExternalId: UUID
         let PitcherCount: Int
         let PitcherRuns: Int
+        let PitcherAppearanceOrders: Int
     }
 
     private struct FielderSummary: Codable {
@@ -225,6 +228,9 @@ struct IntegrationTests {
             .column(SQLFunction("COUNT", args: SQLColumn("Id", table: "Batters")), as: "BatterCount")
             .column(SQLFunction("SUM", args: SQLColumn("Runs", table: "Batters")), as: "BatterRuns")
             .column(SQLFunction("SUM", args: SQLColumn("AtBats", table: "Batters")), as: "BatterAtBats")
+            // COUNT(column) only counts non-null values
+            .column(SQLFunction("COUNT", args: SQLColumn("LineupPosition", table: "Batters")), as: "BatterLineupPositions")
+            .column(SQLFunction("COUNT", args: SQLColumn("AppearanceOrder", table: "Batters")), as: "BatterAppearanceOrders")
             .from("Games")
             .join("BoxScores", on: SQLColumn("Id", table: "Games"), .equal, SQLColumn("GameId", table: "BoxScores"))
             .join("Batters", method: SQLJoinMethod.left, on: SQLColumn("Id", table: "BoxScores"), .equal, SQLColumn("BoxScoreId", table: "Batters"))
@@ -235,6 +241,7 @@ struct IntegrationTests {
             .column("ExternalId")
             .column(SQLFunction("COUNT", args: SQLColumn("Id", table: "Pitchers")), as: "PitcherCount")
             .column(SQLFunction("SUM", args: SQLFunction.coalesce(SQLColumn("Runs", table: "Pitchers"), SQLLiteral.numeric("0"))), as: "PitcherRuns")
+            .column(SQLFunction("COUNT", args: SQLColumn("AppearanceOrder", table: "Pitchers")), as: "PitcherAppearanceOrders")
             .from("Games")
             .join("BoxScores", on: SQLColumn("Id", table: "Games"), .equal, SQLColumn("GameId", table: "BoxScores"))
             .join("Pitchers", method: SQLJoinMethod.left, on: SQLColumn("Id", table: "BoxScores"), .equal, SQLColumn("BoxScoreId", table: "Pitchers"))
@@ -277,6 +284,29 @@ struct IntegrationTests {
         #expect(batterSummary?.BatterRuns == 7)
         #expect(pitcherSummary?.PitcherRuns == 7)
         #expect(batterSummary?.BatterAtBats == 63)
+
+        // every batter and pitcher has their order set
+        #expect(batterSummary?.BatterLineupPositions == 28)
+        #expect(batterSummary?.BatterAppearanceOrders == 28)
+        #expect(pitcherSummary?.PitcherAppearanceOrders == 7)
+
+        // and the values make it through to the right rows
+        let axford = try await db.select()
+            .column(SQLColumn("LineupPosition", table: "Batters"))
+            .column(SQLColumn("AppearanceOrder", table: "Batters"), as: "BatterAppearanceOrder")
+            .column(SQLColumn("AppearanceOrder", table: "Pitchers"), as: "PitcherAppearanceOrder")
+            .from("BoxScores")
+            .join("Batters", on: SQLColumn("Id", table: "BoxScores"), .equal, SQLColumn("BoxScoreId", table: "Batters"))
+            .join("Pitchers", on: SQLColumn("Id", table: "BoxScores"), .equal, SQLColumn("BoxScoreId", table: "Pitchers"))
+            .join("Players", on: SQLColumn("Id", table: "Players"), .equal, SQLColumn("PlayerId", table: "Batters"))
+            .where(SQLColumn("GameId", table: "BoxScores"), .equal, SQLLiteral.numeric("\(gameId)"))
+            .where(SQLColumn("PlayerId", table: "Pitchers"), .equal, SQLColumn("PlayerId", table: "Batters"))
+            .where(SQLColumn("Name", table: "Players"), .equal, SQLLiteral.string("John Axford"))
+            .first()
+        let axfordRow = try #require(axford)
+        #expect(try axfordRow.decode(column: "LineupPosition", as: Int.self) == 9)
+        #expect(try axfordRow.decode(column: "BatterAppearanceOrder", as: Int.self) == 5)
+        #expect(try axfordRow.decode(column: "PitcherAppearanceOrder", as: Int.self) == 4)
     }
 
     private func getPlayersToDelete(db: SQLDatabase, gameId: Int) async throws -> [Int] {

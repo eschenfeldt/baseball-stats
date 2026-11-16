@@ -20,6 +20,25 @@ table {
     max-height: 100%;
 }
 
+th.name {
+    padding-left: 2.5em;
+}
+
+td.name,
+th.name {
+    text-align: left;
+}
+
+td,
+th {
+    text-align: center;
+}
+
+.substitute {
+    display: inline-block;
+    width: 2em;
+}
+
 @media (prefers-color-scheme: dark) {
 
     table,

@@ -20,6 +20,16 @@ table {
     max-height: 100%;
 }
 
+td.name,
+th.name {
+    text-align: left;
+}
+
+td,
+th {
+    text-align: center;
+}
+
 @media (prefers-color-scheme: dark) {
 
     table,

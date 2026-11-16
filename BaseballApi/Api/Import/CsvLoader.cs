@@ -21,11 +21,12 @@ public class CsvLoader
         {
             this.LoadData();
         }
-        foreach (var rawRow in this.Rows)
+        foreach (var (index, rawRow) in this.Rows.Index())
         {
             var name = rawRow[HeaderIndices["Name"]];
             if (!name.Equals("TOTALS", StringComparison.OrdinalIgnoreCase))
             {
+                int? lineupPosition = index < 9 ? index + 1 : null;
                 yield return new Batter
                 {
                     BoxScore = boxScore,
@@ -34,6 +35,8 @@ public class CsvLoader
                         Name = name,
                     },
                     Number = this.GetInt(rawRow, "#"),
+                    LineupPosition = lineupPosition,
+                    AppearanceOrder = lineupPosition != null ? 1 : null,
                     Games = this.GetInt(rawRow, "G"),
                     PlateAppearances = this.GetInt(rawRow, "PA"),
                     AtBats = this.GetInt(rawRow, "AB"),
@@ -73,7 +76,7 @@ public class CsvLoader
         {
             this.LoadData();
         }
-        foreach (var rawRow in this.Rows)
+        foreach (var (index, rawRow) in this.Rows.Index())
         {
             var name = rawRow[HeaderIndices["Name"]];
             if (!name.Equals("TOTALS", StringComparison.OrdinalIgnoreCase))
@@ -86,6 +89,7 @@ public class CsvLoader
                         Name = name,
                     },
                     Number = this.GetInt(rawRow, "#"),
+                    AppearanceOrder = index + 1,
                     Games = this.GetInt(rawRow, "G"),
                     Wins = GetInt(rawRow, "W"),
                     Losses = GetInt(rawRow, "L"),

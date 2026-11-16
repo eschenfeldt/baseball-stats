@@ -7,6 +7,7 @@ import { TypeSafeMatRowDef } from '../../type-safe-mat-row-def.directive';
 import { RouterModule } from '@angular/router';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { StatDefCollection } from '../../contracts/stat-def';
+import { Utils } from '../../utils';
 
 @Component({
     selector: 'app-box-score-batters',
@@ -32,6 +33,11 @@ export class BoxScoreBattersComponent implements OnInit, AfterViewInit {
     stats!: StatDefCollection
     displayedColumns = BoxScoreBattersComponent.fullSizeDisplayedColumns;
 
+    /** True when at least one batter has a known lineup slot, so names need slot-number alignment. */
+    get hasLineup(): boolean {
+        return this.dataSource.some(b => b.lineupPosition !== null);
+    }
+
     get statNames(): string[] {
         return Object.keys(this.stats);
     }
@@ -55,9 +61,24 @@ export class BoxScoreBattersComponent implements OnInit, AfterViewInit {
 
     ngAfterViewInit(): void {
         this.sort.sortChange.subscribe(() => {
-            const basicSort = this.sort.active as (keyof StatDefCollection);
-            if (basicSort && basicSort != 'player') {
-                this.dataSource.sort((a, b) => a.stats[basicSort] - b.stats[basicSort]);
+            const sortCol = this.sort.active;
+            let sortFunc: ((a: GameBatter, b: GameBatter) => number) | undefined;
+            if (sortCol === 'name') {
+                sortFunc = (a, b) => {
+                    if (a.lineupPosition === b.lineupPosition) {
+                        return Utils.compareOrder(a.appearanceOrder, b.appearanceOrder);
+                    } else {
+                        return Utils.compareOrder(a.lineupPosition, b.lineupPosition);
+                    }
+                };
+            } else {
+                const basicSort = this.sort.active as (keyof StatDefCollection);
+                if (basicSort && basicSort != 'player') {
+                    sortFunc = (a, b) => a.stats[basicSort] - b.stats[basicSort];
+                }
+            }
+            if (sortFunc) {
+                this.dataSource.sort(sortFunc);
                 if (this.sort.direction === 'desc') {
                     this.dataSource.reverse();
                 }

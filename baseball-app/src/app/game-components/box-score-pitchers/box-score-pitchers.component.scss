@@ -20,6 +20,22 @@ table {
     max-height: 100%;
 }
 
+td.name,
+th.name {
+    text-align: left;
+}
+
+td,
+th {
+    text-align: center;
+}
+
+.not-applicable {
+    display: inline-block;
+    width: 100%;
+    text-align: center;
+}
+
 @media (prefers-color-scheme: dark) {
 
     table,

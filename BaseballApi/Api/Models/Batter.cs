@@ -17,6 +17,8 @@ public class Batter
     public required Player Player { get; set; }
 
     public int Number { get; set; }
+    public int? LineupPosition { get; set; }
+    public int? AppearanceOrder { get; set; }
     public int Games { get; set; }
     public int PlateAppearances { get; set; }
     public int AtBats { get; set; }

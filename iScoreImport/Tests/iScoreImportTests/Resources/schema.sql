@@ -1092,3 +1092,35 @@ BEGIN
 END $EF$;
 COMMIT;
 
+START TRANSACTION;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261115161349_BoxScoreOrder') THEN
+    ALTER TABLE "Pitchers" ADD "AppearanceOrder" integer;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261115161349_BoxScoreOrder') THEN
+    ALTER TABLE "Batters" ADD "AppearanceOrder" integer;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261115161349_BoxScoreOrder') THEN
+    ALTER TABLE "Batters" ADD "LineupPosition" integer;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261115161349_BoxScoreOrder') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20261115161349_BoxScoreOrder', '10.0.15');
+    END IF;
+END $EF$;
+COMMIT;
+

@@ -13,6 +13,8 @@ struct Pitcher: Codable {
     let TeamExternalId: UUID
 
     let Number: Int
+    /// 1 for the starting pitcher, 2 for the first reliever, etc. (iScore's `pit_seq`)
+    let AppearanceOrder: Int?
     let Games: Int
     let Wins: Int
     let Losses: Int
