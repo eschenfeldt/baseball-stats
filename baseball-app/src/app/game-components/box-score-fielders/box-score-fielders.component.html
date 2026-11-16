@@ -1,10 +1,10 @@
 <table mat-table [dataSource]="dataSource" #table="matTable" matSort class="mat-elevation-z8">
 
     <ng-container matColumnDef="name" sticky>
-        <th mat-header-cell *matHeaderCellDef>
+        <th mat-header-cell *matHeaderCellDef class="name">
             Name
         </th>
-        <td mat-cell *matCellDef="let fielder; table: table">
+        <td mat-cell *matCellDef="let fielder; table: table" class="name">
             <a [routerLink]="['/player', fielder.player.id]"
                 routerLinkActive="router-link-active">{{fielder.player.name}}</a>
 
