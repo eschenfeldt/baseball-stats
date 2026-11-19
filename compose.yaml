@@ -108,7 +108,7 @@ services:
   # their own scratch database per test from Tests/iScoreImportTests/Resources/schema.sql,
   # so nothing needs seeding first.
   swift-tests:
-    image: swift:6.1-noble
+    image: swift:6.4-noble
     profiles:
       - swift-test
     depends_on:
